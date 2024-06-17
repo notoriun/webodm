@@ -1,0 +1,2037 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-31 17:09+0000\n"
+"PO-Revision-Date: 2022-02-02 13:20+0000\n"
+"Last-Translator: Rumi Kuribayashi <rumikr02005@gmail.com>\n"
+"Language-Team: Japanese <https://hosted.weblate.org/projects/webodm/webodm/"
+"ja/>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.11-dev\n"
+
+#: app/admin.py:65
+msgid "Enter custom CSS"
+msgstr "カスタムスタイルシートを入力"
+
+#: app/admin.py:66 app/models/theme.py:40
+msgid "CSS"
+msgstr "スタイルシート"
+
+#: app/admin.py:69
+msgid "HTML that will be displayed above site header"
+msgstr "サイトのヘッダー上部に表示されるHTML"
+
+#: app/admin.py:70 app/models/theme.py:41
+msgid "HTML (before header)"
+msgstr "HTML (ヘッダー前)"
+
+#: app/admin.py:73
+msgid "HTML that will be displayed after site header"
+msgstr "サイトのヘッダー後に表示されるHTML"
+
+#: app/admin.py:74 app/models/theme.py:42
+msgid "HTML (after header)"
+msgstr "HTML (ヘッダー後)"
+
+#: app/admin.py:77
+msgid "HTML that will be displayed after the body tag"
+msgstr "bodyタグの後に表示されるHTML"
+
+#: app/admin.py:78 app/models/theme.py:43
+msgid "HTML (after body)"
+msgstr "HTML (body後)"
+
+#: app/admin.py:82
+#, python-brace-format
+msgid ""
+"HTML that will be displayed in the footer. You can also use the special tags "
+"such as {ORGANIZATION} and {YEAR}."
+msgstr ""
+"フッターに表示されるHTML。{ORGANIZATION} や {YEAR}のような特別なタグも使用可"
+"能です。"
+
+#: app/admin.py:83 app/models/theme.py:44
+msgid "HTML (footer)"
+msgstr "HTML (フッター)"
+
+#: app/admin.py:115 app/models/project.py:25
+msgid "Description"
+msgstr "説明"
+
+#: app/admin.py:121
+msgid "Version"
+msgstr "バージョン"
+
+#: app/admin.py:127
+msgid "Author"
+msgstr "作者"
+
+#: app/admin.py:159
+#, python-format
+msgid "Restart required. Please restart WebODM to enable %(plugin)s"
+msgstr ""
+"再起動が必要です。%(plugin)sを有効にするためにWebODMを再起動してください"
+
+#: app/admin.py:162
+#, python-format
+msgid "Cannot enable plugin %(plugin)s: %(message)s"
+msgstr "%(plugin)sプラグインを有効化できません: %(message)s"
+
+#: app/admin.py:171
+#, python-format
+msgid "Restart required. Please restart WebODM to fully disable %(plugin)s"
+msgstr ""
+"再起動が必要です。%(plugin)sプラグインを完全に無効化するためにWebODMを再起動"
+"してください"
+
+#: app/admin.py:174
+#, python-format
+msgid "Cannot disable plugin %(plugin)s: %(message)s"
+msgstr "%(plugin)sプラグインを無効化できません: %(message)s"
+
+#: app/admin.py:183
+#, python-format
+msgid "Cannot delete plugin %(plugin)s: %(message)s"
+msgstr "%(plugin)sプラグインを削除できません: %(message)s"
+
+#: app/admin.py:231
+msgid "Plugin added successfully"
+msgstr "プラグインの追加に成功"
+
+#: app/admin.py:233
+#, python-format
+msgid "Cannot load plugin: %(message)s"
+msgstr "プラグインを読み込めません: %(message)s"
+
+#: app/admin.py:239
+msgid "You need to upload a zip file"
+msgstr "zipファイルのアップロードが必要です"
+
+#: app/admin.py:253
+msgid "Disable"
+msgstr "無効"
+
+#: app/admin.py:256
+msgid "Enable"
+msgstr "有効"
+
+#: app/admin.py:261
+msgid "Actions"
+msgstr "行動"
+
+#: app/api/formulas.py:12 app/api/formulas.py:32
+msgid ""
+"Normalized Difference Vegetation Index shows the amount of green vegetation."
+msgstr "正規化植生指標(NDVI)は植生の量を示します。"
+
+#: app/api/formulas.py:17
+msgid ""
+"Normalized difference yellowness index (NDYI), best model variability in "
+"relative yield potential in Canola."
+msgstr ""
+
+#: app/api/formulas.py:22
+#, fuzzy
+#| msgid ""
+#| "Normalized Difference Vegetation Index shows the amount of green "
+#| "vegetation."
+msgid ""
+"Normalized Difference Red Edge Index shows the amount of green vegetation of "
+"permanent or later stage crops."
+msgstr "正規化植生指標(NDVI)は植生の量を示します。"
+
+#: app/api/formulas.py:27
+#, fuzzy
+#| msgid ""
+#| "Normalized Difference Vegetation Index shows the amount of green "
+#| "vegetation."
+msgid ""
+"Normalized Difference Water Index shows the amount of water content in water "
+"bodies."
+msgstr "正規化植生指標(NDVI)は植生の量を示します。"
+
+#: app/api/formulas.py:37
+msgid ""
+"Enhanced Normalized Difference Vegetation Index is like NDVI, but uses Blue "
+"and Green bands instead of only Red to isolate plant health."
+msgstr ""
+"強化された正規化植生指数(ENDVI)はNDVIに似ていますが、孤立した植物の健全度を図"
+"るために赤色だけではなく青色と緑色域を使用します。"
+
+#: app/api/formulas.py:41
+msgid ""
+"Visible NDVI is an un-normalized index for RGB sensors using constants "
+"derived from citrus, grape, and sugarcane crop data."
+msgstr ""
+"可視光NDVIは、RGBセンサー用の正規化されていない指標で、柑橘類、ブドウ、サトウ"
+"キビの作物データから得られた定数を使用しています。"
+
+#: app/api/formulas.py:45
+msgid "Visual Atmospheric Resistance Index shows the areas of vegetation."
+msgstr "Visual Atmospheric Resistance Index は植生の範囲を示します。"
+
+#: app/api/formulas.py:50
+msgid "Modified Photochemical Reflectance Index"
+msgstr ""
+
+#: app/api/formulas.py:55
+msgid ""
+"Excess Green Index (derived from only the RGB bands) emphasizes the "
+"greenness of leafy crops such as potatoes."
+msgstr ""
+"Excess Green Index (RGBバンドからのみ派生) はジャガイモのような作物の葉の緑を"
+"強調します。"
+
+#: app/api/formulas.py:59
+msgid ""
+"Burn Area Index hightlights burned land in the red to near-infrared spectrum."
+msgstr "Burn Area Index は赤色から近赤外線スペクトルで焼け跡を強調します。"
+
+#: app/api/formulas.py:63
+msgid "Green Leaf Index shows greens leaves and stems."
+msgstr "Green Leaf Index は緑の葉と茎を表します。"
+
+#: app/api/formulas.py:68
+msgid ""
+"Green Normalized Difference Vegetation Index is similar to NDVI, but "
+"measures the green spectrum instead of red."
+msgstr ""
+"緑正規化植生指数は正規化植生に似ていますが、赤色ではなく緑色域を測定します。"
+
+#: app/api/formulas.py:73
+msgid ""
+"Green Ratio Vegetation Index is sensitive to photosynthetic rates in forests."
+msgstr "Green Ratio Vegetation Index は森林での光合成率に鋭敏です。"
+
+#: app/api/formulas.py:77
+msgid ""
+"Soil Adjusted Vegetation Index is similar to NDVI but attempts to remove the "
+"effects of soil areas using an adjustment factor (0.5)."
+msgstr ""
+"Soil Adjusted Vegetation Index は NDVI に似ていますが、adjustment factor "
+"(0.5)を用いることで土壌の影響を取り除きます。"
+
+#: app/api/formulas.py:81
+msgid ""
+"Modified Non-Linear Index improves the Non-Linear Index algorithm to account "
+"for soil areas."
+msgstr ""
+"Modified Non-Linear Index は 土壌範囲を計算するNon-Linear インデックスアルゴ"
+"リズムを改善します。"
+
+#: app/api/formulas.py:85
+msgid ""
+"Modified Simple Ratio is an improvement of the Simple Ratio (SR) index to be "
+"more sensitive to vegetation."
+msgstr ""
+"Modified Simple Ratio は Simple Ratio (SR) index の改良版であり、植生に対しよ"
+"り感受性があります。"
+
+#: app/api/formulas.py:89
+msgid ""
+"Renormalized Difference Vegetation Index uses the difference between near-IR "
+"and red, plus NDVI to show areas of healthy vegetation."
+msgstr ""
+"再正規化植生指数は近赤外線と赤色光の間の差異を用い、NDVIに加えて健全な植生の"
+"範囲を示します。"
+
+#: app/api/formulas.py:93
+msgid ""
+"Transformed Difference Vegetation Index highlights vegetation cover in urban "
+"environments."
+msgstr ""
+"Transformed Difference Vegetation Index は都市環境での植生被覆を強調します。"
+
+#: app/api/formulas.py:97
+msgid ""
+"Optimized Soil Adjusted Vegetation Index is based on SAVI, but tends to work "
+"better in areas with little vegetation where soil is visible."
+msgstr ""
+"Optimized Soil Adjusted Vegetation Index is はSAVIがベースですが、土壌が露出"
+"し植生がほとんどない場所で有効です。"
+
+#: app/api/formulas.py:101
+msgid "Leaf Area Index estimates foliage areas and predicts crop yields."
+msgstr "Leaf Area Index は葉の面積を推定し、作物の収穫量を予測します。"
+
+#: app/api/formulas.py:106
+msgid ""
+"Enhanced Vegetation Index is useful in areas where NDVI might saturate, by "
+"using blue wavelengths to correct soil signals."
+msgstr ""
+"Enhanced Vegetation Index は青色の波長を用いて土壌の信号を正確にとらえるの"
+"で、NDVIが飽和する場所で有益です。"
+
+#: app/api/formulas.py:111
+msgid ""
+"Atmospherically Resistant Vegetation Index. Useful when working with imagery "
+"for regions with high atmospheric aerosol content."
+msgstr ""
+
+#: app/api/formulas.py:116
+msgid "Temperature in Celsius degrees."
+msgstr ""
+
+#: app/api/formulas.py:120
+msgid "Temperature in Centikelvin degrees."
+msgstr ""
+
+#: app/api/projects.py:125
+msgid "Cannot duplicate project"
+msgstr "プロジェクトを複製できません"
+
+#: app/api/projects.py:193
+msgid "Invalid user in permissions list"
+msgstr "権限リストの無効なユーザー"
+
+#: app/api/projects.py:195
+msgid "Invalid permissions"
+msgstr "無効な権限"
+
+#: app/api/tasks.py:186
+#, fuzzy
+#| msgid "You need to upload at least 2 images before commit"
+msgid "You need to upload at least 1 file before commit"
+msgstr "実行前に少なくとも２つの画像をアップロードする必要があります"
+
+#: app/api/tasks.py:208
+msgid "No files uploaded"
+msgstr "ファイルがアップロードされていません"
+
+#: app/api/tasks.py:234
+msgid "Cannot duplicate task"
+msgstr "タスクを複製できません"
+
+#: app/api/tasks.py:251
+msgid "Cannot create task, you need at least 2 images"
+msgstr "タスクが作成できないので、少なくとも2つの画像が必要です"
+
+#: app/api/tasks.py:370 app/api/tasks.py:374 app/api/tasks.py:398
+#: app/api/tasks.py:401 app/api/tasks.py:419
+msgid "Asset does not exist"
+msgstr "アセットが存在しません"
+
+#: app/api/tasks.py:437
+msgid "Imported Task"
+msgstr "インポート済みタスク"
+
+#: app/api/tasks.py:440
+msgid "Cannot create task, you need to upload 1 file"
+msgstr "タスクが作成できないので、1つのファイルのアップロードが必要です"
+
+#: app/api/tasks.py:443
+msgid "Cannot create task, either specify a URL or upload 1 file."
+msgstr ""
+"タスクが作成できないので、URLを特定するかファイルを一つアップロードしてくださ"
+"い。"
+
+#: app/api/tiler.py:307
+msgid "Invalid boundaries parameter"
+msgstr "無効な境界線パラメータ"
+
+#: app/api/tiler.py:326
+#, fuzzy
+#| msgid "Invalid boundaries parameter"
+msgid "Invalid tile size parameter"
+msgstr "無効な境界線パラメータ"
+
+#: app/api/tiler.py:356 app/api/tiler.py:428
+msgid "Outside of bounds"
+msgstr "境界線の外側"
+
+#: app/api/tiler.py:366
+msgid "Invalid boundaries"
+msgstr "無効な境界線"
+
+#: app/api/tiler.py:434 app/api/tiler.py:553
+msgid "Not a valid color_map value"
+msgstr "有効なcolor_mapの値ではない"
+
+#: app/api/tiler.py:440
+msgid "Invalid rescale value"
+msgstr "無効な再スケール値"
+
+#: app/api/tiler.py:462
+msgid "Invalid hillshade value"
+msgstr "無効な陰影起伏値"
+
+#: app/api/tiler.py:465
+msgid "Cannot compute hillshade of non-elevation raster (multiple bands found)"
+msgstr ""
+"非標高ラスターの陰影起伏を計算できません（複数のバンドが見つかりました）"
+
+#: app/api/tiler.py:489
+msgid ""
+"Cannot process tile: intensity image provided, but no RGB data was computed."
+msgstr ""
+"タイルを処理できません：強度画像は提供されましたが、RGBデータは計算されません"
+"でした。"
+
+#: app/api/tiler.py:538 app/api/tiler.py:540
+#, python-format
+msgid "Unsupported format: %(value)s"
+msgstr "サポートされていない形式：%(value)s"
+
+#: app/api/tiler.py:559
+#, python-format
+msgid "Invalid EPSG code: %(value)s"
+msgstr "無効な EPSG コード: %(value)s"
+
+#: app/api/tiler.py:562
+msgid "Both formula and bands parameters are required"
+msgstr "数式とバンドの両方のパラメータが必要です"
+
+#: app/api/tiler.py:585
+#, python-format
+msgid "Invalid rescale value: %(value)s"
+msgstr "無効な再スケール値：%(value)s"
+
+#: app/api/tiler.py:593
+#, python-format
+msgid "Invalid hillshade value: %(value)s"
+msgstr "無効な陰影起伏値：%(value)s"
+
+#: app/api/tiler.py:604
+msgid "Cannot use epsg on non-georeferenced dataset"
+msgstr ""
+
+#: app/models/plugin.py:5
+msgid "Plugin name"
+msgstr "プラグイン名"
+
+#: app/models/plugin.py:5 app/models/preset.py:10 app/models/project.py:24
+#: app/models/task.py:245 app/models/theme.py:18
+msgid "Name"
+msgstr "名称"
+
+#: app/models/plugin.py:6
+msgid "Whether this plugin is turned on."
+msgstr "このプラグインがオンになっているかどうか。"
+
+#: app/models/plugin.py:6
+msgid "Enabled"
+msgstr "有効"
+
+#: app/models/plugin.py:20
+msgid "Plugin"
+msgstr "プラグイン"
+
+#: app/models/plugin.py:21 app/templates/app/logged_in_base.html:122
+msgid "Plugins"
+msgstr "プラグイン"
+
+#: app/models/plugin_datum.py:7
+msgid "Setting key"
+msgstr "キー設定"
+
+#: app/models/plugin_datum.py:7
+msgid "Key"
+msgstr "キー"
+
+#: app/models/plugin_datum.py:8
+msgid "The user this setting belongs to. If NULL, the setting is global."
+msgstr "この設定のユーザー。空欄であればグローバル設定。"
+
+#: app/models/plugin_datum.py:8 app/templates/app/admin/object_history.html:23
+msgid "User"
+msgstr "ユーザ"
+
+#: app/models/plugin_datum.py:9
+msgid "Integer value"
+msgstr "整数値"
+
+#: app/models/plugin_datum.py:10
+msgid "Float value"
+msgstr "浮動小数点値"
+
+#: app/models/plugin_datum.py:11
+msgid "Bool value"
+msgstr "ブール値"
+
+#: app/models/plugin_datum.py:12
+msgid "String value"
+msgstr "文字列"
+
+#: app/models/plugin_datum.py:13
+msgid "JSON value"
+msgstr "JSON値"
+
+#: app/models/plugin_datum.py:19 app/models/plugin_datum.py:20
+msgid "Plugin Datum"
+msgstr "プラグインデータ"
+
+#: app/models/preset.py:9
+msgid "The person who owns this preset"
+msgstr "このプリセットを所有する者"
+
+#: app/models/preset.py:9 app/models/project.py:23
+msgid "Owner"
+msgstr "所有者"
+
+#: app/models/preset.py:10
+msgid "A label used to describe the preset"
+msgstr "プリセット説明用ラベル"
+
+#: app/models/preset.py:11
+msgid "Options that define this preset (same format as in a Task's options)."
+msgstr ""
+"このプリセットを定義するオプション(タスクオプションと同様のフォーマット)。"
+
+#: app/models/preset.py:11 app/models/task.py:251
+msgid "Options"
+msgstr "設定"
+
+#: app/models/preset.py:13 app/models/project.py:26 app/models/task.py:259
+msgid "Creation date"
+msgstr "作成日"
+
+#: app/models/preset.py:13 app/models/project.py:26 app/models/task.py:259
+msgid "Created at"
+msgstr "作成者"
+
+#: app/models/preset.py:14
+msgid ""
+"Whether this preset is available to every user in the system or just to its "
+"owner."
+msgstr ""
+"このプリセットはこのシステムの全てのユーザーが使用可能か、所有者のみ使用可能"
+"か。"
+
+#: app/models/preset.py:14
+msgid "System"
+msgstr "システム"
+
+#: app/models/preset.py:20
+msgid "Preset"
+msgstr "プリセット"
+
+#: app/models/preset.py:21
+msgid "Presets"
+msgstr "プリセット"
+
+#: app/models/profile.py:15
+msgid "Maximum disk quota in megabytes"
+msgstr ""
+
+#: app/models/profile.py:15
+msgid "Quota"
+msgstr ""
+
+#: app/models/project.py:23
+msgid "The person who created the project"
+msgstr "このプロジェクトの作成者"
+
+#: app/models/project.py:24
+msgid "A label used to describe the project"
+msgstr "プロジェクト説明用ラベル"
+
+#: app/models/project.py:25
+msgid "More in-depth description of the project"
+msgstr "プロジェクトのより詳細な説明"
+
+#: app/models/project.py:27
+msgid ""
+"Whether this project has been marked for deletion. Projects that have "
+"running tasks need to wait for tasks to be properly cleaned up before they "
+"can be deleted."
+msgstr ""
+"このプロジェクトは削除に印が付いているかどうか。タスクが動作中のプロジェクト"
+"はタスクが適切に消去されるのを待ってから削除可能になります。"
+
+#: app/models/project.py:27
+msgid "Deleting"
+msgstr "削除しています"
+
+#: app/models/project.py:28
+#, fuzzy
+#| msgid "Projects"
+msgid "Project tags"
+msgstr "プロジェクト"
+
+#: app/models/project.py:28 app/models/task.py:282
+msgid "Tags"
+msgstr ""
+
+#: app/models/project.py:65 app/models/task.py:430
+#, python-format
+msgid "Copy of %(task)s"
+msgstr "%(task)sをコピー"
+
+#: app/models/project.py:90 app/models/task.py:244
+msgid "Project"
+msgstr "プロジェクト"
+
+#: app/models/project.py:91 coreplugins/projects-charts/templates/index.html:7
+msgid "Projects"
+msgstr "プロジェクト"
+
+#: app/models/setting.py:20
+msgid "The name of your application"
+msgstr "あなたのアプリケーション名称"
+
+#: app/models/setting.py:20
+msgid "App name"
+msgstr "アプリ名"
+
+#: app/models/setting.py:21
+msgid "A 512x512 logo of your application (.png or .jpeg)"
+msgstr "512x512 サイズのアプリのロゴ (.png or .jpeg)"
+
+#: app/models/setting.py:21
+msgid "App logo"
+msgstr "アプリロゴ"
+
+#: app/models/setting.py:31
+msgid "The name of your organization"
+msgstr "組織名"
+
+#: app/models/setting.py:31
+msgid "Organization name"
+msgstr "組織名"
+
+#: app/models/setting.py:32
+msgid "The website URL of your organization"
+msgstr "所属する組織のウェブサイトURL"
+
+#: app/models/setting.py:32
+msgid "Organization website"
+msgstr "組織のウェブサイト"
+
+#: app/models/setting.py:33 app/models/theme.py:50 app/models/theme.py:51
+#: app/templates/app/logged_in_base.html:119
+msgid "Theme"
+msgstr "テーマ"
+
+#: app/models/setting.py:34
+msgid "Active theme"
+msgstr "使用中のテーマ"
+
+#: app/models/setting.py:73 app/templates/app/logged_in_base.html:125
+msgid "Application"
+msgstr "アプリケーション"
+
+#: app/models/setting.py:76 app/models/setting.py:77
+msgid "Settings"
+msgstr "設定"
+
+#: app/models/task.py:241
+msgid "Id"
+msgstr "ID"
+
+#: app/models/task.py:243
+msgid "Identifier of the task (as returned by NodeODM API)"
+msgstr "タスクの識別子 (NodeODM APIの戻り値と同様)"
+
+#: app/models/task.py:243
+msgid "UUID"
+msgstr "UUID"
+
+#: app/models/task.py:244
+msgid "Project that this task belongs to"
+msgstr "このタスクが属するプロジェクト"
+
+#: app/models/task.py:245
+msgid "A label for the task"
+msgstr "タスクのラベル"
+
+#: app/models/task.py:246
+msgid ""
+"Number of milliseconds that elapsed since the beginning of this task (-1 "
+"indicates that no information is available)"
+msgstr "タスク開始から経過したミリ秒 (-1 は利用可能な情報が無いことを示します)"
+
+#: app/models/task.py:246
+msgid "Processing Time"
+msgstr "処理時間"
+
+#: app/models/task.py:247
+msgid ""
+"Processing node assigned to this task (or null if this task has not been "
+"associated yet)"
+msgstr ""
+"このタスクに割り当てられたプロセシングノード（このタスクがまだ関連付けられて"
+"いない場合はnull）"
+
+#: app/models/task.py:247 app/views/app.py:118 nodeodm/models.py:36
+msgid "Processing Node"
+msgstr "処理中のノード"
+
+#: app/models/task.py:248
+msgid ""
+"A flag indicating whether this task should be automatically assigned a "
+"processing node"
+msgstr "このタスクをプロセシングノードに自動で割り当てる必要があるか示すフラグ"
+
+#: app/models/task.py:248
+msgid "Auto Processing Node"
+msgstr "自動処理中のノード"
+
+#: app/models/task.py:249
+msgid "Current status of the task"
+msgstr "タスクの現在の状態"
+
+#: app/models/task.py:249
+msgid "Status"
+msgstr "状態"
+
+#: app/models/task.py:250
+msgid "The last processing error received"
+msgstr "最後に受け取った処理エラー"
+
+#: app/models/task.py:250
+msgid "Last Error"
+msgstr "最新のエラー"
+
+#: app/models/task.py:251
+msgid "Options that are being used to process this task"
+msgstr "このタスク処理に使われているオプション"
+
+#: app/models/task.py:252
+msgid "List of available assets to download"
+msgstr "ダウンロード可能なアセットのリスト"
+
+#: app/models/task.py:252
+msgid "Available Assets"
+msgstr "使用可能なアセット"
+
+#: app/models/task.py:254
+msgid "Extent of the orthophoto"
+msgstr "オルソフォトの範囲"
+
+#: app/models/task.py:254
+msgid "Orthophoto Extent"
+msgstr "オルソフォト範囲"
+
+#: app/models/task.py:255
+msgid "DSM Extent"
+msgstr "DSM(数値表層モデル)範囲"
+
+#: app/models/task.py:256
+msgid "DTM Extent"
+msgstr "DTM(数値地形モデル)範囲"
+
+#: app/models/task.py:260
+msgid ""
+"A requested action to be performed on the task. The selected action will be "
+"performed by the worker at the next iteration."
+msgstr ""
+"このタスクで実行をリクエストされたアクション。選択されたアクションは次回反復"
+"時に実行されます。"
+
+#: app/models/task.py:260
+msgid "Pending Action"
+msgstr "保留中の動作"
+
+#: app/models/task.py:262
+msgid "A flag indicating whether this task is available to the public"
+msgstr "このタスクが公開可能か示すフラグ"
+
+#: app/models/task.py:262
+msgid "Public"
+msgstr "公開"
+
+#: app/models/task.py:263
+msgid ""
+"When set to a value different than -1, indicates that the images for this "
+"task have been / will be resized to the size specified here before "
+"processing."
+msgstr ""
+"-1とは違う値を設定した時に、このタスクの画像は処理開始前にここで指定したサイ"
+"ズにリサイズされました / されます。"
+
+#: app/models/task.py:263
+msgid "Resize To"
+msgstr "リサイズ"
+
+#: app/models/task.py:266
+msgid ""
+"Value between 0 and 1 indicating the upload progress of this task's files to "
+"the processing node"
+msgstr ""
+"0から1の値はタスクファイルのプロセシングノードへのアップロード進捗状況を示し"
+"ます"
+
+#: app/models/task.py:267
+msgid "Upload Progress"
+msgstr "アップロード進行状況:"
+
+#: app/models/task.py:270
+msgid ""
+"Value between 0 and 1 indicating the resize progress of this task's images"
+msgstr "タスク画像のリサイズ進行状況を示す0から1の値"
+
+#: app/models/task.py:271
+msgid "Resize Progress"
+msgstr "リサイズ進行状況"
+
+#: app/models/task.py:274
+msgid ""
+"Value between 0 and 1 indicating the running progress (estimated) of this "
+"task"
+msgstr "このタスクの進行状況（予想）を示す0から1の値"
+
+#: app/models/task.py:275
+msgid "Running Progress"
+msgstr "実行中の処理"
+
+#: app/models/task.py:277
+msgid "URL this task is imported from (only for imported tasks)"
+msgstr "このタスクのインポート元のURL（インポートのみ）"
+
+#: app/models/task.py:277
+msgid "Import URL"
+msgstr "URLインポート"
+
+#: app/models/task.py:278
+msgid "Number of images associated with this task"
+msgstr "このタスクに関連する画像の数"
+
+#: app/models/task.py:278
+msgid "Images Count"
+msgstr "画像のカウント数"
+
+#: app/models/task.py:279
+msgid ""
+"A flag indicating whether this task is currently waiting for information or "
+"files to be uploaded before being considered for processing."
+msgstr ""
+"このタスクが処理実行前に情報またはファイルのアップロードを現在待機中であるか"
+"表示するフラグ."
+
+#: app/models/task.py:279
+msgid "Partial"
+msgstr "部分"
+
+#: app/models/task.py:280
+msgid ""
+"Serialized potree scene information used to save/load measurements and "
+"camera view angle"
+msgstr ""
+"測定結果やカメラビュー角度の保存/読込に使用される連続したpotree sceneの情報"
+
+#: app/models/task.py:280
+msgid "Potree Scene"
+msgstr "Potreeシーン"
+
+#: app/models/task.py:281
+msgid "EPSG code of the dataset (if georeferenced)"
+msgstr "データセットのEPSGコード（地理参照されている場合）"
+
+#: app/models/task.py:282
+#, fuzzy
+#| msgid "Tasks"
+msgid "Task tags"
+msgstr "タスク"
+
+#: app/models/task.py:283
+#, fuzzy
+#| msgid "Extent of the orthophoto"
+msgid "List of orthophoto bands"
+msgstr "オルソフォトの範囲"
+
+#: app/models/task.py:283
+#, fuzzy
+#| msgid "Orthophoto Extent"
+msgid "Orthophoto Bands"
+msgstr "オルソフォト範囲"
+
+#: app/models/task.py:284
+msgid "Size of the task on disk in megabytes"
+msgstr ""
+
+#: app/models/task.py:284
+msgid "Size"
+msgstr ""
+
+#: app/models/task.py:287
+msgid "Task"
+msgstr "タスク"
+
+#: app/models/task.py:288
+msgid "Tasks"
+msgstr "タスク"
+
+#: app/models/task.py:299
+msgid "unnamed"
+msgstr "名称未設定"
+
+#: app/models/task.py:549
+msgid "Importing assets..."
+msgstr "アセットをインポート中..."
+
+#: app/models/task.py:601 app/models/task.py:869
+msgid "Invalid zip file"
+msgstr "無効なzipファイル"
+
+#: app/models/task.py:695
+#, python-format
+msgid "Connection error: %(error)s"
+msgstr "接続エラー：%(error)s"
+
+#: app/models/task.py:775
+msgid "Cannot restart a task that has no processing node"
+msgstr "処理中のノードがないので再始動できませんでした"
+
+#: app/models/task.py:949
+#, python-format
+msgid "Unsupported SRS %(code)s. Please make sure you picked a supported SRS."
+msgstr ""
+"サポートされていないSRSです %(code)s. サポートされているSRSを選択したか確認し"
+"てください."
+
+#: app/models/task.py:963
+msgid "Done!"
+msgstr "完了！"
+
+#: app/models/theme.py:18
+msgid "Name of theme"
+msgstr "テーマ名"
+
+#: app/models/theme.py:21
+msgid "Most text, icons, and borders."
+msgstr "大部分のテキスト、アイコン、下線。"
+
+#: app/models/theme.py:21
+msgid "Primary"
+msgstr "プライマリ"
+
+#: app/models/theme.py:22
+msgid "The main background color, and text color of some buttons."
+msgstr "主な背景色、ボタンの文字色."
+
+#: app/models/theme.py:22
+msgid "Secondary"
+msgstr "セカンダリ"
+
+#: app/models/theme.py:23
+msgid "Navigation links."
+msgstr "ナビゲーションリンクです。"
+
+#: app/models/theme.py:23
+msgid "Tertiary"
+msgstr "第三"
+
+#: app/models/theme.py:25
+msgid "Primary button color."
+msgstr "当初ボタン色."
+
+#: app/models/theme.py:25
+msgid "Button Primary"
+msgstr "当初ボタン"
+
+#: app/models/theme.py:26
+msgid "Default button color."
+msgstr "初期設定ボタン色."
+
+#: app/models/theme.py:26
+msgid "Button Default"
+msgstr "初期設定ボタン"
+
+#: app/models/theme.py:27
+msgid "Delete button color."
+msgstr "ボタンの色を消去."
+
+#: app/models/theme.py:27
+msgid "Button Danger"
+msgstr "危険ボタン"
+
+#: app/models/theme.py:29
+msgid "Background color of the site's header."
+msgstr "サイトのヘッダーの背景色."
+
+#: app/models/theme.py:29
+msgid "Header Background"
+msgstr "ヘッダーの背景"
+
+#: app/models/theme.py:30
+msgid "Text and icons in the site's header."
+msgstr "サイト'のヘッダーにあるテキストとアイコンです。"
+
+#: app/models/theme.py:30
+msgid "Header Primary"
+msgstr "当初ヘッダー"
+
+#: app/models/theme.py:32
+msgid "The color of most borders."
+msgstr "大部分の下線色."
+
+#: app/models/theme.py:32
+msgid "Border"
+msgstr "境界線"
+
+#: app/models/theme.py:33
+msgid "The background color of panels and some borders."
+msgstr "パネルや一部のボーダーの背景色です。"
+
+#: app/models/theme.py:33
+msgid "Highlight"
+msgstr "ハイライト"
+
+#: app/models/theme.py:35
+msgid "The border color of warning dialogs."
+msgstr "警告ダイアログのボーダーカラー。"
+
+#: app/models/theme.py:35
+msgid "Dialog Warning"
+msgstr "警告ダイアログ"
+
+#: app/models/theme.py:37
+msgid "The background color of failed notifications."
+msgstr "失敗した通知の背景色です。"
+
+#: app/models/theme.py:37
+msgid "Failed"
+msgstr "失敗"
+
+#: app/models/theme.py:38
+msgid "The background color of success notifications."
+msgstr "成功通知の背景色です。"
+
+#: app/models/theme.py:38
+msgid "Success"
+msgstr "成功"
+
+#: app/templates/app/404.html:6
+msgid "404 Page Not Found"
+msgstr "404 ページが見つかりません"
+
+#: app/templates/app/404.html:7
+msgid "Are you sure the address is correct?"
+msgstr "アドレスが間違っていませんか？"
+
+#: app/templates/app/500.html:5
+msgid "500 Internal Server Error"
+msgstr "500　内部サーバエラー"
+
+#: app/templates/app/500.html:6
+msgid "Something happened. The server logs contain more information."
+msgstr "何かが起こりました。サーバーのログに詳細な情報があります。"
+
+#: app/templates/app/about.html:94
+#, python-format
+msgid ""
+"This program is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU Affero General Public License as published by the "
+"Free Software Foundation, either version 3 of the License, or (at your "
+"option) any later version. See %(link_start)sthe GNU Affero General Public "
+"License%(link_end)s for more details."
+msgstr ""
+"このプログラムはフリーソフトウェアです:Free Software Foundationが公表している"
+"the GNU Affero General Public License のバージョン3 または(任意により) 最新"
+"バージョンに基づいて、再配布や改変が可能です。the GNU Affero General Public "
+"License%(link_start)s、詳細は%(link_end)s を確認してください。"
+
+#: app/templates/app/admin/404.html:4 app/templates/app/admin/404.html:8
+msgid "Page not found"
+msgstr "ページが見つかりません"
+
+#: app/templates/app/admin/404.html:10
+msgid "We're sorry, but the requested page could not be found."
+msgstr "残念ながら、リクエストされたページが見つかりません。"
+
+#: app/templates/app/admin/500.html:6 app/templates/app/admin/app_index.html:9
+#: app/templates/app/admin/auth/user/change_password.html:13
+#: app/templates/app/admin/base.html:19
+#: app/templates/app/admin/change_form.html:18
+#: app/templates/app/admin/change_list.html:31
+#: app/templates/app/admin/delete_confirmation.html:13
+#: app/templates/app/admin/delete_selected_confirmation.html:13
+#: app/templates/app/admin/invalid_setup.html:6
+#: app/templates/app/admin/object_history.html:6
+msgid "Home"
+msgstr "ホーム"
+
+#: app/templates/app/admin/500.html:7
+msgid "Server error"
+msgstr "サーバエラー"
+
+#: app/templates/app/admin/500.html:11
+msgid "Server error (500)"
+msgstr "サーバエラー（500）"
+
+#: app/templates/app/admin/500.html:14
+msgid "Server Error (500)"
+msgstr "サーバエラー（500）"
+
+#: app/templates/app/admin/500.html:15
+msgid ""
+"There's been an error. It's been reported to the site administrators via "
+"email and should be fixed shortly. Thanks for your patience."
+msgstr ""
+"エラー発生中です。サイトの管理者にメールで報告されており間もなく復旧します。"
+"しばらくお待ちください。"
+
+#: app/templates/app/admin/actions.html:4
+msgid "Run the selected action"
+msgstr "選択した処理を実行"
+
+#: app/templates/app/admin/actions.html:4
+msgid "Go"
+msgstr "実行"
+
+#: app/templates/app/admin/actions.html:10
+msgid "Click here to select the objects across all pages"
+msgstr "全てのページに渡ってオブジェクトを選択するにはここをクリック"
+
+#: app/templates/app/admin/actions.html:10
+#, python-format
+msgid "Select all %(total_count)s %(module_name)s"
+msgstr "全て選択 %(total_count)s %(module_name)s"
+
+#: app/templates/app/admin/actions.html:12
+msgid "Clear selection"
+msgstr "選択解除"
+
+#: app/templates/app/admin/auth/user/add_form.html:6
+msgid ""
+"First, enter a username and password. Then, you'll be able to edit more user "
+"options."
+msgstr ""
+"最初にユーザーネームとパスワードを入力してください. その後、より多くのユー"
+"ザーオプションを編集できます."
+
+#: app/templates/app/admin/auth/user/add_form.html:8
+msgid "Enter a username and password."
+msgstr "ユーザ名とパスワードを入力してください。"
+
+#: app/templates/app/admin/auth/user/change_password.html:17
+#: app/templates/app/admin/auth/user/change_password.html:54
+msgid "Change password"
+msgstr "パスワードの変更"
+
+#: app/templates/app/admin/auth/user/change_password.html:27
+#: app/templates/app/admin/change_form.html:47
+#: app/templates/app/admin/change_list.html:58
+#: app/templates/app/admin/login.html:21
+msgid "Please correct the error below."
+msgstr "下記のエラーを修正してください。"
+
+#: app/templates/app/admin/auth/user/change_password.html:27
+#: app/templates/app/admin/change_form.html:47
+#: app/templates/app/admin/change_list.html:58
+#: app/templates/app/admin/login.html:21
+msgid "Please correct the errors below."
+msgstr "下記の複数エラーを修正してください。"
+
+#: app/templates/app/admin/auth/user/change_password.html:31
+#, python-format
+msgid "Enter a new password for the user <strong>%(username)s</strong>."
+msgstr ""
+"ユーザー <strong>%(username)s</strong>の新しいパスワードを入力してください。"
+
+#: app/templates/app/admin/base_site.html:3
+msgid "Django site admin"
+msgstr "Djangoサイト管理者"
+
+#: app/templates/app/admin/base_site.html:6
+msgid "Django administration"
+msgstr "Djangoの管理"
+
+#: app/templates/app/admin/change_form.html:21
+#: app/templates/app/admin/change_list.html:49
+#, python-format
+msgid "Add %(name)s"
+msgstr "%(name)sを追加"
+
+#: app/templates/app/admin/change_form.html:33
+#: app/templates/app/admin/object_history.html:10
+msgid "History"
+msgstr "履歴"
+
+#: app/templates/app/admin/change_form.html:35
+#: app/templates/app/admin/edit_inline/stacked.html:14
+#: app/templates/app/admin/edit_inline/tabular.html:36
+msgid "View on site"
+msgstr "サイト内の表示"
+
+#: app/templates/app/admin/change_list.html:69
+msgid "Filter"
+msgstr "フィルタ"
+
+#: app/templates/app/admin/change_list_plugin.html:24
+msgid "Load Plugin (.zip)"
+msgstr "プラグインを読み込み （.zip）"
+
+#: app/templates/app/admin/change_list_plugin.html:28
+msgid "Manage Plugins"
+msgstr "プラグインの管理"
+
+#: app/templates/app/admin/change_list_results.html:17
+msgid "Remove from sorting"
+msgstr "並べ替えから削除"
+
+#: app/templates/app/admin/change_list_results.html:18
+#, python-format
+msgid "Sorting priority: %(priority_number)s"
+msgstr "並べ替えの優先順位: %(priority_number)s"
+
+#: app/templates/app/admin/change_list_results.html:19
+msgid "Toggle sorting"
+msgstr "並べ替えを切り替える"
+
+#: app/templates/app/admin/delete_confirmation.html:17
+#: app/templates/app/admin/related_widget_wrapper.html:23
+#: app/templates/app/admin/submit_line.html:6
+#: app/templates/app/processing_node.html:54
+msgid "Delete"
+msgstr "削除"
+
+#: app/templates/app/admin/delete_confirmation.html:23
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(escaped_object)s' would result in deleting "
+"related objects, but your account doesn't have permission to delete the "
+"following types of objects:"
+msgstr ""
+"%(object_name)s '%(escaped_object)s'を削除すると、関連するオブジェクトを削除"
+"することになりますが、あなたのアカウントには以下の種類のオブジェクトを削除す"
+"る権限がありません。"
+
+#: app/templates/app/admin/delete_confirmation.html:30
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(escaped_object)s' would require deleting the "
+"following protected related objects:"
+msgstr ""
+"%(object_name)s '%(escaped_object)s'を削除するには、以下の保護された関連オブ"
+"ジェクトを削除する必要があります。"
+
+#: app/templates/app/admin/delete_confirmation.html:37
+#, python-format
+msgid ""
+"Are you sure you want to delete the %(object_name)s \"%(escaped_object)s\"? "
+"All of the following related items will be deleted:"
+msgstr ""
+"%(object_name)s \"%(escaped_object)s\"を本当に削除しますか？次の関連アイテム"
+"は全て削除されます:"
+
+#: app/templates/app/admin/delete_confirmation.html:39
+#: app/templates/app/admin/delete_selected_confirmation.html:38
+msgid "Objects"
+msgstr "オブジェクト"
+
+#: app/templates/app/admin/delete_confirmation.html:46
+#: app/templates/app/admin/delete_selected_confirmation.html:49
+msgid "Yes, I'm sure"
+msgstr "はい、大丈夫です"
+
+#: app/templates/app/admin/delete_confirmation.html:47
+#: app/templates/app/admin/delete_selected_confirmation.html:50
+msgid "No, take me back"
+msgstr "いいえ、戻ります"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:16
+msgid "Delete multiple objects"
+msgstr "複数のオブジェクトを削除"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:22
+#, python-format
+msgid ""
+"Deleting the selected %(objects_name)s would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr ""
+"選択した%(objects_name)sを削除すると、関連するオブジェクトが削除されますが、"
+"あなたのアカウントには、次の種類のオブジェクトを削除する権限がありません'。"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:29
+#, python-format
+msgid ""
+"Deleting the selected %(objects_name)s would require deleting the following "
+"protected related objects:"
+msgstr ""
+"選択された%(objects_name)sを削除するには、以下の保護された関連オブジェクトを"
+"削除する必要があります。"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:36
+#, python-format
+msgid ""
+"Are you sure you want to delete the selected %(objects_name)s? All of the "
+"following objects and their related items will be deleted:"
+msgstr ""
+"選択した%(objects_name)sを削除してよろしいですか？以下のオブジェクトとその関"
+"連アイテムがすべて削除されます。"
+
+#: app/templates/app/admin/edit_inline/stacked.html:12
+#: app/templates/app/admin/edit_inline/tabular.html:34
+#: app/templates/app/admin/index.html:37
+#: app/templates/app/admin/related_widget_wrapper.html:9
+msgid "Change"
+msgstr "変更"
+
+#: app/templates/app/admin/edit_inline/tabular.html:20
+msgid "Delete?"
+msgstr "削除？"
+
+#: app/templates/app/admin/filter.html:2
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " %(filter_title)sによる "
+
+#: app/templates/app/admin/includes/object_delete_summary.html:2
+msgid "Summary"
+msgstr "要約"
+
+#: app/templates/app/admin/index.html:20
+#, python-format
+msgid "Models in the %(name)s application"
+msgstr "%(name)s アプリケーション内のモデル"
+
+#: app/templates/app/admin/index.html:31
+#: app/templates/app/admin/related_widget_wrapper.html:16
+msgid "Add"
+msgstr "追加"
+
+#: app/templates/app/admin/index.html:47
+msgid "You don't have permission to edit anything."
+msgstr "あなたには編集する権限がありません。"
+
+#: app/templates/app/admin/index.html:55
+msgid "Recent actions"
+msgstr "最近のアクション"
+
+#: app/templates/app/admin/index.html:56
+msgid "My actions"
+msgstr "自分の行動"
+
+#: app/templates/app/admin/index.html:60
+msgid "None available"
+msgstr "使用可能スクリプトなし"
+
+#: app/templates/app/admin/index.html:74
+msgid "Unknown content"
+msgstr "不明なコンテンツ"
+
+#: app/templates/app/admin/invalid_setup.html:12
+msgid ""
+"Something's wrong with your database installation. Make sure the appropriate "
+"database tables have been created, and make sure the database is readable by "
+"the appropriate user."
+msgstr ""
+"データベースのインストールに問題があります。適切なデータベーステーブルが作成"
+"されていることを確認し、データベースが適切なユーザーによって読めることを確認"
+"してください。"
+
+#: app/templates/app/admin/login.html:37
+#, python-format
+msgid ""
+"You are authenticated as %(username)s, but are not authorized to access this "
+"page. Would you like to login to a different account?"
+msgstr ""
+"あなたは%(username)sとして認証されていますが、このページにアクセスする権限が"
+"ありません。別のアカウントでログインしてますか？"
+
+#: app/templates/app/admin/login.html:57
+msgid "Forgotten your password or username?"
+msgstr "パスワードまたはユーザーネームを忘れましたか？"
+
+#: app/templates/app/admin/login.html:61
+msgid "Log in"
+msgstr "ログイン"
+
+#: app/templates/app/admin/object_history.html:22
+msgid "Date/time"
+msgstr "日時"
+
+#: app/templates/app/admin/object_history.html:24
+msgid "Action"
+msgstr "動作"
+
+#: app/templates/app/admin/object_history.html:38
+msgid ""
+"This object doesn't have a change history. It probably wasn't added via this "
+"admin site."
+msgstr ""
+"このオブジェクトには変更履歴がありません。この管理サイト経由で追加されたもの"
+"ではないと思われます。"
+
+#: app/templates/app/admin/pagination.html:10
+#: app/templates/app/admin/search_form.html:9
+msgid "Show all"
+msgstr "全て表示"
+
+#: app/templates/app/admin/pagination.html:11
+#: app/templates/app/admin/submit_line.html:3
+msgid "Save"
+msgstr "保存"
+
+#: app/templates/app/admin/popup_response.html:3
+msgid "Popup closing..."
+msgstr "ポップアップを閉じています。。。"
+
+#: app/templates/app/admin/related_widget_wrapper.html:8
+#, python-format
+msgid "Change selected %(model)s"
+msgstr "選択した%(model)sを変更"
+
+#: app/templates/app/admin/related_widget_wrapper.html:15
+#, python-format
+msgid "Add another %(model)s"
+msgstr "別の%(model)sを追加"
+
+#: app/templates/app/admin/related_widget_wrapper.html:22
+#, python-format
+msgid "Delete selected %(model)s"
+msgstr "選択した%(model)sを削除"
+
+#: app/templates/app/admin/search_form.html:7
+msgid "Search"
+msgstr "検索"
+
+#: app/templates/app/admin/search_form.html:9
+#, python-format
+msgid "%(counter)s result"
+msgid_plural "%(counter)s results"
+msgstr[0] "%(counter)s個の結果"
+
+#: app/templates/app/admin/search_form.html:9
+#, python-format
+msgid "%(full_result_count)s total"
+msgstr "合計%(full_result_count)s個"
+
+#: app/templates/app/admin/submit_line.html:8
+msgid "Save as new"
+msgstr "新規保存"
+
+#: app/templates/app/admin/submit_line.html:9
+msgid "Save and add another"
+msgstr "保存して別のファイルを追加"
+
+#: app/templates/app/admin/submit_line.html:10
+msgid "Save and continue editing"
+msgstr "保存して編集を継続"
+
+#: app/templates/app/dashboard.html:18 app/templates/app/dashboard.html:31
+#: app/templates/app/welcome.html:227
+msgid "Welcome!"
+msgstr "ようこそ！"
+
+#: app/templates/app/dashboard.html:19
+msgid "Add a Processing Node"
+msgstr "処理中のノードに追加"
+
+#: app/templates/app/dashboard.html:22
+#, python-format
+msgid ""
+"To get started, \"%(add_processing_node)s\". A processing node is a computer "
+"running an instance of %(nodeodm_link)s or some other software implementing "
+"this %(api_link)s."
+msgstr ""
+"開始するには、\"%(add_processing_node)s\"。処理ノードとは、%(nodeodm_link)sの"
+"インスタンスを実行しているコンピュータや、この%(api_link)sを実装しているその"
+"他のソフトウェアのことです。"
+
+#: app/templates/app/dashboard.html:32
+msgid "Select Images and GCP"
+msgstr "画像とGCPを選択"
+
+#: app/templates/app/dashboard.html:34
+#, python-format
+msgid ""
+"To create a map, press the \"%(upload_images)s\" button, or drag and drop "
+"some images into a project."
+msgstr ""
+"マップを作成するには、\"%(upload_images)s\"ボタンを押すか、画像をプロジェクト"
+"にドラッグ＆ドロップします。"
+
+#: app/templates/app/dashboard.html:38
+msgid "You need at least 5 images, but 16-32 is typically the minimum."
+msgstr ""
+
+#: app/templates/app/dashboard.html:39
+#, fuzzy, python-format
+#| msgid "Images must overlap by 65%% or more"
+msgid "Images must overlap by 65%% or more. Aim for 70-72%%"
+msgstr "65%%以上のオーバーラップした画像"
+
+#: app/templates/app/dashboard.html:40
+#, python-format
+msgid "For great 3D, images must overlap by 83%%"
+msgstr "緻密な3D化には83%%のオーバーラップした画像"
+
+#: app/templates/app/dashboard.html:41
+#, python-format
+msgid ""
+"A %(link_start)sGCP File%(link_end)s is optional, but can increase "
+"georeferencing accuracy"
+msgstr ""
+"%(link_start)sGCPファイル%(link_end)s は任意ですが、ジオリファレンスの精度が"
+"向上します"
+
+#: app/templates/app/dev_tools.html:6 app/templates/app/logged_in_base.html:134
+#: app/views/dev.py:78
+msgid "Developer Tools"
+msgstr "開発者ツール"
+
+#: app/templates/app/dev_tools.html:9
+msgid "Close"
+msgstr "閉じる"
+
+#: app/templates/app/dev_tools.html:14
+msgid "Current Locale:"
+msgstr "現在地："
+
+#: app/templates/app/dev_tools.html:15
+msgid ""
+"To change locale, modify your browser's locale settings, then refresh the "
+"page, or use the set locale button below."
+msgstr ""
+"ロケールを変更するには、ブラウザのロケール設定を変更してからページを更新する"
+"か、下のロケール設定ボタンを使用します。"
+
+#: app/templates/app/dev_tools.html:18
+msgid "Translation Files (.zip):"
+msgstr "翻訳ファイル（.zip）："
+
+#: app/templates/app/dev_tools.html:22
+msgid "Download and Replace Translation Files"
+msgstr "翻訳ファイルをダウンロードして置換えます"
+
+#: app/templates/app/dev_tools.html:27
+msgid "Set locale:"
+msgstr "ロケールの設定："
+
+#: app/templates/app/dev_tools.html:29
+msgid "Apply"
+msgstr "適用"
+
+#: app/templates/app/dev_tools.html:33
+msgid "Executing… do not refresh the page! This could take a while."
+msgstr "実行中。。。しばらくの間は、このページの再読込しないでください。"
+
+#: app/templates/app/logged_in_base.html:16
+#, python-format
+msgid "Hello, %(user)s!"
+msgstr "%(user)sさん、こんにちは！"
+
+#: app/templates/app/logged_in_base.html:30
+#, python-format
+msgid "%(used)s of %(total)s used"
+msgstr ""
+
+#: app/templates/app/logged_in_base.html:43
+msgid "Logout"
+msgstr "ログアウト"
+
+#: app/templates/app/logged_in_base.html:57 app/views/app.py:48
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+#: app/templates/app/logged_in_base.html:83 nodeodm/models.py:37
+msgid "Processing Nodes"
+msgstr "プロセシングノード"
+
+#: app/templates/app/logged_in_base.html:93
+msgid "Add New"
+msgstr "新規追加"
+
+#: app/templates/app/logged_in_base.html:103
+msgid "Administration"
+msgstr "管理"
+
+#: app/templates/app/logged_in_base.html:108
+msgid "Accounts"
+msgstr "アカウント"
+
+#: app/templates/app/logged_in_base.html:111
+msgid "Groups"
+msgstr "グループ"
+
+#: app/templates/app/logged_in_base.html:116
+msgid "Brand"
+msgstr "ブランド"
+
+#: app/templates/app/logged_in_base.html:138 app/views/app.py:108
+msgid "About"
+msgstr "OsmAnd Maps & Navigationについて"
+
+#: app/templates/app/processing_node.html:11 nodeodm/models.py:23
+msgid "Hostname"
+msgstr "ホスト名"
+
+#: app/templates/app/processing_node.html:15 nodeodm/models.py:24
+msgid "Port"
+msgstr "ポート"
+
+#: app/templates/app/processing_node.html:19 nodeodm/models.py:25
+msgid "API Version"
+msgstr "APIバージョン"
+
+#: app/templates/app/processing_node.html:23 nodeodm/models.py:33
+msgid "Engine"
+msgstr "エンジン"
+
+#: app/templates/app/processing_node.html:27 nodeodm/models.py:31
+msgid "Engine Version"
+msgstr "エンジンバージョン"
+
+#: app/templates/app/processing_node.html:31 nodeodm/models.py:27
+msgid "Queue Count"
+msgstr "キューの数"
+
+#: app/templates/app/processing_node.html:35
+msgid "Max Images Limit"
+msgstr "最大画像数の制限"
+
+#: app/templates/app/processing_node.html:39 nodeodm/models.py:32
+msgid "Label"
+msgstr "ラベル"
+
+#: app/templates/app/processing_node.html:43 nodeodm/models.py:26
+msgid "Last Refreshed"
+msgstr "最終更新"
+
+#: app/templates/app/processing_node.html:44
+msgctxt "5 minutes ago"
+msgid "ago"
+msgstr "前"
+
+#: app/templates/app/processing_node.html:47
+msgid "Options (JSON)"
+msgstr "オプション(JSON)"
+
+#: app/templates/app/processing_node.html:53
+msgid "Edit"
+msgstr "編集"
+
+#: app/templates/app/quota.html:9
+#, python-format
+msgid ""
+"The disk quota is being exceeded (%(used)s of %(total)s used). The most "
+"recent tasks will be automatically deleted %(when)s, until usage falls below "
+"%(total)s."
+msgstr ""
+
+#: app/templates/app/quota.html:14
+#, python-format
+msgid ""
+"Your account does not have a storage quota. Any new task will be "
+"automatically deleted %(when)s"
+msgstr ""
+
+#: app/templates/app/welcome.html:224
+msgid "Uh oh! Could you please check the errors below?"
+msgstr "Uh oh! 以下のエラーを確認していただけますか？"
+
+#: app/templates/app/welcome.html:228
+msgid ""
+"Before we get started, we need to create an administrator account for you:"
+msgstr ""
+
+#: app/templates/app/welcome.html:237
+msgid "Create Account"
+msgstr "アカウントを作成"
+
+#: app/templatetags/settings.py:57
+#, python-format
+msgid "in %(num)s days"
+msgstr ""
+
+#: app/templatetags/settings.py:59
+#, python-format
+msgid "in %(num)s hours"
+msgstr ""
+
+#: app/templatetags/settings.py:61
+#, python-format
+msgid "in %(num)s minutes"
+msgstr ""
+
+#: app/templatetags/settings.py:63
+msgid "very soon"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:4
+msgid "Import images from external sources directly"
+msgstr "外部ソースから直接画像をインポート"
+
+#: app/translations/plugin_manifest_autogenerated.py:5
+msgid "Compute, preview and export contours from DEMs"
+msgstr "DEMから等高線を計算、プレビュー、エクスポート"
+
+#: app/translations/plugin_manifest_autogenerated.py:6
+msgid "Display program version, memory and disk space usage statistics"
+msgstr "プログラムのバージョン、メモリ、ディスク使用量の統計を表示"
+
+#: app/translations/plugin_manifest_autogenerated.py:7
+msgid "Integrate WebODM with DroneDB: import images and share results"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:8
+msgid "Create editable short links when sharing task URLs"
+msgstr "タスクURLの共有時に編集可能なショートリンクを作成"
+
+#: app/translations/plugin_manifest_autogenerated.py:9
+msgid "Add a fullscreen button to the 2D map view"
+msgstr "2Dマップ表示にフルスクリーンボタンを追加"
+
+#: app/translations/plugin_manifest_autogenerated.py:10
+msgid "Process in the cloud with webodm.net"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:11
+msgid "Compute volume, area and length measurements on Leaflet"
+msgstr "リーフレットの体積、面積、長さの測定値を計算する"
+
+#: app/translations/plugin_manifest_autogenerated.py:12
+msgid "A plugin to upload orthophotos to OpenAerialMap"
+msgstr "オルソフォトを OpenAerialMap にアップロードするプラグイン"
+
+#: app/translations/plugin_manifest_autogenerated.py:13
+msgid ""
+"A plugin to add a button for quickly opening OpenStreetMap's iD editor and "
+"setup a TMS basemap."
+msgstr ""
+"OpenStreetMapのiDエディタを素早く開き、TMSベースマップを設定するためのボタン"
+"を追加するプラグインです。"
+
+#: app/translations/plugin_manifest_autogenerated.py:14
+#: app/translations/plugin_manifest_autogenerated.py:18
+msgid "A plugin to create GCP files from images"
+msgstr "画像からGCPファイルを作るためのプラグイン"
+
+#: app/translations/plugin_manifest_autogenerated.py:15
+msgid "A plugin to show charts of projects and tasks"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:16
+msgid "Create short links when sharing task URLs"
+msgstr "タスク URL の共有時にショートリンクを作成する"
+
+#: app/translations/plugin_manifest_autogenerated.py:17
+msgid ""
+"Get notified when a task has finished processing, has been removed or has "
+"failed"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:19
+msgid "Annotate and measure on 2D maps with ease"
+msgstr ""
+
+#: app/views/app.py:46
+msgid "First Project"
+msgstr "最初のプロジェクト"
+
+#: app/views/app.py:56 app/views/public.py:28
+msgid "Map"
+msgstr "マップ"
+
+#: app/views/app.py:85
+msgid "3D Model Display"
+msgstr "3Dモデル表示"
+
+#: app/views/app.py:114
+#, python-format
+msgid "%(node)s seems to be offline."
+msgstr ""
+
+#: app/views/app.py:152
+msgid "Welcome"
+msgstr "ようこそ"
+
+#: app/views/dev.py:59
+msgid "Cannot find locale/ folder in .zip archive"
+msgstr ".zipアーカイブにロケール/フォルダが見つかりません"
+
+#: app/views/dev.py:71
+msgid "Translation files reloaded!"
+msgstr "翻訳ファイルがリロードされました！"
+
+#: app/views/dev.py:75
+msgid "Invalid action"
+msgstr "無効なアクション"
+
+#: coreplugins/annotate/api.py:46 coreplugins/annotate/dist/annotate/api.py:46
+#: coreplugins/measure/api.py:21
+msgid ""
+"No surface model available. From the Dashboard, select this task, press "
+"Edit, from the options make sure to check \"dsm\", then press Restart --> "
+"From DEM."
+msgstr ""
+"有効な表層モデルがありません。ダッシュボードでこのタスクを選択し、編集を押"
+"し、オプションから\"dsm\"にチェックがあることを確認してから、Restart --> "
+"From DEMを押してください。"
+
+#: coreplugins/annotate/api.py:69 coreplugins/annotate/dist/annotate/api.py:69
+msgid "A digital surface model is required to compute elevation values."
+msgstr ""
+
+#: coreplugins/contours/api.py:86
+msgid "No DSM layer is available."
+msgstr "使用可能なDSMレイヤがありません。"
+
+#: coreplugins/contours/api.py:88
+msgid "No DTM layer is available."
+msgstr "使用可能なDTMレイヤがありません。"
+
+#: coreplugins/contours/api.py:119
+msgid "Could not generate contour file. This might be a bug."
+msgstr "等高線ファイルが生成できません。バグの可能性があります。"
+
+#: coreplugins/diagnostic/plugin.py:36
+msgid "Diagnostic"
+msgstr "診断"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:6
+msgid "Diagnostic Information"
+msgstr "診断情報"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:10
+msgid "Storage Space"
+msgstr "ストレージ容量"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:14
+#: coreplugins/diagnostic/templates/diagnostic.html:40
+#: coreplugins/diagnostic/templates/diagnostic.html:45
+msgctxt "Megabytes of storage space"
+msgid "Free"
+msgstr "空き"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:15
+#: coreplugins/diagnostic/templates/diagnostic.html:39
+#: coreplugins/diagnostic/templates/diagnostic.html:45
+msgctxt "Megabytes of storage space"
+msgid "Used"
+msgstr "使用済み"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:16
+msgctxt "Megabytes of storage space"
+msgid "Total"
+msgstr "容量"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:20
+msgctxt "Computer memory (RAM)"
+msgid "Memory"
+msgstr "メモリ"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:24
+#: coreplugins/diagnostic/templates/diagnostic.html:75
+#: coreplugins/diagnostic/templates/diagnostic.html:80
+msgctxt "Megabytes of memory space"
+msgid "Free"
+msgstr "空き"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:25
+#: coreplugins/diagnostic/templates/diagnostic.html:74
+#: coreplugins/diagnostic/templates/diagnostic.html:80
+msgctxt "Megabytes of memory space"
+msgid "Used"
+msgstr "使用済み"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:26
+msgctxt "Megabytes of memory space"
+msgid "Total"
+msgstr "容量"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:33
+msgid "Note!"
+msgstr "注意！"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:33
+#, fuzzy, python-format
+#| msgid ""
+#| "These values might be relative to the virtualization environment in which "
+#| "the application is running, not necessarily the values of the your "
+#| "machine. See instructions for %(win_link)s and %(mac_link)s for changing "
+#| "these values in a Docker setup."
+msgid ""
+"These values might be relative to the virtualization environment in which "
+"the application is running, not necessarily the values of the your machine. "
+"See instructions for %(win_hyperv_link)s, %(win_wsl2_link)s, and "
+"%(mac_link)s for changing these values in a Docker setup."
+msgstr ""
+"この値は必ずしもあなたのマシンによるものではなく、アプリケーションが動作して"
+"いる仮想化環境に関係している可能性があります。Dockerセットアップでこの値を変"
+"更するには、%(win_link)sや%(mac_link)sのインストラクションを参照してくださ"
+"い。"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:47
+#: coreplugins/diagnostic/templates/diagnostic.html:82
+msgid "Disk Space"
+msgstr "ディスク容量"
+
+#: coreplugins/editshortlinks/api.py:59
+msgid ""
+"Short URLs can only include letters, numbers, underscore and dash characters "
+"(A-Z, 0-9, _, -)."
+msgstr ""
+"ショートURLには、アルファベット、数字、アンダースコア、ダッシュ文字（A-Z、"
+"0-9、_、-）のみが使用できます。"
+
+#: coreplugins/editshortlinks/api.py:63
+msgid "This short URL is already taken."
+msgstr "このショートURLはすでに使用されています。"
+
+#: coreplugins/lightning/plugin.py:25 coreplugins/lightning/plugin.py:39
+#, fuzzy
+#| msgid "Lightning Network"
+msgid "Lightning"
+msgstr "ライトニングネットワーク"
+
+#: coreplugins/posm-gcpi/plugin.py:9
+msgid "GCP Interface"
+msgstr "GCP インターフェイス"
+
+#: coreplugins/projects-charts/plugin.py:55
+msgid "Charts"
+msgstr ""
+
+#: coreplugins/projects-charts/templates/index.html:11
+msgid "Year"
+msgstr ""
+
+#: coreplugins/projects-charts/templates/index.html:23
+msgid "Next"
+msgstr ""
+
+#: coreplugins/projects-charts/templates/index.html:69
+#, fuzzy
+#| msgid "Projects"
+msgid "Projects by month"
+msgstr "プロジェクト"
+
+#: coreplugins/projects-charts/templates/index.html:111
+msgid "Tasks by month"
+msgstr ""
+
+#: coreplugins/tasknotification/plugin.py:84
+msgid "Task Notification"
+msgstr ""
+
+#: coreplugins/tasknotification/templates/index.html:5
+msgid "Tasks Notification"
+msgstr ""
+
+#: nodeodm/apps.py:8
+msgid "Node Management"
+msgstr "ノード管理"
+
+#: nodeodm/models.py:23
+msgid ""
+"Hostname or IP address where the node is located (can be an internal "
+"hostname as well). If you are using Docker, this is never 127.0.0.1 or "
+"localhost. Find the IP address of your host machine by running ifconfig on "
+"Linux or by checking your network settings."
+msgstr ""
+"ノードが位置するホストネームまたは IPアドレス (内部ホストネームの場合も有"
+"り)。Dockerを使用している場合、絶対に127.0.0.1 または localhostではありませ"
+"ん。Linuxでifconfigを実行するかネットワーク設定をチェックして、ホストマシンの"
+"IPアドレスを確認してください。"
+
+#: nodeodm/models.py:24
+msgid "Port that connects to the node's API"
+msgstr "ノードのAPIに接続しているポート"
+
+#: nodeodm/models.py:25
+msgid "API version used by the node"
+msgstr "ノードが使用するAPIのバージョン"
+
+#: nodeodm/models.py:26
+msgid "When was the information about this node last retrieved?"
+msgstr "このノードが最後に回復したのはいつですか？"
+
+#: nodeodm/models.py:27
+msgid ""
+"Number of tasks currently being processed by this node (as reported by the "
+"node itself)"
+msgstr "このノードが現在処理しているタスク数（ノードからの情報）"
+
+#: nodeodm/models.py:28
+msgid "Available Options"
+msgstr "使用可能なオプション"
+
+#: nodeodm/models.py:28
+msgid "Description of the options that can be used for processing"
+msgstr "処理で使用可能なオプションの記述"
+
+#: nodeodm/models.py:29
+msgid "Token"
+msgstr "トークン"
+
+#: nodeodm/models.py:29
+msgid ""
+"Token to use for authentication. If the node doesn't have authentication, "
+"you can leave this field blank."
+msgstr ""
+"認証に使用するトークン。ノードが認証を持っていない場合は、このフィールドを空"
+"白にすることができます。"
+
+#: nodeodm/models.py:30
+msgid "Max Images"
+msgstr "最大画像"
+
+#: nodeodm/models.py:30
+msgid "Maximum number of images accepted by this node."
+msgstr "このノードが受け入れる画像の最大数。"
+
+#: nodeodm/models.py:31
+msgid "Engine version used by the node."
+msgstr "このノードが使用するエンジンのバージョン."
+
+#: nodeodm/models.py:32
+msgid ""
+"Optional label for this node. When set, this label will be shown instead of "
+"the hostname:port name."
+msgstr ""
+"このノードのオプションのラベル。設定すると、ホストネーム：ポートネームの代わ"
+"りにラベルが表示されます。"
+
+#: nodeodm/models.py:33
+msgid "Engine used by the node."
+msgstr "ノードが使用するエンジン."
+
+#~ msgid "Sync accounts from webodm.net"
+#~ msgstr "webodm.netからアカウントを同期"
+
+#~ msgid ""
+#~ "Triangular Greenness Index (derived from only the RGB bands) performs "
+#~ "similarly to EXG but with improvements over certain environments."
+#~ msgstr ""
+#~ "Triangular Greenness Index (RGBバンドからのみ派生) はEXGに似ていますが、あ"
+#~ "る種の環境下ではより効果的です。"
+
+#~ msgid "Detect changes between two different tasks in the same project."
+#~ msgstr "同一プロジェクトの二つの異なるタスクの差異を探知。"
+
+#~ msgid "Calculate and draw an elevation map based on a task's DEMs"
+#~ msgstr "タスクのDEMに基づいて標高マップを計算し、描画"
+
+#~ msgid "Console output of the processing node"
+#~ msgstr "処理中のノードのコンソール出力"
+
+#~ msgid "Console Output"
+#~ msgstr "コンソール出力"
+
+#~ msgid "Task this image belongs to"
+#~ msgstr "この画像が属するタスク"
+
+#~ msgid "File uploaded by a user"
+#~ msgstr "ユーザーにアップロードされたファイル"
+
+#~ msgid "Image"
+#~ msgstr "画像"
+
+#~ msgid "Image Upload"
+#~ msgstr "画像アップローダー"
+
+#~ msgid "Image Uploads"
+#~ msgstr "画像アップローダー"
+
+#~ msgid "You need at least 5 images"
+#~ msgstr "最低でも5つの画像が必要です"
+
+#~ msgid "Upload and tile ODM assets with Cesium ion."
+#~ msgstr "Cesium ion でODM アセットをアップロードおよびタイル化。"
+
+#~ msgid "No matching enum type."
+#~ msgstr "一致する列挙型がありません。"

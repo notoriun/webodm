@@ -1,0 +1,74 @@
+.leaflet-touch .leaflet-control-layers-control, .leaflet-control-layers-control{
+    .layers-control-layer{
+        .layer-control-title{
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+        .layer-label{
+            width: 100%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            text-align: left;
+            height: 28px;
+            margin-left: 1px;
+        }
+
+        .layer-action{
+            flex-basis: min-content;
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+
+        select, input{
+            height: auto;
+            padding: 4px;
+        }
+
+        label{
+            padding-top: 5px;
+        }
+
+        .row.form-group.form-inline{
+            margin-bottom: 8px;
+            margin-right: 0;
+
+            i{
+                margin-top: 8px;
+                margin-bottom: 8px;
+            }
+        }
+
+        .btn{
+            padding: 0px 9px;
+        }
+      
+        .toggle{
+          width: 22px;
+          i{
+              font-size: 18px;
+          }
+          &:hover{
+              background-color: inherit !important;
+              border-width: 0;
+          }
+        }
+
+        .paddingSpace{
+            width: 22px;
+            height: 22px;
+        }
+
+        i.layer-icon{
+            font-size: 16px;
+            margin-left: 4px;
+        }
+
+        .layer-title{
+            display: inline;
+            position: relative;
+            top: -1px;
+        }
+    }
+}

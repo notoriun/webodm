@@ -1,0 +1,2704 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-11-05 17:15+0000\n"
+"PO-Revision-Date: 2023-11-03 20:35+0000\n"
+"Last-Translator: Liudmyla Dzhuma <ldzhuma@sfa.org.ua>\n"
+"Language-Team: Ukrainian <https://hosted.weblate.org/projects/webodm/"
+"react-ui/uk/>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.2-dev\n"
+
+#: app/static/app/js/Console.jsx:135
+#, python-format
+msgid "output truncated at %(count)s lines"
+msgstr "вивід скорочено на %(count)s ліній"
+
+#: app/static/app/js/Console.jsx:147 app/static/app/js/Console.jsx:155
+#: app/static/app/js/Console.jsx:165
+msgid "Toggle Fullscreen"
+msgstr "Повноекранний режим"
+
+#: app/static/app/js/Console.jsx:148 app/static/app/js/Console.jsx:156
+msgid "Exit Fullscreen"
+msgstr "Вийти із повноекранного режиму"
+
+#: app/static/app/js/Console.jsx:162
+msgid "Download To File"
+msgstr "Завантажити у файл"
+
+#: app/static/app/js/Dashboard.jsx:26
+msgid "Name field is required"
+msgstr "Поле \"Ім'я\" обов'язкове для заповнення"
+
+#: app/static/app/js/Dashboard.jsx:62
+msgid "Add Project"
+msgstr "Додати проєкт"
+
+#: app/static/app/js/Dashboard.jsx:97
+msgid "Your changes will be lost. Are you sure you want to leave?"
+msgstr "Ваші зміни будуть втрачені! Ви дійсно хочете вийти?"
+
+#: app/static/app/js/MapView.jsx:67
+#: app/static/app/js/classes/AssetDownloads.js:46
+#: app/static/app/js/classes/PipelineSteps.js:47
+#: app/static/app/js/components/Map.jsx:85
+msgid "Orthophoto"
+msgstr "Ортофото"
+
+#: app/static/app/js/MapView.jsx:72 app/static/app/js/components/Map.jsx:87
+msgid "Plant Health"
+msgstr "Стан рослин"
+
+#: app/static/app/js/MapView.jsx:77
+#: app/static/app/js/classes/AssetDownloads.js:51
+msgid "Surface Model"
+msgstr "Модель земної поверхні"
+
+#: app/static/app/js/MapView.jsx:82
+#: app/static/app/js/classes/AssetDownloads.js:49
+msgid "Terrain Model"
+msgstr "топографічна модель"
+
+#: app/static/app/js/ModelView.jsx:36
+msgid "Cannot set initial camera view"
+msgstr "Не вдається задати початковий ракурс камери"
+
+#: app/static/app/js/ModelView.jsx:61
+msgid "set initial camera view"
+msgstr "Задати початковий ракурс камери"
+
+#: app/static/app/js/ModelView.jsx:82
+msgid "Cameras"
+msgstr "Камери"
+
+#: app/static/app/js/ModelView.jsx:95
+msgid "Show Model"
+msgstr "Показати Модель"
+
+#: app/static/app/js/ModelView.jsx:122
+msgid "Show Cameras"
+msgstr "Показати Камери"
+
+#: app/static/app/js/ModelView.jsx:668
+msgid "Loading textured model..."
+msgstr "Завантажую текстуровану модель..."
+
+#: app/static/app/js/classes/AssetDownloads.js:47
+msgid "Orthophoto (MBTiles)"
+msgstr "Ортофото (MBTiles)"
+
+#: app/static/app/js/classes/AssetDownloads.js:48
+msgid "Orthophoto (Tiles)"
+msgstr "Ортофото (Tiles)"
+
+#: app/static/app/js/classes/AssetDownloads.js:50
+msgid "Terrain Model (Tiles)"
+msgstr "Топографічна Модель (Tiles)"
+
+#: app/static/app/js/classes/AssetDownloads.js:52
+msgid "Surface Model (Tiles)"
+msgstr "Модель Поверхні Землі (Tiles)"
+
+#: app/static/app/js/classes/AssetDownloads.js:53
+msgid "Point Cloud"
+msgstr "Хмара Точок"
+
+#: app/static/app/js/classes/AssetDownloads.js:54
+msgid "Textured Model"
+msgstr "Текстурна Модель"
+
+#: app/static/app/js/classes/AssetDownloads.js:55
+msgid "Camera Parameters"
+msgstr "Параметри Камери"
+
+#: app/static/app/js/classes/AssetDownloads.js:56
+msgid "Camera Shots"
+msgstr "Знімки з Камери"
+
+#: app/static/app/js/classes/AssetDownloads.js:57
+msgid "Ground Control Points"
+msgstr "Наземні пункти контролю (GCP)"
+
+#: app/static/app/js/classes/AssetDownloads.js:58
+msgid "Quality Report"
+msgstr "Звіт про якість"
+
+#: app/static/app/js/classes/AssetDownloads.js:63
+msgid "All Assets"
+msgstr "Усі активи"
+
+#: app/static/app/js/classes/Basemaps.js:9
+msgid "Google Maps Hybrid"
+msgstr "Google Карти Гібрид"
+
+#: app/static/app/js/classes/Basemaps.js:17
+msgid "ESRI Satellite"
+msgstr "Космічні знімки ESRI"
+
+#: app/static/app/js/classes/Basemaps.js:26
+msgid "OSM Mapnik"
+msgstr "OSM Mapnik"
+
+#: app/static/app/js/classes/PendingActions.js:11
+msgid "Canceling..."
+msgstr "Відміняю..."
+
+#: app/static/app/js/classes/PendingActions.js:14
+#: app/static/app/js/components/FormDialog.jsx:163
+msgid "Deleting..."
+msgstr "Видаляю..."
+
+#: app/static/app/js/classes/PendingActions.js:17
+msgid "Restarting..."
+msgstr "Перезавантаження..."
+
+#: app/static/app/js/classes/PendingActions.js:20
+msgid "Resizing images..."
+msgstr "Зміна розміру зображень..."
+
+#: app/static/app/js/classes/PendingActions.js:23
+msgid "Importing..."
+msgstr "Імпорт..."
+
+#: app/static/app/js/classes/PipelineSteps.js:7
+msgid "Load Dataset"
+msgstr "Завантажити набір даних"
+
+#: app/static/app/js/classes/PipelineSteps.js:12
+msgid "Structure From Motion"
+msgstr "Структура від руху"
+
+#: app/static/app/js/classes/PipelineSteps.js:17
+msgid "Multi View Stereo"
+msgstr "Стерео Мульти Вигляд"
+
+#: app/static/app/js/classes/PipelineSteps.js:22
+msgid "Point Filtering"
+msgstr "Фільтрація точок"
+
+#: app/static/app/js/classes/PipelineSteps.js:27
+msgid "Meshing"
+msgstr "Формування Mesh полігонів"
+
+#: app/static/app/js/classes/PipelineSteps.js:32
+msgid "Texturing"
+msgstr "Текстурування"
+
+#: app/static/app/js/classes/PipelineSteps.js:37
+msgid "Georeferencing"
+msgstr "Геоприв'язка"
+
+#: app/static/app/js/classes/PipelineSteps.js:42
+msgid "DEM"
+msgstr "Цифрова Модель Місцевості (DEM)"
+
+#: app/static/app/js/classes/PipelineSteps.js:52
+msgid "Report"
+msgstr "Звіт"
+
+#: app/static/app/js/classes/PipelineSteps.js:57
+msgid "Postprocess"
+msgstr "Післяобробка"
+
+#: app/static/app/js/classes/ResizeModes.js:4
+msgid "No"
+msgstr "Ні"
+
+#: app/static/app/js/classes/ResizeModes.js:5
+msgid "Yes"
+msgstr "Так"
+
+#: app/static/app/js/classes/StatusCodes.js:11
+msgid "Queued"
+msgstr "У черзі"
+
+#: app/static/app/js/classes/StatusCodes.js:15
+msgid "Processing"
+msgstr "Оброблення"
+
+#: app/static/app/js/classes/StatusCodes.js:19
+msgid "Failed"
+msgstr "Не вдалося"
+
+#: app/static/app/js/classes/StatusCodes.js:23
+msgid "Completed"
+msgstr "Завершено"
+
+#: app/static/app/js/classes/StatusCodes.js:27
+msgid "Canceled"
+msgstr "Відмінено"
+
+#: app/static/app/js/classes/TempLayer.js:14
+#, python-format
+msgid "%(file)s is bigger than 5 MB."
+msgstr "%(file)s перевищує 5 Мб."
+
+#: app/static/app/js/classes/TempLayer.js:30
+#, python-format
+msgid "Not a proper zipped shapefile: %(file)s"
+msgstr "Неналежно заархівований шейп-файл: %(file)s"
+
+#: app/static/app/js/classes/TempLayer.js:43
+#, python-format
+msgid "Not a proper JSON file: %(file)s"
+msgstr "Неналежний файл JSON: %(file)s"
+
+#: app/static/app/js/components/AssetDownloadButtons.jsx:53
+msgid "Download Assets"
+msgstr "Завантажити набори даних"
+
+#: app/static/app/js/components/EditPermissionsPanel.jsx:49
+msgid "Cannot load permissions."
+msgstr "Неможливо завантажити права доступу."
+
+#: app/static/app/js/components/EditPermissionsPanel.jsx:150
+msgid "Read/Write"
+msgstr "Зчитування/Записування"
+
+#: app/static/app/js/components/EditPermissionsPanel.jsx:151
+msgid "Read"
+msgstr "Зчитування"
+
+#: app/static/app/js/components/EditPermissionsPanel.jsx:152
+msgid "No Access"
+msgstr "Немає доступу"
+
+#: app/static/app/js/components/EditPermissionsPanel.jsx:225
+msgid "Username"
+msgstr "Ім'я користувача"
+
+#: app/static/app/js/components/EditPermissionsPanel.jsx:248
+msgid "Permissions"
+msgstr "Права Доступу"
+
+#: app/static/app/js/components/EditPresetDialog.jsx:110
+#: app/static/app/js/components/EditTaskForm.jsx:523
+msgid "Edit Task Options"
+msgstr "Редагувати Параметри Завдань"
+
+#: app/static/app/js/components/EditPresetDialog.jsx:116
+#: app/static/app/js/components/EditProjectDialog.jsx:141
+#: app/static/app/js/components/EditTaskForm.jsx:597
+msgid "Name"
+msgstr "Назва"
+
+#: app/static/app/js/components/EditPresetDialog.jsx:124
+msgid "Search"
+msgstr "Пошук"
+
+#: app/static/app/js/components/EditProjectDialog.jsx:13
+msgid "New Project"
+msgstr "Новий проєкт"
+
+#: app/static/app/js/components/EditProjectDialog.jsx:14
+msgid "Create Project"
+msgstr "Створити проєкт"
+
+#: app/static/app/js/components/EditProjectDialog.jsx:15
+msgid "Creating project..."
+msgstr "Створення проєкту..."
+
+#: app/static/app/js/components/EditProjectDialog.jsx:17
+msgid ""
+"All tasks, images and models associated with this project will be "
+"permanently deleted. Are you sure you want to continue?"
+msgstr ""
+"Усі завдання, зображення та моделі, пов’язані з цим проєктом, буде остаточно "
+"видалено. Ви впевнені, що бажаєте продовжити?"
+
+#: app/static/app/js/components/EditProjectDialog.jsx:116
+#: app/static/app/js/components/EditProjectDialog.jsx:122
+#: app/static/app/js/components/TaskListItem.jsx:206
+#: app/static/app/js/components/TaskListItem.jsx:214
+msgid "Cannot complete operation."
+msgstr "Неможливо завершити операцію."
+
+#: app/static/app/js/components/EditProjectDialog.jsx:147
+msgid "Description (optional)"
+msgstr "Опис (необов'язково)"
+
+#: app/static/app/js/components/EditTaskForm.jsx:89
+msgid ""
+"Could not load list of processing nodes. Are you connected to the internet?"
+msgstr ""
+"Не вдалося завантажити список вузлів обробки (processing nodes). Ви "
+"підключені до Інтернету?"
+
+#: app/static/app/js/components/EditTaskForm.jsx:97
+msgid "We tried to reach:"
+msgstr "Ми намагалися підключитись до:"
+
+#: app/static/app/js/components/EditTaskForm.jsx:98
+msgid "There are no usable processing nodes."
+msgstr "Немає придатних для використання вузлів обробки (processing nodes)."
+
+#: app/static/app/js/components/EditTaskForm.jsx:98
+msgid ""
+"Make sure that at least one processing node is reachable and that you have "
+"granted the current user sufficient permissions to view the processing node "
+"(by going to Administration -- Processing Nodes -- Select Node -- Object "
+"Permissions -- Add User/Group and check CAN VIEW PROCESSING NODE). If you "
+"are bringing a node back online, it will take about 30 seconds for WebODM to "
+"recognize it."
+msgstr ""
+"Переконайтеся, що принаймні один вузол обробки доступний і що ви надали "
+"поточному користувачеві необхідні права доступу для перегляду вузла обробки ("
+"перейдіть у Адміністрування -- Вузли обробки -- Виберіть вузол -- Права "
+"доступу об’єкта -- Додайте користувача/групу та поставте прапорець МОЖЕ "
+"ПЕРЕГЛЯНУТИ ВУЗОЛ ОБРОБКИ). Якщо ви повертаєте вузол в режим онлайн, WebODM "
+"розпізнає його приблизно за 30 секунд."
+
+#: app/static/app/js/components/EditTaskForm.jsx:216
+msgid "Could not load list of presets. Are you connected to the internet?"
+msgstr ""
+"Не вдалося завантажити список попередніх налаштувань. Ви підключені до "
+"Інтернету?"
+
+#: app/static/app/js/components/EditTaskForm.jsx:225
+#: app/static/app/js/components/EditTaskForm.jsx:384
+#: app/static/app/js/components/ExportAssetPanel.jsx:183
+#: app/static/app/js/components/Map.jsx:400
+#: coreplugins/contours/public/ContoursPanel.jsx:246
+#: coreplugins/contours/public/ContoursPanel.jsx:273
+#: coreplugins/contours/public/ContoursPanel.jsx:292
+msgid "Custom"
+msgstr "Персоналізований"
+
+#: app/static/app/js/components/EditTaskForm.jsx:232
+#: app/static/app/js/components/EditTaskForm.jsx:353
+msgid "Default"
+msgstr "За налаштуванням"
+
+#: app/static/app/js/components/EditTaskForm.jsx:437
+msgid "My Preset"
+msgstr "Мій Preset"
+
+#: app/static/app/js/components/EditTaskForm.jsx:437
+#, python-format
+msgid "Copy of %(preset)s"
+msgstr "Копіювати %(preset)s"
+
+#: app/static/app/js/components/EditTaskForm.jsx:460
+msgid "Could not duplicate the preset. Please try to refresh the page."
+msgstr "Не вдалося скопіювати preset. Спробуйте оновити сторінку."
+
+#: app/static/app/js/components/EditTaskForm.jsx:469
+msgid ""
+"System presets can only be removed by a staff member from the Administration "
+"panel."
+msgstr ""
+"Системні presets може видалити лише користувач з необхідними правами доступу "
+"з панелі адміністрування."
+
+#: app/static/app/js/components/EditTaskForm.jsx:473
+#, python-format
+msgid "Are you sure you want to delete \"%(preset)s\"?"
+msgstr "Ви впевнені, що хочете видалити \"%(preset)s\"?"
+
+#: app/static/app/js/components/EditTaskForm.jsx:486
+msgid "Could not delete the preset. Please try to refresh the page."
+msgstr "Не вдалося видалити preset. Спробуйте оновити сторінку."
+
+#: app/static/app/js/components/EditTaskForm.jsx:501
+msgid "Retry"
+msgstr "Повторити спробу"
+
+#: app/static/app/js/components/EditTaskForm.jsx:524
+#: app/static/app/js/components/EditTaskForm.jsx:531
+#: app/static/app/js/components/ProjectListItem.jsx:551
+#: app/static/app/js/components/TaskListItem.jsx:455
+#: app/static/app/js/components/TaskListItem.jsx:683
+#: coreplugins/editshortlinks/public/SLControls.jsx:162
+msgid "Edit"
+msgstr "Редагувати"
+
+#: app/static/app/js/components/EditTaskForm.jsx:537
+#: app/static/app/js/components/TaskListItem.jsx:689
+msgid "Duplicate"
+msgstr "Дублювати"
+
+#: app/static/app/js/components/EditTaskForm.jsx:541
+#: app/static/app/js/components/EditTaskPanel.jsx:82
+#: app/static/app/js/components/FormDialog.jsx:11
+#: coreplugins/editshortlinks/public/SLControls.jsx:170
+msgid "Save"
+msgstr "Зберегти"
+
+#: app/static/app/js/components/EditTaskForm.jsx:545
+#: app/static/app/js/components/FormDialog.jsx:166
+#: app/static/app/js/components/TaskListItem.jsx:483
+#: app/static/app/js/components/TaskListItem.jsx:699
+#: coreplugins/measure/public/app.jsx:34
+msgid "Delete"
+msgstr "Видалити"
+
+#: app/static/app/js/components/EditTaskForm.jsx:556
+#: coreplugins/lightning/public/Dashboard.jsx:153
+msgid "Processing Node"
+msgstr "Вузол обробки"
+
+#: app/static/app/js/components/EditTaskForm.jsx:566
+msgid "Options"
+msgstr "Налаштування"
+
+#: app/static/app/js/components/EditTaskForm.jsx:590
+msgid "Loading processing nodes and presets..."
+msgstr "Завантаження вузлів обробки та пресетів..."
+
+#: app/static/app/js/components/EditTaskPanel.jsx:56
+msgid "Could not update task information. Plese try again."
+msgstr ""
+"Не вдалося оновити інформацію про завдання. Будь ласка спробуйте ще раз."
+
+#: app/static/app/js/components/EditTaskPanel.jsx:75
+#: app/static/app/js/components/FormDialog.jsx:193
+#: app/static/app/js/components/NewTaskPanel.jsx:185
+#: app/static/app/js/components/TaskListItem.jsx:464
+#: app/static/app/js/components/TaskListItem.jsx:678
+#: coreplugins/measure/public/app.jsx:33
+msgid "Cancel"
+msgstr "Відмінити"
+
+#: app/static/app/js/components/EditTaskPanel.jsx:79
+msgid "Saving..."
+msgstr "Збереження..."
+
+#: app/static/app/js/components/ErrorMessage.jsx:29
+#: app/static/app/js/components/ProjectListItem.jsx:562
+msgid "Close"
+msgstr "Закрити"
+
+#: app/static/app/js/components/ExportAssetDialog.jsx:38
+msgid "Downloading…"
+msgstr "Завантаження…"
+
+#: app/static/app/js/components/ExportAssetDialog.jsx:39
+msgid "Download"
+msgstr "Завантажити"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:150
+#: app/static/app/js/components/ImportTaskPanel.jsx:138
+#: app/static/app/js/components/LayersControlLayer.jsx:250
+#: app/static/app/js/components/ProjectList.jsx:56
+#, python-format
+msgid "Invalid JSON response: %(error)s"
+msgstr "Недійсна відповідь JSON: %(error)s"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:177
+#: coreplugins/contours/public/ContoursPanel.jsx:287
+msgid "Projection:"
+msgstr "Проєкція:"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:181
+#: coreplugins/contours/public/ContoursPanel.jsx:290
+msgid "Lat/Lon"
+msgstr "Широта/Довгота"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:182
+#: coreplugins/contours/public/ContoursPanel.jsx:291
+msgid "Web Mercator"
+msgstr "Web Mercator"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:200
+msgid "Format:"
+msgstr "Формат:"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:209
+msgid "Export:"
+msgstr "Експорт:"
+
+#: app/static/app/js/components/ExportAssetPanel.jsx:214
+msgid "Exporting..."
+msgstr "Експортування..."
+
+#: app/static/app/js/components/FormDialog.jsx:10
+msgid "Title"
+msgstr "Назва"
+
+#: app/static/app/js/components/FormDialog.jsx:12
+msgid "Saving…"
+msgstr "Збереження…"
+
+#: app/static/app/js/components/FormDialog.jsx:14
+#: coreplugins/editshortlinks/public/SLControls.jsx:112
+msgid "Are you sure?"
+msgstr "Ви впевнені?"
+
+#: app/static/app/js/components/FormDialog.jsx:124
+msgid "Could not apply changes"
+msgstr "Не вдалося застосувати зміни"
+
+#: app/static/app/js/components/FormDialog.jsx:145
+msgid "Could not delete item"
+msgstr "Не вдалося видалити елемент"
+
+#: app/static/app/js/components/GCPPopup.jsx:81
+#: app/static/app/js/components/ImagePopup.jsx:47
+msgid "Image missing"
+msgstr "Відсутнє зображення"
+
+#: app/static/app/js/components/GCPPopup.jsx:175
+msgid "Horizontal error:"
+msgstr "Горизонтальна похибка:"
+
+#: app/static/app/js/components/GCPPopup.jsx:175
+#: app/static/app/js/components/GCPPopup.jsx:178
+msgid "(meters)"
+msgstr "(метри)"
+
+#: app/static/app/js/components/GCPPopup.jsx:178
+msgid "Vertical error:"
+msgstr "Вертикальна похибка:"
+
+#: app/static/app/js/components/Histogram.jsx:293
+msgid "Min:"
+msgstr "Мін:"
+
+#: app/static/app/js/components/Histogram.jsx:294
+msgid "Max:"
+msgstr "Макс:"
+
+#: app/static/app/js/components/ImagePopup.jsx:86
+msgid "Download Image"
+msgstr "Завантажити знімок"
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:63
+msgid "Cannot upload file. Check your internet connection and try again."
+msgstr ""
+"Неможливо завантажити файл. Перевірте підключення до Інтернету та повторіть "
+"спробу."
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:91
+#: coreplugins/editshortlinks/public/SLControls.jsx:44
+#: coreplugins/editshortlinks/public/SLControls.jsx:62
+#: coreplugins/editshortlinks/public/SLControls.jsx:100
+#: coreplugins/editshortlinks/public/SLControls.jsx:128
+#: coreplugins/editshortlinks/public/SLControls.jsx:131
+#: coreplugins/shortlinks/public/SLCheckbox.jsx:46
+#: coreplugins/shortlinks/public/SLCheckbox.jsx:50
+#, python-format
+msgid "Invalid response from server: %(error)s"
+msgstr "Недійсна відповідь від сервера: %(error)s"
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:94
+msgid "An error occured while uploading the file. Please try again."
+msgstr ""
+"Під час завантаження файлу сталася помилка. Будь ласка спробуйте ще раз."
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:142
+msgid "Cannot import from URL. Check your internet connection."
+msgstr "Неможливо імпортувати з URL. Перевірте підключення до Інтернету."
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:159
+msgid "Import Existing Assets"
+msgstr "Імпорт Наявних наборів даних"
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:160
+#, python-format
+msgid ""
+"You can import .zip files that have been exported from existing tasks via "
+"Download Assets %(arrow)s All Assets."
+msgstr ""
+"Ви можете імпортувати файли .zip, експортовані з існуючих завдань, за "
+"допомогою Завантажити ресурси %(arrow)s Усі ресурси."
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:167
+msgid "Upload a File"
+msgstr "Вивантажити файл"
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:175
+msgid "Import From URL"
+msgstr "Імпортувати з URL-адреси"
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:184
+#: app/static/app/js/components/ProjectListItem.jsx:514
+msgid "Import"
+msgstr "Імпортувати"
+
+#: app/static/app/js/components/ImportTaskPanel.jsx:194
+msgid "Cancel Upload"
+msgstr "Відмінити Вивантаження"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:288
+msgid "Algorithm:"
+msgstr "Алгоритм:"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:300
+msgid "Filter:"
+msgstr "Фільтр:"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:312
+msgid "Color:"
+msgstr "Колір:"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:324
+msgid "Shading:"
+msgstr "Затінення:"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:327
+#: app/static/app/js/components/Map.jsx:401
+msgid "None"
+msgstr "Жодного"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:328
+#: coreplugins/contours/public/ContoursPanel.jsx:228
+msgid "Normal"
+msgstr "Нормальний"
+
+#: app/static/app/js/components/LayersControlLayer.jsx:329
+msgid "Extruded"
+msgstr "Екструдований"
+
+#: app/static/app/js/components/LayersControlPanel.jsx:26
+#: app/static/app/js/components/NewTaskPanel.jsx:187
+#: coreplugins/contours/public/ContoursPanel.jsx:236
+msgid "Loading…"
+msgstr "Завантаження…"
+
+#: app/static/app/js/components/LayersControlPanel.jsx:44
+msgid "Layers"
+msgstr "Шари"
+
+#: app/static/app/js/components/Map.jsx:89
+msgid "DSM"
+msgstr "DSM"
+
+#: app/static/app/js/components/Map.jsx:91
+msgid "DTM"
+msgstr "DTM"
+
+#: app/static/app/js/components/Map.jsx:261
+msgid "(Cameras)"
+msgstr "(Камери)"
+
+#: app/static/app/js/components/Map.jsx:310
+msgid "(GCPs)"
+msgstr "(GCPs)"
+
+#: app/static/app/js/components/Map.jsx:382
+msgid "Enter a tile URL template. Valid coordinates are:"
+msgstr "Введіть шаблон URL-адреси тайлу. Допустимі координати:"
+
+#: app/static/app/js/components/Map.jsx:383
+#, python-brace-format
+msgid "{z}, {x}, {y} for Z/X/Y tile scheme"
+msgstr "{z}, {x}, {y} для Z/X/Y схеми тайлів"
+
+#: app/static/app/js/components/Map.jsx:384
+msgid "{-y} for flipped TMS-style Y coordinates"
+msgstr "{-y} для перевернутих Y координат у форматі TMS"
+
+#: app/static/app/js/components/Map.jsx:386
+msgid "Example:"
+msgstr "Приклад:"
+
+#: app/static/app/js/components/Map.jsx:452
+msgid "Add a temporary GeoJSON (.json) or ShapeFile (.zip) overlay"
+msgstr "Додайте тимчасове оверлей GeoJSON (.json) або ShapeFile (.zip)"
+
+#: app/static/app/js/components/Map.jsx:503
+msgid "Error: cannot load assets list."
+msgstr "Помилка: неможливо завантажити список наборів даних."
+
+#: app/static/app/js/components/Map.jsx:574
+msgid "Opacity:"
+msgstr "Непрозорість:"
+
+#: app/static/app/js/components/Map.jsx:578
+#: app/static/app/js/components/TaskList.jsx:82
+msgid "Loading..."
+msgstr "Завантаження..."
+
+#: app/static/app/js/components/MoveTaskDialog.jsx:9
+msgid "Move Task"
+msgstr "Перемістити завдання"
+
+#: app/static/app/js/components/MoveTaskDialog.jsx:10
+#: app/static/app/js/components/ProjectListItem.jsx:485
+msgid "Save Changes"
+msgstr "Зберегти зміни"
+
+#: app/static/app/js/components/MoveTaskDialog.jsx:11
+msgid "Moving..."
+msgstr "Переміщую..."
+
+#: app/static/app/js/components/MoveTaskDialog.jsx:54
+#: app/static/app/js/components/ProjectList.jsx:63
+#, python-format
+msgid "Could not load projects list: %(error)s"
+msgstr "Не вдалося завантажити список проектів: %(error)s"
+
+#: app/static/app/js/components/MoveTaskDialog.jsx:88
+msgid "Project"
+msgstr "Проєкт"
+
+#: app/static/app/js/components/NewTaskPanel.jsx:83
+msgid "Are you sure you want to cancel?"
+msgstr "Ви впевнені, що бажаєте скасувати?"
+
+#: app/static/app/js/components/NewTaskPanel.jsx:131
+#, python-format
+msgid "%(count)s files selected. Please check these additional options:"
+msgstr "%(count)s вибрано файлів. Будь ласка, перевірте ці додаткові параметри:"
+
+#: app/static/app/js/components/NewTaskPanel.jsx:144
+msgid "Resize Images"
+msgstr "Зміна розміру зображень"
+
+#: app/static/app/js/components/NewTaskPanel.jsx:168
+msgid "px"
+msgstr "пікс"
+
+#: app/static/app/js/components/NewTaskPanel.jsx:189
+msgid "Review"
+msgstr "Огляд"
+
+#: app/static/app/js/components/NewTaskPanel.jsx:189
+msgid "Start Processing"
+msgstr "Почати обробку"
+
+#: app/static/app/js/components/ProcessingNodeOption.jsx:140
+#: app/static/app/js/translations/potree_autogenerated.js:62
+msgid "Enable"
+msgstr "Включити"
+
+#: app/static/app/js/components/ProcessingNodeOption.jsx:149
+msgid "Click to import a .JSON file"
+msgstr "Натисніть, щоб імпортувати файл .JSON"
+
+#: app/static/app/js/components/ProcessingNodeOption.jsx:164
+msgid "Reset to default"
+msgstr "Скинути по замовчуванню"
+
+#: app/static/app/js/components/ProjectListItem.jsx:188
+#, python-format
+msgid "Cannot upload %(filename)s, exceeded max retries (%(max_retries)s)"
+msgstr ""
+"Неможливо завантажити %(filename)s, перевищено максимальну кількість спроб "
+"(%(max_retries)s)"
+
+#: app/static/app/js/components/ProjectListItem.jsx:237
+#: app/static/app/js/components/ProjectListItem.jsx:354
+#, python-format
+msgid "Cannot create new task. Invalid response from server: %(error)s"
+msgstr ""
+"Неможливо створити нове завдання. Недійсна відповідь від сервера: %(error)s"
+
+#: app/static/app/js/components/ProjectListItem.jsx:240
+#: app/static/app/js/components/ProjectListItem.jsx:358
+msgid "Cannot create new task. Please try again later."
+msgstr "Неможливо створити нове завдання. Будь-ласка спробуйте пізніше."
+
+#: app/static/app/js/components/ProjectListItem.jsx:247
+#, python-format
+msgid ""
+"%(count)s files cannot be uploaded. As a reminder, only images (.jpg, .tif, ."
+"png) and GCP files (.txt) can be uploaded. Try again."
+msgstr ""
+"%(count)s файлів неможливо завантажити. Нагадуємо, що можна завантажувати "
+"лише зображення (.jpg, .tif, .png) і файли GCP (.txt). Спробуйте знову."
+
+#: app/static/app/js/components/ProjectListItem.jsx:484
+msgid "Edit Project"
+msgstr "Редагувати Проєкт"
+
+#: app/static/app/js/components/ProjectListItem.jsx:486
+msgid "Saving changes..."
+msgstr "Зберігаю зміни..."
+
+#: app/static/app/js/components/ProjectListItem.jsx:509
+msgid "Select Images and GCP"
+msgstr "Виберіть Знімки та GCP (Контрольні точки)"
+
+#: app/static/app/js/components/ProjectListItem.jsx:529
+#: app/static/app/js/components/TaskListItem.jsx:442
+msgid "View Map"
+msgstr "Вигляд Мапи"
+
+#: app/static/app/js/components/ProjectListItem.jsx:544
+#, python-format
+msgid "%(count)s Tasks"
+msgstr "%(count)s Завдань"
+
+#: app/static/app/js/components/ShareButton.jsx:58
+msgid "Share"
+msgstr "Поділіться"
+
+#: app/static/app/js/components/SharePopup.jsx:78
+msgid "An error occurred. Check your connection and permissions."
+msgstr "Виникла помилка. Перевірте підключення та права доступу."
+
+#: app/static/app/js/components/SharePopup.jsx:96
+msgid "Share This Task"
+msgstr "Поділіться Цим Завданням"
+
+#: app/static/app/js/components/SharePopup.jsx:105
+msgid "QR"
+msgstr "QR"
+
+#: app/static/app/js/components/SharePopup.jsx:118
+msgid "Enabled"
+msgstr "Увімкнено"
+
+#: app/static/app/js/components/SharePopup.jsx:124
+msgid "Link:"
+msgstr "Посилання:"
+
+#: app/static/app/js/components/SharePopup.jsx:141
+msgid "HTML iframe:"
+msgstr "HTML iframe:"
+
+#: app/static/app/js/components/SwitchModeButton.jsx:47
+msgid "3D"
+msgstr "3D"
+
+#: app/static/app/js/components/SwitchModeButton.jsx:47
+msgid "2D"
+msgstr "2D"
+
+#: app/static/app/js/components/TaskList.jsx:53
+#, python-format
+msgid "Could not load task list: %(error)s"
+msgstr "Не вдалося завантажити список завдань: %(error)s"
+
+#: app/static/app/js/components/TaskList.jsx:84
+#, python-format
+msgid "Error: %(error)s"
+msgstr "Помилка: %(error)s"
+
+#: app/static/app/js/components/TaskList.jsx:84
+msgid "Try again"
+msgstr "Спробуйте знову"
+
+#: app/static/app/js/components/TaskListItem.jsx:260
+#, python-format
+msgid ""
+"It looks like there might be one of the following problems: %(problems)s You "
+"can read more about best practices for capturing good images %(link)s."
+msgstr ""
+"Схоже, що може виникнути одна з таких проблем: %(problems)s Ви можете "
+"прочитати більше про найкращі методи зйомки хороших зображень %(link)s."
+
+#: app/static/app/js/components/TaskListItem.jsx:261
+msgid "Not enough images"
+msgstr "Недостатньо знімків"
+
+#: app/static/app/js/components/TaskListItem.jsx:262
+msgid "Not enough overlap between images"
+msgstr "Недостатнє перекриття між знімками"
+
+#: app/static/app/js/components/TaskListItem.jsx:263
+msgid "Images might be too blurry (common with phone cameras)"
+msgstr "Зображення можуть бути надто розмитими (часто з камер телефонів)"
+
+#: app/static/app/js/components/TaskListItem.jsx:264
+msgid ""
+"The min-num-features task option is set too low, try increasing it by 25%"
+msgstr ""
+"Параметр завдання мінімальної кількості функцій встановлено занизько, "
+"спробуйте збільшити його на 25%"
+
+#: app/static/app/js/components/TaskListItem.jsx:265
+msgid "here"
+msgstr "тут"
+
+#: app/static/app/js/components/TaskListItem.jsx:268
+#, python-format
+msgid ""
+"It looks like this computer might be too old. WebODM requires a computer "
+"with a 64-bit CPU supporting MMX, SSE, SSE2, SSE3 and SSSE3 instruction set "
+"support or higher. You can still run WebODM if you compile your own docker "
+"images. See %(link)s for more information."
+msgstr ""
+"Схоже, цей комп’ютер застарий. Для WebODM потрібен комп’ютер із 64-розрядним "
+"процесором, який підтримує набір інструкцій MMX, SSE, SSE2, SSE3 і SSSE3 або "
+"новішої версії. Ви все ще можете запустити WebODM, якщо скомпілюєте власні "
+"образи докерів. Перегляньте %(link)s для отримання додаткової інформації."
+
+#: app/static/app/js/components/TaskListItem.jsx:268
+msgid "this page"
+msgstr "ця сторінка"
+
+#: app/static/app/js/components/TaskListItem.jsx:270
+msgid ""
+"The processing node is missing a program necessary to complete the task. "
+"This might indicate a corrupted installation. If you built OpenDroneMap, "
+"please check that all programs built without errors."
+msgstr ""
+"У вузлі обробки відсутня програма, необхідна для виконання завдання. Це може "
+"свідчити про пошкоджену установку. Якщо ви зібрали OpenDroneMap, "
+"переконайтеся, що всі програми зібрані без помилок."
+
+#: app/static/app/js/components/TaskListItem.jsx:310
+#, python-format
+msgid "From %(stage)s"
+msgstr "Від %(stage)s"
+
+#: app/static/app/js/components/TaskListItem.jsx:322
+msgid "Resume Processing"
+msgstr "Відновити обробку"
+
+#: app/static/app/js/components/TaskListItem.jsx:338
+msgid "Cannot restart task."
+msgstr "Неможливо перезапустити завдання."
+
+#: app/static/app/js/components/TaskListItem.jsx:380
+msgid "Cannot restart task from (stage)s."
+msgstr "Неможливо перезапустити завдання з (етапу)."
+
+#: app/static/app/js/components/TaskListItem.jsx:406
+#, python-format
+msgid "Task #%(number)s"
+msgstr "Завдання #%(number)s"
+
+#: app/static/app/js/components/TaskListItem.jsx:410
+msgid "Uploading images to processing node"
+msgstr ""
+
+#: app/static/app/js/components/TaskListItem.jsx:412
+msgid "Waiting for a node..."
+msgstr "Очікування вузла..."
+
+#: app/static/app/js/components/TaskListItem.jsx:449
+msgid "View 3D Model"
+msgstr "Перегляд 3D-моделі"
+
+#: app/static/app/js/components/TaskListItem.jsx:464
+#: app/static/app/js/components/TaskListItem.jsx:678
+msgid "Cannot cancel task."
+msgstr "Неможливо відмінити завдання."
+
+#: app/static/app/js/components/TaskListItem.jsx:477
+msgid "Restart"
+msgstr "Перезапуск"
+
+#: app/static/app/js/components/TaskListItem.jsx:484
+#: app/static/app/js/components/TaskListItem.jsx:700
+msgid ""
+"All information related to this task, including images, maps and models will "
+"be deleted. Continue?"
+msgstr ""
+"Уся інформація, пов’язана з цим завданням, включаючи зображення, карти та "
+"моделі, буде видалена. Продовжити?"
+
+#: app/static/app/js/components/TaskListItem.jsx:485
+#: app/static/app/js/components/TaskListItem.jsx:701
+msgid "Cannot delete task."
+msgstr "Неможливо видалити завдання."
+
+#: app/static/app/js/components/TaskListItem.jsx:536
+msgid "Task Output:"
+msgstr "Результати завдання:"
+
+#: app/static/app/js/components/TaskListItem.jsx:539
+msgid "On"
+msgstr "Вкл."
+
+#: app/static/app/js/components/TaskListItem.jsx:540
+msgid "Off"
+msgstr "Викл."
+
+#: app/static/app/js/components/TaskListItem.jsx:548
+msgid "Created on:"
+msgstr "Дата створення:"
+
+#: app/static/app/js/components/TaskListItem.jsx:551
+msgid "Processing Node:"
+msgstr "Вузол обробки:"
+
+#: app/static/app/js/components/TaskListItem.jsx:551
+msgid "auto"
+msgstr "автоматично"
+
+#: app/static/app/js/components/TaskListItem.jsx:551
+msgid "manual"
+msgstr "ручний"
+
+#: app/static/app/js/components/TaskListItem.jsx:555
+msgid "Options:"
+msgstr "Параметри:"
+
+#: app/static/app/js/components/TaskListItem.jsx:561
+msgid "Average GSD:"
+msgstr "Середній GSD:"
+
+#: app/static/app/js/components/TaskListItem.jsx:565
+#: coreplugins/measure/public/MeasurePopup.jsx:142
+msgid "Area:"
+msgstr "Площа:"
+
+#: app/static/app/js/components/TaskListItem.jsx:569
+msgid "Reconstructed Points:"
+msgstr "Реконструйовані точки:"
+
+#: app/static/app/js/components/TaskListItem.jsx:587
+msgid ""
+"An orthophoto could not be generated. To generate one, make sure GPS "
+"information is embedded in the EXIF tags of your images, or use a Ground "
+"Control Points (GCP) file."
+msgstr ""
+"Не вдалося створити ортофото. Щоб створити його, переконайтеся, що "
+"інформацію GPS вбудовано в теги EXIF ваших зображень, або скористайтеся "
+"файлом наземних контрольних точок (GCP)."
+
+#: app/static/app/js/components/TaskListItem.jsx:590
+msgid "enough RAM allocated"
+msgstr "виділено достатньо оперативної пам'яті"
+
+#: app/static/app/js/components/TaskListItem.jsx:590
+msgid "cloud processing node"
+msgstr "хмарний вузол обробки"
+
+#: app/static/app/js/components/TaskListItem.jsx:590
+#, python-format
+msgid ""
+"It looks like your processing node ran out of memory. If you are using "
+"docker, make sure that your docker environment has %(memlink)s. "
+"Alternatively, make sure you have enough physical RAM, reduce the number of "
+"images, make your images smaller, or reduce the max-concurrency parameter "
+"from the task's options. You can also try to use a %(cloudlink)s."
+msgstr ""
+"Схоже, у вашому вузлі обробки не вистачає пам’яті. Якщо ви використовуєте "
+"докер, переконайтеся, що ваше середовище докера має %(memlink)s. Крім того, "
+"переконайтеся, що у вас достатньо фізичної оперативної пам’яті, зменшіть "
+"кількість зображень, зробіть зображення меншими або зменште параметр "
+"максимального паралелізму в параметрах завдання. Ви також можете спробувати "
+"використати %(cloudlink)s."
+
+#: app/static/app/js/components/TaskListItem.jsx:597
+msgid "open a topic"
+msgstr "відкрити тему"
+
+#: app/static/app/js/components/TaskListItem.jsx:597
+#, python-format
+msgid ""
+"\"Process exited with code 1\" means that part of the processing failed. "
+"Sometimes it's a problem with the dataset, sometimes it can be solved by "
+"tweaking the Task Options and sometimes it might be a bug! If you need help, "
+"upload your images somewhere like %(link1)s or %(link2)s and "
+"%(open_a_topic)s on our community forum, making sure to include a copy of "
+"your task's output. Our awesome contributors will try to help you!"
+msgstr ""
+"«Процес завершено з кодом 1» означає, що частина обробки не виконана. Іноді "
+"це проблема з набором даних, іноді її можна вирішити, налаштувавши параметри "
+"завдання, а іноді це може бути помилка! Якщо вам потрібна допомога, "
+"завантажте свої зображення кудись, як-от %(link1)s або %(link2)s і "
+"%(open_a_topic)s на нашому форумі спільноти, обов’язково включивши копію "
+"результату вашого завдання. Наші чудові учасники спробують вам допомогти!"
+
+#: app/static/app/js/components/TaskListItem.jsx:644
+msgid "Set a processing node"
+msgstr "Встановіть вузол обробки"
+
+#: app/static/app/js/components/TaskListItem.jsx:649
+msgid "Waiting for image upload..."
+msgstr "Очікування завантаження зображення..."
+
+#: app/static/app/js/components/TaskListItem.jsx:688
+msgid "Move"
+msgstr "Перемістити"
+
+#: app/static/app/js/components/UploadProgressBar.jsx:29
+#, python-format
+msgid "remaining to upload: %(bytes)s"
+msgstr "залишилося завантажити: %(bytes)s"
+
+#: app/static/app/js/components/UploadProgressBar.jsx:35
+#, python-format
+msgid "%(count)s files %(remaining)s"
+msgstr "%(count)s файлів %(remaining)s"
+
+#: app/static/app/js/components/UploadProgressBar.jsx:36
+#, python-format
+msgid "%(count)s files uploaded successfully"
+msgstr "%(count)s файлів успішно завантажено"
+
+#: app/static/app/js/translations/odm_autogenerated.js:3
+#, python-format
+msgid ""
+"Use images' GPS exif data for reconstruction, even if there are GCPs present."
+"This flag is useful if you have high precision GPS measurements. If there "
+"are no GCPs, this flag does nothing. Default: %(default)s"
+msgstr ""
+"Використовуйте дані GPS exif зображень для реконструкції, навіть якщо "
+"присутні опорні точки. Цей прапорець корисний, якщо у вас є високоточні "
+"вимірювання GPS. Якщо Наземних контрольних точок (GCP) немає, цей прапорець "
+"нічого не робить. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:4
+#, python-format
+msgid ""
+"Perform ground rectification on the point cloud. This means that wrongly "
+"classified ground points will be re-classified and gaps will be filled. "
+"Useful for generating DTMs. Default: %(default)s"
+msgstr ""
+"Виконайте наземне коригування на хмарі точок. Це означає, що неправильно "
+"класифіковані наземні точки будуть повторно класифіковані, а прогалини "
+"будуть заповнені. Корисно для створення DTM. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:5
+#, python-format
+msgid ""
+"Skips dense reconstruction and 3D model generation. It generates an "
+"orthophoto directly from the sparse reconstruction. If you just need an "
+"orthophoto and do not need a full 3D model, turn on this option. Default: "
+"%(default)s"
+msgstr ""
+"Пропускає щільну реконструкцію та генерацію 3D-моделі. Він створює ортофото "
+"безпосередньо з розрідженої реконструкції. Якщо вам потрібен лише "
+"ортофотоплан і не потрібна повна 3D модель, увімкніть цю опцію. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:6
+#, python-format
+msgid ""
+"Export the georeferenced point cloud in CSV format. Default: %(default)s"
+msgstr ""
+"Експортуйте хмару точок із геоприв’язкою у формат CSV. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:7
+#, python-format
+msgid ""
+"Set this parameter if you want to generate a PNG rendering of the "
+"orthophoto. Default: %(default)s"
+msgstr ""
+"Встановіть цей параметр, якщо ви бажаєте створити ортофото у форматі PNG. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:8
+#, python-format
+msgid ""
+"Export the georeferenced point cloud in Entwine Point Tile (EPT) format. "
+"Default: %(default)s"
+msgstr ""
+"Експортуйте хмару точок із геоприв’язкою у форматі Entwine Point Tile (EPT). "
+"За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:9
+#, python-format
+msgid ""
+"Keep faces in the mesh that are not seen in any camera. Default:  %(default)s"
+msgstr ""
+"Зберігайте сітчасті грані моделі, які не видно жодною камерою. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:10
+#, python-format
+msgid ""
+"Generate static tiles for orthophotos and DEMs that are suitable for viewers "
+"like Leaflet or OpenLayers. Default: %(default)s"
+msgstr ""
+"Створюйте статичні тайли для ортофото і матриць висот (DEM), які підходять "
+"для перегляду, наприклад Leaflet або OpenLayers. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:11
+#, python-format
+msgid ""
+"The maximum number of processes to use in various processes. Peak memory "
+"requirement is ~1GB per thread and 2 megapixel image resolution. Default: "
+"%(default)s"
+msgstr ""
+"Максимальна кількість процесів для використання в різних процесах. "
+"Максимальна потреба в пам’яті становить ~1 ГБ на потік і роздільна здатність "
+"зображення 2 мегапікселі. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:12
+msgid "Displays version number and exits. "
+msgstr "Відобразити номер версії та вийти. "
+
+#: app/static/app/js/translations/odm_autogenerated.js:13
+#, python-format
+msgid ""
+"Skip generation of a full 3D model. This can save time if you only need 2D "
+"results such as orthophotos and DEMs. Default: %(default)s"
+msgstr ""
+"Пропустити створення повної 3D-моделі. Це може заощадити час, якщо вам "
+"потрібні лише 2D-результати, такі як ортофото і DEM. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:14
+#, python-format
+msgid ""
+"Distance threshold in meters to find pre-matching images based on GPS exif "
+"data. Set both matcher-neighbors and this to 0 to skip pre-matching. "
+"Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:15
+#, python-format
+msgid ""
+"Run local bundle adjustment for every image added to the reconstruction and "
+"a global adjustment every 100 images. Speeds up reconstruction for very "
+"large datasets. Default: %(default)s"
+msgstr ""
+"Виконуйте локальне групове коригування для кожного зображення, доданого до "
+"реконструкції, і глобальне коригування кожні 100 зображень. Прискорює "
+"реконструкцію для дуже великих наборів даних. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:16
+#, python-format
+msgid ""
+"Filters the point cloud by removing points that deviate more than N standard "
+"deviations from the local mean. Set to 0 to disable filtering. Default: "
+"%(default)s"
+msgstr ""
+"Фільтрує хмару точок, видаляючи точки, які відхиляються від локального "
+"середнього більш ніж на N стандартних відхилень. Встановіть 0, щоб вимкнути "
+"фільтрацію. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:17
+#, python-format
+msgid ""
+"Minimum number of features to extract per image. More features can be useful "
+"for finding more matches between images, potentially allowing the "
+"reconstruction of areas with little overlap or insufficient features. More "
+"features also slow down processing. Default: %(default)s"
+msgstr ""
+"Мінімальна кількість функцій для вилучення на зображення. Більше функцій "
+"може бути корисним для пошуку більшої кількості збігів між зображеннями, "
+"потенційно дозволяючи реконструювати області з невеликим перекриттям або "
+"недостатніми функціями. Додаткові функції також сповільнюють обробку. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:18
+#, python-format
+msgid ""
+"Use this tag to build a DTM (Digital Terrain Model, ground only) using a "
+"simple morphological filter. Check the --dem* and --smrf* parameters for "
+"finer tuning. Default: %(default)s"
+msgstr ""
+"Використовуйте цей тег, щоб побудувати DTM (цифрова модель рельєфу, лише "
+"наземна) за допомогою простого морфологічного фільтра. Перевірте параметри "
+"--dem* і --smrf* для більш точного налаштування. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:19
+#, python-format
+msgid ""
+"Simple Morphological Filter elevation threshold parameter (meters). Default: "
+"%(default)s"
+msgstr ""
+"Пороговий параметр висоти простого морфологічного фільтра (у метрах). За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:20
+#, python-format
+msgid ""
+"Matcher algorithm, Fast Library for Approximate Nearest Neighbors or Bag of "
+"Words. FLANN is slower, but more stable. BOW is faster, but can sometimes "
+"miss valid matches. Can be one of: %(choices)s. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:21
+#, python-format
+msgid ""
+"Create Cloud-Optimized GeoTIFFs instead of normal GeoTIFFs. Default: "
+"%(default)s"
+msgstr ""
+"Створити файли GeoTIFF, оптимізовані для хмари, замість звичайних файлів "
+"GeoTIFF. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:22
+#, python-format
+msgid ""
+"Path to the file containing the ground control points used for "
+"georeferencing. The file needs to use the following format: EPSG:<code> or <"
+"+proj definition>geo_x geo_y geo_z im_x im_y image_name [gcp_name] [extra1] "
+"[extra2]Default: %(default)s"
+msgstr ""
+"Шлях до файлу, що містить наземні контрольні точки, які використовуються для "
+"геоприв’язки. Файл має використовувати такий формат: EPSG:<code>or <+proj "
+"definition>geo_x geo_y geo_z im_x im_y image_name [gcp_name] [extra1] "
+"[extra2]Default:%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:23
+#, python-format
+msgid ""
+"Use this tag if you have a GCP File but want to use the EXIF information for "
+"georeferencing instead. Default: %(default)s"
+msgstr ""
+"Використовуйте цей тег, якщо у вас є файл GCP, але ви хочете використовувати "
+"інформацію EXIF для геоприв’язки. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:24
+#, python-format
+msgid ""
+"Number of steps used to fill areas with gaps. Set to 0 to disable gap "
+"filling. Starting with a radius equal to the output resolution, N different "
+"DEMs are generated with progressively bigger radius using the inverse "
+"distance weighted (IDW) algorithm and merged together. Remaining gaps are "
+"then merged using nearest neighbor interpolation. Default: %(default)s"
+msgstr ""
+"Кількість кроків, які використовуються для заповнення областей з пропусками. "
+"Встановіть значення 0, щоб вимкнути заповнення пропусків. Починаючи з "
+"радіуса, що дорівнює вихідній роздільній здатності, N різних ЦМР (DEM) "
+"генеруються з прогресивно більшим радіусом за допомогою алгоритму зворотної "
+"зваженої відстані (IDW) і об’єднуються разом. Прогалини, що залишилися, "
+"потім об’єднуються за допомогою інтерполяції найближчого сусіда. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:25
+#, python-format
+msgid ""
+"Improve the accuracy of the point cloud by computing geometrically "
+"consistent depthmaps. This increases processing time, but can improve "
+"results in urban scenes. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:26
+#, python-format
+msgid ""
+"Number of nearest images to pre-match based on GPS exif data. Set to 0 to "
+"skip pre-matching. Neighbors works together with Distance parameter, set "
+"both to 0 to not use pre-matching. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:27
+#, python-format
+msgid ""
+"Decimate the points before generating the DEM. 1 is no decimation (full "
+"quality). 100 decimates ~99%% of the points. Useful for speeding up "
+"generation of DEM results in very large datasets. Default: %(default)s"
+msgstr ""
+"Перед побудовою матриці висот слід виконати децимацію точок. 1 - без "
+"децимації (повна якість). 100 - децимація ~99%% точок. Корисно для "
+"прискорення генерації результатів для дуже великих наборів даних. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:28
+#, python-format
+msgid ""
+"Orthophoto resolution in cm / pixel. Note that this value is capped by a "
+"ground sampling distance (GSD) estimate. To remove the cap, check --ignore-"
+"gsd also. Default: %(default)s"
+msgstr ""
+"Роздільна здатність ортофото в см/піксель. Зауважте, що це значення обмежене "
+"оцінкою відстані вибірки на місцевості (GSD). Щоб зняти обмеження, також "
+"позначте --ignore-gsd. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:29
+#, python-format
+msgid ""
+"Choose what to merge in the merge step in a split dataset. By default all "
+"available outputs are merged. Options: %(choices)s. Default: %(default)s"
+msgstr ""
+"Виберіть, що об'єднувати на кроці об'єднання в розділеному наборі даних. За "
+"замовчуванням об'єднуються всі доступні результати. Варіанти: %(choices)s. "
+"За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:30
+#, python-format
+msgid ""
+"GeoJSON polygon limiting the area of the reconstruction. Can be specified "
+"either as path to a GeoJSON file or as a JSON string representing the "
+"contents of a GeoJSON file. Default: %(default)s"
+msgstr ""
+"GeoJSON полігон, що обмежує область реконструкції. Може бути вказаний або як "
+"шлях до файлу GeoJSON, або як JSON-рядок, що представляє вміст файлу "
+"GeoJSON. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:31
+#, python-format
+msgid ""
+"When processing multispectral datasets, ODM will automatically align the "
+"images for each band. If the images have been postprocessed and are already "
+"aligned, use this option. Default: %(default)s"
+msgstr ""
+"При обробці багатоспектральних наборів даних ODM автоматично вирівнює "
+"зображення для кожного діапазону. Якщо зображення було постоброблено і вже "
+"вирівняно, використовуйте цей параметр. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:32
+#, python-format
+msgid ""
+"Simple Morphological Filter window radius parameter (meters). Default: "
+"%(default)s"
+msgstr ""
+"Параметр радіуса вікна Простого Морфологічного Фільтра (у метрах). За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:33
+#, python-format
+msgid ""
+"Computes an euclidean raster map for each DEM. The map reports the distance "
+"from each cell to the nearest NODATA value (before any hole filling takes "
+"place). This can be useful to isolate the areas that have been filled. "
+"Default: %(default)s"
+msgstr ""
+"Обчислює евклідову растрову карту для кожної матриці висот(DEM). Карта "
+"показує відстань від кожної комірки до найближчого значення NODATA (до того, "
+"як відбулося заповнення дірок). Це може бути корисно для ізоляції областей, "
+"які були заповнені. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:34
+#, python-format
+msgid ""
+"Type of photometric outlier removal method. Can be one of: %(choices)s. "
+"Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:35
+#, python-format
+msgid ""
+"Automatically set a boundary using camera shot locations to limit the area "
+"of the reconstruction. This can help remove far away background artifacts "
+"(sky, background landscapes, etc.). See also --boundary. Default: %(default)s"
+msgstr ""
+"Автоматично встановлювати межі, використовуючи місця зйомки камери, щоб "
+"обмежити область реконструкції. Це може допомогти видалити віддалені фонові "
+"артефакти (небо, фонові пейзажі тощо). Дивіться також --boundary. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:36
+msgid ""
+"Path to the project folder. Your project folder should contain subfolders "
+"for each dataset. Each dataset should have an \"images\" folder."
+msgstr ""
+"Шлях до теки проекту. Папка проекту повинна містити підпапки для кожного "
+"набору даних. Кожен набір даних повинен мати папку \"images\"."
+
+#: app/static/app/js/translations/odm_autogenerated.js:37
+#, python-format
+msgid ""
+"Use a full 3D mesh to compute the orthophoto instead of a 2.5D mesh. This "
+"option is a bit faster and provides similar results in planar areas. "
+"Default: %(default)s"
+msgstr ""
+"Використовуйте повну 3D-сітку для обчислення ортофото замість 2.5D-сітки. Ця "
+"опція працює трохи швидше і дає подібні результати на плоских ділянках. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:38
+#, python-format
+msgid ""
+"Set a value in meters for the GPS Dilution of Precision (DOP) information "
+"for all images. If your images are tagged with high precision GPS "
+"information (RTK), this value will be automatically set accordingly. You can "
+"use this option to manually set it in case the reconstruction fails. "
+"Lowering this option can sometimes help control bowling-effects over large "
+"areas. Default: %(default)s"
+msgstr ""
+"Встановіть значення в метрах для інформації про зниження точності GPS (DOP) "
+"для всіх зображень. Якщо ваші зображення позначені високоточною інформацією "
+"GPS (RTK), це значення буде автоматично встановлено відповідно. Ви можете "
+"використати цей параметр, щоб встановити його вручну на випадок, якщо "
+"реконструкція не вдасться. Зменшення цього параметра іноді може допомогти "
+"контролювати ефекти зсуву на великих площах. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:39
+msgid "Copy output results to this folder after processing."
+msgstr "Після обробки скопіюйте результати виводу в цю папку."
+
+#: app/static/app/js/translations/odm_autogenerated.js:40
+#, python-format
+msgid ""
+"Path to the image geolocation file containing the camera center coordinates "
+"used for georeferencing. Note that omega/phi/kappa are currently not "
+"supported (you can set them to 0). The file needs to use the following "
+"format: EPSG:<code> or <+proj definition>image_name geo_x geo_y geo_z [omega "
+"(degrees)] [phi (degrees)] [kappa (degrees)] [horz accuracy (meters)] [vert "
+"accuracy (meters)]Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:41
+#, python-format
+msgid ""
+"Generates a polygon around the cropping area that cuts the orthophoto around "
+"the edges of features. This polygon can be useful for stitching seamless "
+"mosaics with multiple overlapping orthophotos. Default: %(default)s"
+msgstr ""
+"Створює полігон навколо області обрізання, який обрізає ортофото по краях "
+"об'єктів. Цей полігон може бути корисним для зшивання безшовної мозаїки з "
+"декількома ортофотографіями, що перекриваються. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:42
+#, python-format
+msgid ""
+"Average number of images per submodel. When splitting a large dataset into "
+"smaller submodels, images are grouped into clusters. This value regulates "
+"the number of images that each cluster should have on average. Default: "
+"%(default)s"
+msgstr ""
+"Середня кількість зображень на одну субмодель. При розбитті великого набору "
+"даних на менші субмоделі, зображення групуються в кластери. Це значення "
+"регулює кількість зображень, яку в середньому повинен мати кожен кластер. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:43
+#, python-format
+msgid ""
+"When processing multispectral datasets, you can specify the name of the "
+"primary band that will be used for reconstruction. It's recommended to "
+"choose a band which has sharp details and is in focus. Default: %(default)s"
+msgstr ""
+"При обробці мультиспектральних наборів даних ви можете вказати назву "
+"основного діапазону, який буде використано для реконструкції. Рекомендується "
+"вибирати діапазон, який має чіткі деталі та знаходиться у фокусі. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:44
+#, python-format
+msgid ""
+"Set the radiometric calibration to perform on images. When processing "
+"multispectral and thermal images you should set this option to obtain "
+"reflectance/temperature values (otherwise you will get digital number "
+"values). [camera] applies black level, vignetting, row gradient gain/"
+"exposure compensation (if appropriate EXIF tags are found) and computes "
+"absolute temperature values. [camera+sun] is experimental, applies all the "
+"corrections of [camera], plus compensates for spectral radiance registered "
+"via a downwelling light sensor (DLS) taking in consideration the angle of "
+"the sun. Can be one of: %(choices)s. Default: %(default)s"
+msgstr ""
+"Задати радіометричне калібрування для зображень. При обробці "
+"мультиспектральних і теплових зображень вам слід встановити цей параметр для "
+"отримання значень коефіцієнта відбиття/температури (інакше ви отримаєте "
+"цифрові значення). [камера] застосовує рівень чорного, віньєтування, "
+"компенсацію градієнта рядків/експозиції (якщо знайдено відповідні EXIF-теги) "
+"та обчислює абсолютні значення температури. [камера+сонце] - "
+"експериментальний, застосовує всі корекції [камера], а також компенсує "
+"спектральне випромінювання, зареєстроване за допомогою датчика низхідного "
+"світла (DLS), з урахуванням кута нахилу сонця. Може бути одним з: %(choices)"
+"s. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:45
+#, python-format
+msgid ""
+"Rerun this stage only and stop. Can be one of: %(choices)s. Default: "
+"%(default)s"
+msgstr ""
+"Повторіть тільки цей етап і зупиніться. Може бути одним з: %(choices)s. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:46
+msgid "show this help message and exit"
+msgstr "показати довідкове повідомлення і вийти"
+
+#: app/static/app/js/translations/odm_autogenerated.js:47
+msgid ""
+"Permanently delete all previous results and rerun the processing pipeline."
+msgstr ""
+"Остаточно видаліть усі попередні результати і запустіть конвеєр обробки "
+"заново."
+
+#: app/static/app/js/translations/odm_autogenerated.js:48
+#, python-format
+msgid ""
+"Octree depth used in the mesh reconstruction, increase to get more vertices, "
+"recommended values are 8-12. Default: %(default)s"
+msgstr ""
+"Глибина восьмидерева, що використовується при реконструкції сітки, "
+"збільшується для отримання більшої кількості вершин, рекомендовані значення "
+"8-12. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:49
+#, python-format
+msgid "Skip the blending of colors near seams. Default: %(default)s"
+msgstr "Пропустити змішування кольорів біля швів. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:50
+#, python-format
+msgid ""
+"Legacy option (use --feature-quality instead). Resizes images by the largest "
+"side for feature extraction purposes only. Set to -1 to disable. This does "
+"not affect the final orthophoto resolution quality and will not resize the "
+"original images. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:51
+#, python-format
+msgid "Print debug messages. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:52
+#, python-format
+msgid ""
+"Name of dataset (i.e subfolder name within project folder). Default: "
+"%(default)s"
+msgstr ""
+"Назва набору даних (тобто назва підтеки у папці проекту). За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:53
+#, python-format
+msgid ""
+"Set a camera projection type. Manually setting a value can help improve "
+"geometric undistortion. By default the application tries to determine a lens "
+"type from the images metadata. Can be one of: %(choices)s. Default: "
+"%(default)s"
+msgstr ""
+"Встановіть тип проекції камери. Встановлення значення вручну може допомогти "
+"поліпшити геометричні спотворення. За замовчуванням програма намагається "
+"визначити тип об'єктива з метаданих зображення. Може бути одним з: %(choices)"
+"s. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:54
+#, python-format
+msgid ""
+"Set the compression to use for orthophotos. Can be one of: %(choices)s. "
+"Default: %(default)s"
+msgstr ""
+"Задати стиснення для ортофотографій. Може бути одним з: %(choices)s. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:55
+#, python-format
+msgid ""
+"Export the georeferenced point cloud in LAS format. Default: %(default)s"
+msgstr ""
+"Експортувати хмару точок з прив'язкою до місцевості у форматі LAS. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:56
+#, python-format
+msgid ""
+"When texturing the 3D mesh, for each triangle, choose to prioritize images "
+"with sharp features (gmi) or those that cover the largest area (area). "
+"Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:57
+#, python-format
+msgid ""
+"Set feature extraction quality. Higher quality generates better features, "
+"but requires more memory and takes longer. Can be one of: %(choices)s. "
+"Default: %(default)s"
+msgstr ""
+"Встановіть якість обробки даних. Вища якість генерує кращі елементи, але "
+"вимагає більше пам'яті і займає більше часу. Може бути одним з: %(choices)s. "
+"За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:58
+#, python-format
+msgid ""
+"Simple Morphological Filter elevation scalar parameter. Default: %(default)s"
+msgstr ""
+"Простий морфологічний фільтр скалярного параметру висоти . За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:59
+#, python-format
+msgid ""
+"Skip generation of PDF report. This can save time if you don't need a "
+"report. Default: %(default)s"
+msgstr ""
+"Пропустити генерацію звіту у форматі PDF. Це може заощадити час, якщо вам не "
+"потрібен звіт. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:60
+#, python-format
+msgid ""
+"Turn on gamma tone mapping or none for no tone mapping. Can be one of "
+"%(choices)s. Default: %(default)s "
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:61
+#, python-format
+msgid "Generates a benchmark file with runtime info. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:62
+#, python-format
+msgid ""
+"Turn off camera parameter optimization during bundle adjustment. This can be "
+"sometimes useful for improving results that exhibit doming/bowling or when "
+"images are taken with a rolling shutter camera. Default: %(default)s"
+msgstr ""
+"Вимкнути оптимізацію параметрів камери під час налаштування пакетів. Іноді "
+"це може бути корисним для покращення результатів, які демонструють "
+"куполоподібні/боулінгові ефекти, або коли зображення знято камерою з рухомим "
+"затвором. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:63
+#, python-format
+msgid "Set this parameter if you want a striped GeoTIFF. Default: %(default)s"
+msgstr ""
+"Встановіть цей параметр, якщо хочете отримати смугастий GeoTIFF. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:64
+#, python-format
+msgid ""
+"Reduce the memory usage needed for depthmap fusion by splitting large scenes "
+"into tiles. Turn this on if your machine doesn't have much RAM and/or you've "
+"set --pc-quality to high or ultra. Experimental. Default: %(default)s"
+msgstr ""
+"Зменшити використання пам'яті для злиття карт глибини, розбиваючи великі "
+"сцени на тайли. Увімкніть цей параметр, якщо на вашому комп'ютері мало "
+"оперативної пам'яті та/або ви встановили --pc-quality на високу або ультра. "
+"Експериментальний. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:65
+#, python-format
+msgid ""
+"DSM/DTM resolution in cm / pixel. Note that this value is capped by a ground "
+"sampling distance (GSD) estimate. To remove the cap, check --ignore-gsd "
+"also. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:66
+#, python-format
+msgid ""
+"Build orthophoto overviews for faster display in programs such as QGIS. "
+"Default: %(default)s"
+msgstr ""
+"Створювати огляд ортофото для швидшого відображення у таких програмах, як "
+"QGIS. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:67
+#, python-format
+msgid ""
+"Automatically crop image outputs by creating a smooth buffer around the "
+"dataset boundaries, shrinked by N meters. Use 0 to disable cropping. "
+"Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:68
+#, python-format
+msgid ""
+"URL to a ClusterODM instance for distributing a split-merge workflow on "
+"multiple nodes in parallel. Default: %(default)s"
+msgstr ""
+"URL до кластеру ClusterODM для паралельного розподілення робочого процесу "
+"розділення-злиття на декількох вузлах. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:69
+#, python-format
+msgid ""
+"Simple Morphological Filter slope parameter (rise over run). Default: "
+"%(default)s"
+msgstr ""
+"Параметр нахилу простого морфологічного фільтра (підйом над спадом). За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:70
+#, python-format
+msgid ""
+"Set point cloud quality. Higher quality generates better, denser point "
+"clouds, but requires more memory and takes longer. Each step up in quality "
+"increases processing time roughly by a factor of 4x.Can be one of: "
+"%(choices)s. Default: %(default)s"
+msgstr ""
+"Вибір якості хмари точок. Вища якість генерує кращі, щільніші хмари точок, "
+"але вимагає більше пам'яті і займає більше часу. Кожний крок підвищення "
+"якості збільшує час обробки приблизно в 4 рази. Може бути одним з: %(choices)"
+"s. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:71
+#, python-format
+msgid ""
+"Choose the algorithm for extracting keypoints and computing descriptors. Can "
+"be one of: %(choices)s. Default: %(default)s"
+msgstr ""
+"Виберіть алгоритм отримання ключових точок та обчислення дескрипторів. Може "
+"бути один з: %(choices)s. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:72
+#, python-format
+msgid "Print additional messages to the console. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:73
+#, python-format
+msgid ""
+"Ignore Ground Sampling Distance (GSD). GSD caps the maximum resolution of "
+"image outputs and resizes images when necessary, resulting in faster "
+"processing and lower memory usage. Since GSD is an estimate, sometimes "
+"ignoring it can result in slightly better image output quality. Default: "
+"%(default)s"
+msgstr ""
+"Ігнорувати Відстань Вибірки на Місцевості (GSD). GSD обмежує максимальну "
+"роздільну здатність вихідних зображень і змінює їхній розмір за "
+"необхідності, що призводить до швидшої обробки та меншого використання "
+"пам'яті. Оскільки GSD є оціночним значенням, іноді його ігнорування може "
+"призвести до дещо кращої якості вихідних зображень. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:74
+#, python-format
+msgid ""
+"End processing at this stage. Can be one of: %(choices)s. Default: "
+"%(default)s"
+msgstr ""
+"Завершити обробку на цьому етапі. Може бути одним з: %(choices)s. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:75
+#, python-format
+msgid ""
+"Use the camera parameters computed from another dataset instead of "
+"calculating them. Can be specified either as path to a cameras.json file or "
+"as a JSON string representing the contents of a cameras.json file. Default: "
+"%(default)s"
+msgstr ""
+"Використовувати параметри камери, обчислені з іншого набору даних, замість "
+"того, щоб обчислювати їх. Можна вказати або шлях до файлу cameras.json, або "
+"JSON-рядок, що представляє вміст файлу cameras.json. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:76
+#, python-format
+msgid ""
+"Legacy option (use --pc-quality instead). Controls the density of the point "
+"cloud by setting the resolution of the depthmap images. Higher values take "
+"longer to compute but produce denser point clouds. Default: %(default)s"
+msgstr ""
+
+#: app/static/app/js/translations/odm_autogenerated.js:77
+#, python-format
+msgid ""
+"Skip normalization of colors across all images. Useful when processing "
+"radiometric data. Default: %(default)s"
+msgstr ""
+"Пропустити нормалізацію кольорів на всіх зображеннях. Корисно при обробці "
+"радіометричних даних. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:78
+#, python-format
+msgid ""
+"Classify the point cloud outputs using a Simple Morphological Filter. You "
+"can control the behavior of this option by tweaking the --dem-* parameters. "
+"Default: %(default)s"
+msgstr ""
+"Класифікуйте вихідні дані хмари точок за допомогою простого морфологічного "
+"фільтра. Ви можете керувати поведінкою цієї опції за допомогою параметрів "
+"--dem-*. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:79
+#, python-format
+msgid ""
+"Radius of the overlap between submodels. After grouping images into "
+"clusters, images that are closer than this radius to a cluster are added to "
+"the cluster. This is done to ensure that neighboring submodels overlap. "
+"Default: %(default)s"
+msgstr ""
+"Радіус перекриття між субмоделями. Після групування зображень у кластери, до "
+"кластера додаються зображення, які знаходяться ближче, ніж цей радіус до "
+"кластера. Це робиться для того, щоб забезпечити перекриття сусідніх "
+"підмоделей. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:80
+#, python-format
+msgid "The maximum vertex count of the output mesh. Default: %(default)s"
+msgstr ""
+"Максимальна кількість вершин вихідної сітки. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:81
+#, python-format
+msgid ""
+"Path to the image groups file that controls how images should be split into "
+"groups. The file needs to use the following format: image_name "
+"group_nameDefault: %(default)s"
+msgstr ""
+"Шлях до файлу групи зображень, який визначає, як зображення слід розбивати "
+"на групи. Файл має бути у такому форматі: назва_зображення_назва_групиЗа "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:82
+#, python-format
+msgid ""
+"Delete heavy intermediate files to optimize disk space usage. This affects "
+"the ability to restart the pipeline from an intermediate stage, but allows "
+"datasets to be processed on machines that don't have sufficient disk space "
+"available. Default: %(default)s"
+msgstr ""
+"Видаляйте важкі проміжні файли для оптимізації використання дискового "
+"простору. Це впливає на можливість перезапуску конвеєра з проміжного етапу, "
+"але дозволяє обробляти набори даних на комп'ютерах, які не мають достатнього "
+"дискового простору. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:83
+#, python-format
+msgid ""
+"Rerun processing from this stage. Can be one of: %(choices)s. Default: "
+"%(default)s"
+msgstr ""
+"Повторний запуск обробки з цього етапу. Може бути одним з: %(choices)s. За "
+"замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:84
+#, python-format
+msgid ""
+"Use this tag to build a DSM (Digital Surface Model, ground + objects) using "
+"a progressive morphological filter. Check the --dem* parameters for finer "
+"tuning. Default: %(default)s"
+msgstr ""
+"Використовуйте цей тег для побудови DSM (цифрової моделі поверхні, земля + "
+"об'єкти) з використанням прогресивного морфологічного фільтра. Перевірте "
+"параметри --dem* для більш точного налаштування. За замовчуванням: "
+"%(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:85
+#, python-format
+msgid ""
+"Filters the point cloud by keeping only a single point around a radius N (in "
+"meters). This can be useful to limit the output resolution of the point "
+"cloud and remove duplicate points. Set to 0 to disable sampling. Default: "
+"%(default)s"
+msgstr ""
+"Фільтрує хмару точок, залишаючи лише одну точку навколо радіуса N (у метрах)"
+". Це може бути корисно для обмеження вихідної роздільної здатності хмари "
+"точок і видалення точок, що повторюються. Встановіть значення 0, щоб "
+"вимкнути вибірку. За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/odm_autogenerated.js:86
+#, python-format
+msgid ""
+"Set this parameter if you want to generate a Google Earth (KMZ) rendering of "
+"the orthophoto. Default: %(default)s"
+msgstr ""
+"Встановіть цей параметр, якщо ви хочете згенерувати ортофото у форматі "
+"Google Earth (KMZ). За замовчуванням: %(default)s"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:3
+msgid "Compute volume, area and length measurements on Leaflet"
+msgstr "Обчислюйте об'єм, площу та довжину на Leaflet"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:4
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:5
+msgid "A plugin to create GCP files from images"
+msgstr "Плагін для створення GCP-файлів із знімків"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:6
+msgid ""
+"A plugin to add a button for quickly opening OpenStreetMap's iD editor and "
+"setup a TMS basemap."
+msgstr ""
+"Плагін для додавання кнопки швидкого відкриття редактора OpenStreetMap iD та "
+"налаштування базової карти TMS."
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:7
+msgid "A plugin to upload orthophotos to OpenAerialMap"
+msgstr "Плагін для завантаження ортофото до OpenAerialMap"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:8
+msgid "Display program version, memory and disk space usage statistics"
+msgstr ""
+"Показати версію програми, статистику використання пам'яті та дискового "
+"простору"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:9
+msgid "Sync accounts from webodm.net"
+msgstr "Синхронізуйте акаунти з webodm.net"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:10
+msgid "Add a fullscreen button to the 2D map view"
+msgstr "Додати повноекранну кнопку до 2D мапи"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:11
+msgid "Compute, preview and export contours from DEMs"
+msgstr ""
+"Обчислення, попередній перегляд та экспорт контурів з матриць висот (DEM)"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:12
+msgid "Calculate and draw an elevation map based on a task's DEMs"
+msgstr "Розрахувати та побудувати карту рельєфу на основі DEM завдання"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:13
+msgid "Upload and tile ODM assets with Cesium ion."
+msgstr "Завантажуйте та викладайте ODM ресурси з використанням Cesium ion."
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:14
+msgid "Import images from external sources directly"
+msgstr "Безпосередній імпорт зображень із зовнішніх джерел"
+
+#: app/static/app/js/translations/plugin_manifest_autogenerated.js:15
+msgid "Detect changes between two different tasks in the same project."
+msgstr "Виявити зміни між двома різними завданнями в одному проекті."
+
+#: app/static/app/js/translations/potree_autogenerated.js:3
+msgid "Navigation"
+msgstr "Навігація"
+
+#: app/static/app/js/translations/potree_autogenerated.js:4
+msgid "Appearance"
+msgstr "Вигляд"
+
+#: app/static/app/js/translations/potree_autogenerated.js:5
+msgid "Tools"
+msgstr "Інструменти"
+
+#: app/static/app/js/translations/potree_autogenerated.js:6
+msgid "Measurements"
+msgstr "Виміри"
+
+#: app/static/app/js/translations/potree_autogenerated.js:7
+msgid "Clipping"
+msgstr "Вирізка"
+
+#: app/static/app/js/translations/potree_autogenerated.js:8
+msgid "Annotations"
+msgstr "Анотації"
+
+#: app/static/app/js/translations/potree_autogenerated.js:9
+#: app/static/app/js/translations/potree_autogenerated.js:54
+msgid "Materials"
+msgstr "Матеріали"
+
+#: app/static/app/js/translations/potree_autogenerated.js:10
+msgid "Scene"
+msgstr "Сцена"
+
+#: app/static/app/js/translations/potree_autogenerated.js:11
+msgid "Classification filter"
+msgstr "Фільтр класифікації"
+
+#: app/static/app/js/translations/potree_autogenerated.js:12
+msgid "Filters"
+msgstr "Фільтри"
+
+#: app/static/app/js/translations/potree_autogenerated.js:13
+msgid "Other settings"
+msgstr "Інші налаштування"
+
+#: app/static/app/js/translations/potree_autogenerated.js:14
+msgid "About"
+msgstr "Детальніше про програму"
+
+#: app/static/app/js/translations/potree_autogenerated.js:15
+msgid "Angle measurement"
+msgstr "Вимірювання кута"
+
+#: app/static/app/js/translations/potree_autogenerated.js:16
+msgid "Point measurement"
+msgstr "Точкове вимірювання"
+
+#: app/static/app/js/translations/potree_autogenerated.js:17
+msgid "Distance measurement"
+msgstr "Вимірювання відстані"
+
+#: app/static/app/js/translations/potree_autogenerated.js:18
+msgid "Height measurement"
+msgstr "Вимірювання висоти"
+
+#: app/static/app/js/translations/potree_autogenerated.js:19
+msgid "Circle measurement"
+msgstr "Вимірювання окружності"
+
+#: app/static/app/js/translations/potree_autogenerated.js:20
+msgid "Area measurement"
+msgstr "Вимірювання площі"
+
+#: app/static/app/js/translations/potree_autogenerated.js:21
+msgid "Volume measurement"
+msgstr "Вимірювання об'єму"
+
+#: app/static/app/js/translations/potree_autogenerated.js:22
+#: app/static/app/js/translations/potree_autogenerated.js:78
+msgid "Height profile"
+msgstr "Висотний профіль"
+
+#: app/static/app/js/translations/potree_autogenerated.js:23
+msgid "Annotation"
+msgstr "Короткий опис"
+
+#: app/static/app/js/translations/potree_autogenerated.js:24
+msgid "Volume clip"
+msgstr "Обрізка об'єму"
+
+#: app/static/app/js/translations/potree_autogenerated.js:25
+msgid "Polygon clip"
+msgstr "Обрізка полігону"
+
+#: app/static/app/js/translations/potree_autogenerated.js:26
+msgid "Draw a selection box. Requires you to be in orthographic camera mode!"
+msgstr ""
+"Намалюйте область виділення. Потрібно перебувати в ортографічному режимі "
+"камери!"
+
+#: app/static/app/js/translations/potree_autogenerated.js:27
+msgid "Clip plane on x axis"
+msgstr "Закріплення площини по осі x"
+
+#: app/static/app/js/translations/potree_autogenerated.js:28
+msgid "Clip plane on y axis"
+msgstr "Закріпити площину по осі y"
+
+#: app/static/app/js/translations/potree_autogenerated.js:29
+msgid "Clip plane on z axis"
+msgstr "Закріпити площину по осі z"
+
+#: app/static/app/js/translations/potree_autogenerated.js:30
+msgid "Remove all measurements"
+msgstr "Видалити всі виміри"
+
+#: app/static/app/js/translations/potree_autogenerated.js:31
+msgid "Left view"
+msgstr "Вид зліва"
+
+#: app/static/app/js/translations/potree_autogenerated.js:32
+msgid "Righ view"
+msgstr "Вид справа"
+
+#: app/static/app/js/translations/potree_autogenerated.js:33
+msgid "Front view"
+msgstr "Вид спереду"
+
+#: app/static/app/js/translations/potree_autogenerated.js:34
+msgid "Back view"
+msgstr "Вид ззаду"
+
+#: app/static/app/js/translations/potree_autogenerated.js:35
+msgid "Top view"
+msgstr "Вид зверху"
+
+#: app/static/app/js/translations/potree_autogenerated.js:36
+msgid "Bottom view"
+msgstr "Вид знизу"
+
+#: app/static/app/js/translations/potree_autogenerated.js:37
+msgid "Full extent"
+msgstr "Показати повністю"
+
+#: app/static/app/js/translations/potree_autogenerated.js:38
+msgid "Orbit control"
+msgstr "Управління орбітою"
+
+#: app/static/app/js/translations/potree_autogenerated.js:39
+msgid "Fly control"
+msgstr "Управління польотом"
+
+#: app/static/app/js/translations/potree_autogenerated.js:40
+msgid "Helicopter control"
+msgstr "Керування гелікоптером"
+
+#: app/static/app/js/translations/potree_autogenerated.js:41
+msgid "Earth control"
+msgstr "Наземне управління"
+
+#: app/static/app/js/translations/potree_autogenerated.js:42
+msgid "Perspective camera"
+msgstr "Перспективна камера"
+
+#: app/static/app/js/translations/potree_autogenerated.js:43
+msgid "Orthographic camera"
+msgstr "Ортографічна камера"
+
+#: app/static/app/js/translations/potree_autogenerated.js:44
+msgid "Navigation cube"
+msgstr "Навігаційний куб"
+
+#: app/static/app/js/translations/potree_autogenerated.js:45
+msgid "Remove all clipping volumes"
+msgstr "Видаліть усі об’єми вирізання"
+
+#: app/static/app/js/translations/potree_autogenerated.js:46
+msgid "Compass"
+msgstr "Компас"
+
+#: app/static/app/js/translations/potree_autogenerated.js:47
+msgid "Camera Animation"
+msgstr "Анімація камери"
+
+#: app/static/app/js/translations/potree_autogenerated.js:48
+msgid "Point budget"
+msgstr "Точковий бюджет"
+
+#: app/static/app/js/translations/potree_autogenerated.js:49
+msgid "Point size"
+msgstr "Розмір точки"
+
+#: app/static/app/js/translations/potree_autogenerated.js:50
+msgid "Minimum size"
+msgstr "Мінімальний розмір"
+
+#: app/static/app/js/translations/potree_autogenerated.js:51
+#: app/static/app/js/translations/potree_autogenerated.js:61
+msgid "Opacity"
+msgstr "Непрозорість"
+
+#: app/static/app/js/translations/potree_autogenerated.js:52
+msgid "Field of view"
+msgstr "Поле видимості"
+
+#: app/static/app/js/translations/potree_autogenerated.js:53
+msgid "Point sizing"
+msgstr "Визначення розміру точки"
+
+#: app/static/app/js/translations/potree_autogenerated.js:55
+msgid "Elevation range"
+msgstr "Діапазон висот"
+
+#: app/static/app/js/translations/potree_autogenerated.js:56
+msgid "Scalar range"
+msgstr "Скалярний діапазон"
+
+#: app/static/app/js/translations/potree_autogenerated.js:57
+msgid "Quality"
+msgstr "Якість"
+
+#: app/static/app/js/translations/potree_autogenerated.js:58
+msgid "Shape"
+msgstr "Форма"
+
+#: app/static/app/js/translations/potree_autogenerated.js:59
+msgid "Radius"
+msgstr "Радіус"
+
+#: app/static/app/js/translations/potree_autogenerated.js:60
+msgid "Strength"
+msgstr "Сила"
+
+#: app/static/app/js/translations/potree_autogenerated.js:63
+msgid "Min node size"
+msgstr "Мінімальний розмір вузла"
+
+#: app/static/app/js/translations/potree_autogenerated.js:64
+msgid "Clip mode"
+msgstr "Режим обрізки"
+
+#: app/static/app/js/translations/potree_autogenerated.js:65
+msgid "Speed"
+msgstr "Швидкість"
+
+#: app/static/app/js/translations/potree_autogenerated.js:66
+msgid "Sky"
+msgstr "Небо"
+
+#: app/static/app/js/translations/potree_autogenerated.js:67
+msgid "Keep above ground"
+msgstr "Тримайте над землею"
+
+#: app/static/app/js/translations/potree_autogenerated.js:68
+msgid "Box"
+msgstr "Коробка"
+
+#: app/static/app/js/translations/potree_autogenerated.js:69
+msgid "Length unit"
+msgstr "Одиниця виміру довжини"
+
+#: app/static/app/js/translations/potree_autogenerated.js:70
+msgid "Lock view"
+msgstr "Заблокувати вигляд"
+
+#: app/static/app/js/translations/potree_autogenerated.js:71
+#: app/static/app/js/translations/potree_autogenerated.js:88
+msgid "Language"
+msgstr "Мова"
+
+#: app/static/app/js/translations/potree_autogenerated.js:72
+msgid "Backface Culling"
+msgstr "Вилучення заднього плану"
+
+#: app/static/app/js/translations/potree_autogenerated.js:73
+msgid "clip"
+msgstr "обрізати"
+
+#: app/static/app/js/translations/potree_autogenerated.js:74
+msgid "show volume"
+msgstr "показати об'єм"
+
+#: app/static/app/js/translations/potree_autogenerated.js:75
+msgid "show in 3D"
+msgstr "показати у форматі 3D"
+
+#: app/static/app/js/translations/potree_autogenerated.js:76
+msgid "show on map"
+msgstr "показати на карті"
+
+#: app/static/app/js/translations/potree_autogenerated.js:77
+msgid "Number of Points"
+msgstr "Кількість точок"
+
+#: app/static/app/js/translations/potree_autogenerated.js:79
+msgid "Save LAS(3D)"
+msgstr "Зберегти LAS(3D)"
+
+#: app/static/app/js/translations/potree_autogenerated.js:80
+msgid "Save CSV(2D)"
+msgstr "Зберегти CSV(2D)"
+
+#: app/static/app/js/translations/potree_autogenerated.js:81
+msgid "Camera Position"
+msgstr "Положення камери"
+
+#: app/static/app/js/translations/potree_autogenerated.js:82
+msgid "Camera Target"
+msgstr "Ціль камери"
+
+#: app/static/app/js/translations/potree_autogenerated.js:83
+msgid "Return Number"
+msgstr "Число повернення"
+
+#: app/static/app/js/translations/potree_autogenerated.js:84
+msgid "Number of Returns"
+msgstr "Кількість повернень"
+
+#: app/static/app/js/translations/potree_autogenerated.js:85
+msgid "min"
+msgstr "мін."
+
+#: app/static/app/js/translations/potree_autogenerated.js:86
+msgid "max"
+msgstr "макс."
+
+#: app/static/app/js/translations/potree_autogenerated.js:87
+msgid "GPS Time"
+msgstr "Час за GPS"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:57
+msgid ""
+"No DSM or DTM is available. To export contours, make sure to process a task "
+"with either the --dsm or --dtm option checked."
+msgstr ""
+"DSM або DTM недоступні. Щоб експортувати контури, переконайтеся, що ви "
+"опрацьовуєте завдання з позначкою --dsm або --dtm."
+
+#: coreplugins/contours/public/ContoursPanel.jsx:61
+msgid ""
+"Cannot retrieve information for task. Are you are connected to the internet?"
+msgstr ""
+"Не вдається отримати інформацію для завдання. Ви підключені до Інтернету?"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:131
+msgid "Elevation:"
+msgstr "Висота:"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:131
+msgid "meters"
+msgstr "метрів"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:227
+msgid "Do not simplify"
+msgstr "Не спрощувати"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:229
+msgid "Aggressive"
+msgstr "Агресивний"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:242
+msgid "Interval:"
+msgstr "Інтервал:"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:245
+#: coreplugins/contours/public/ContoursPanel.jsx:254
+#: coreplugins/contours/public/ContoursPanel.jsx:272
+#: coreplugins/contours/public/ContoursPanel.jsx:281
+msgid "meter"
+msgstr "метр"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:252
+#: coreplugins/contours/public/ContoursPanel.jsx:279
+msgid "Value:"
+msgstr "Значення:"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:260
+msgid "Layer:"
+msgstr "Шар:"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:269
+msgid "Simplify:"
+msgstr "Спростити:"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:314
+msgid "Preview"
+msgstr "Попередній перегляд"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:319
+msgid "Export"
+msgstr "Експортувати"
+
+#: coreplugins/contours/public/ContoursPanel.jsx:352
+msgid "Contours"
+msgstr "Контури"
+
+#: coreplugins/editshortlinks/public/SLControls.jsx:154
+#: coreplugins/shortlinks/public/SLCheckbox.jsx:69
+msgid "Short Link"
+msgstr "Короткий лінк"
+
+#: coreplugins/editshortlinks/public/SLControls.jsx:178
+msgid "Suffix"
+msgstr "Суфікс"
+
+#: coreplugins/editshortlinks/public/SLControls.jsx:191
+msgid "Delete Short Link"
+msgstr "Видалити короткий лінк"
+
+#: coreplugins/lightning/public/CostEstimateItem.jsx:103
+msgid "Cannot retrieve estimate. Try again later."
+msgstr "Неможливо отримати оцінку. Спробуйте пізніше."
+
+#: coreplugins/lightning/public/CostEstimateItem.jsx:106
+msgid "Cannot retrieve estimate. Check parameters or try again later."
+msgstr "Не вдається отримати оцінку. Перевірте параметри або спробуйте пізніше."
+
+#: coreplugins/lightning/public/CostEstimateItem.jsx:139
+msgid "Credits Estimate"
+msgstr "Оцінка кредитів"
+
+#: coreplugins/lightning/public/Dashboard.jsx:39
+msgid "Loading dashboard..."
+msgstr "Завантаження панелі управління..."
+
+#: coreplugins/lightning/public/Dashboard.jsx:48
+msgid ""
+"Cannot load lightning dashboard. Are you running the latest version of "
+"WebODM?"
+msgstr ""
+"Не вдається завантажити панель керування lightning. Ви використовуєте "
+"останню версію WebODM?"
+
+#: coreplugins/lightning/public/Dashboard.jsx:52
+msgid ""
+"Cannot load lightning dashboard. Please make sure you are connected to the "
+"internet, or try again in an hour."
+msgstr ""
+"Не вдається завантажити панель керування lightning. Переконайтеся, що ви "
+"підключені до Інтернету, або спробуйте ще раз через годину."
+
+#: coreplugins/lightning/public/Dashboard.jsx:75
+msgid "Cannot sync nodes. Are you connected to the internet?"
+msgstr "Не вдається синхронізувати вузли. Ви підключені до Інтернету?"
+
+#: coreplugins/lightning/public/Dashboard.jsx:83
+msgid "Logging out…"
+msgstr "Виходжу з системи…"
+
+#: coreplugins/lightning/public/Dashboard.jsx:89
+#: coreplugins/lightning/public/Dashboard.jsx:94
+msgid "Cannot logout:"
+msgstr "Не можу вийти:"
+
+#: coreplugins/lightning/public/Dashboard.jsx:115
+msgid "credits"
+msgstr "кредити"
+
+#: coreplugins/lightning/public/Dashboard.jsx:117
+msgid "Unlimited"
+msgstr "Необмежено"
+
+#: coreplugins/lightning/public/Dashboard.jsx:130
+msgid "Balance:"
+msgstr "Баланс:"
+
+#: coreplugins/lightning/public/Dashboard.jsx:131
+msgid "Buy Credits"
+msgstr "Купити Кредити"
+
+#: coreplugins/lightning/public/Dashboard.jsx:132
+msgid "Refresh Balance"
+msgstr "Оновити Баланс"
+
+#: coreplugins/lightning/public/Dashboard.jsx:135
+msgid "Hello,"
+msgstr "Привіт,"
+
+#: coreplugins/lightning/public/Dashboard.jsx:138
+msgid "Synced Nodes"
+msgstr "Синхронізовані вузли"
+
+#: coreplugins/lightning/public/Dashboard.jsx:146
+msgid "Resync"
+msgstr "Пересинхронізувати"
+
+#: coreplugins/lightning/public/Dashboard.jsx:153
+msgid "Dashboard"
+msgstr "Панель управління"
+
+#: coreplugins/lightning/public/Dashboard.jsx:159
+msgid "Logout"
+msgstr "Вийти з системи"
+
+#: coreplugins/lightning/public/Login.jsx:56
+msgid "Cannot login. Invalid response:"
+msgstr "Не вдається увійти. Неправильна відповідь:"
+
+#: coreplugins/lightning/public/Login.jsx:60
+msgid ""
+"Cannot login. Please make sure you are connected to the internet, or try "
+"again in an hour."
+msgstr ""
+"Не вдається увійти. Будь ласка, переконайтеся, що ви підключені до "
+"Інтернету, або спробуйте ще раз через годину."
+
+#: coreplugins/lightning/public/Login.jsx:90
+msgid "E-mail Address"
+msgstr "Адреса електронної пошти"
+
+#: coreplugins/lightning/public/Login.jsx:97
+msgid "Password"
+msgstr "Пароль"
+
+#: coreplugins/lightning/public/Login.jsx:104
+msgid "Don't have an account?"
+msgstr "Не маєте облікового запису?"
+
+#: coreplugins/lightning/public/Login.jsx:105
+msgid "Forgot password?"
+msgstr "Забули пароль?"
+
+#: coreplugins/lightning/public/Login.jsx:110
+msgid "Login and Sync"
+msgstr "Вхід та синхронізація"
+
+#: coreplugins/lightning/public/app.jsx:39
+msgid "Lightning Network"
+msgstr "Мережа Lightning"
+
+#: coreplugins/lightning/public/app.jsx:40
+msgid ""
+"Lightning is a service that allows you to quickly process small and large "
+"datasets using high performance servers in the cloud."
+msgstr ""
+"Lightning - це сервіс, який дозволяє швидко обробляти малі та великі набори "
+"даних за допомогою високопродуктивних серверів у хмарі."
+
+#: coreplugins/lightning/public/app.jsx:41
+msgid "register"
+msgstr "зареєструватися"
+
+#: coreplugins/lightning/public/app.jsx:42
+#, python-format
+msgid ""
+"Below you can enter your %(link)s credentials to sync your account and "
+"automatically setup a new processing node. If you don't have an account, you "
+"can %(register)s for free."
+msgstr ""
+"Нижче ви можете ввести свої облікові дані %(link)s для синхронізації вашого "
+"облікового запису та автоматичного налаштування нового вузла обробки. Якщо у "
+"вас немає облікового запису, ви можете %(register)s безкоштовно."
+
+#: coreplugins/measure/public/MeasurePopup.jsx:105
+#, python-format
+msgid "Invalid response: %(error)s"
+msgstr "Неправильна відповідь: %(error)s"
+
+#: coreplugins/measure/public/MeasurePopup.jsx:143
+msgid "Perimeter:"
+msgstr "Периметр:"
+
+#: coreplugins/measure/public/MeasurePopup.jsx:144
+#: coreplugins/measure/public/MeasurePopup.jsx:145
+#: coreplugins/measure/public/MeasurePopup.jsx:146
+msgid "Volume:"
+msgstr "Об'єм:"
+
+#: coreplugins/measure/public/MeasurePopup.jsx:144
+msgid "computing…"
+msgstr "обчислення…"
+
+#: coreplugins/measure/public/MeasurePopup.jsx:145
+msgid "Cubic Meters"
+msgstr "Кубічних Метрів"
+
+#: coreplugins/measure/public/MeasurePopup.jsx:145
+msgid "Cubic Feet"
+msgstr "Кубічних Футів"
+
+#: coreplugins/measure/public/MeasurePopup.jsx:147
+msgid "Export to GeoJSON"
+msgstr "Експорт в GeoJSON"
+
+#: coreplugins/measure/public/app.jsx:18
+msgid "Measure volume, area and length"
+msgstr "Виміряти об'єм, площу та довжину"
+
+#: coreplugins/measure/public/app.jsx:19
+msgid "Measurement"
+msgstr "Вимірювання"
+
+#: coreplugins/measure/public/app.jsx:20
+msgid "Measure"
+msgstr "Виміряти"
+
+#: coreplugins/measure/public/app.jsx:21
+msgid "Create a new measurement"
+msgstr "Створити нове вимірювання"
+
+#: coreplugins/measure/public/app.jsx:22
+msgid "Start creating a measurement by adding points to the map"
+msgstr "Почати створювати вимірювання з додавання точок на мапу"
+
+#: coreplugins/measure/public/app.jsx:23
+msgid "Finish measurement"
+msgstr "Закінчити вимірювання"
+
+#: coreplugins/measure/public/app.jsx:24
+msgid "Last point"
+msgstr "Остання точка"
+
+#: coreplugins/measure/public/app.jsx:25
+msgid "Area"
+msgstr "Площа"
+
+#: coreplugins/measure/public/app.jsx:26
+msgid "Perimeter"
+msgstr "Периметр"
+
+#: coreplugins/measure/public/app.jsx:27
+msgid "Point location"
+msgstr "Розташування точки"
+
+#: coreplugins/measure/public/app.jsx:28
+msgid "Linear measurement"
+msgstr "Лінійне вимірювання"
+
+#: coreplugins/measure/public/app.jsx:29
+msgid "Path distance"
+msgstr "Довжина шляху"
+
+#: coreplugins/measure/public/app.jsx:30
+msgid "Center on this area"
+msgstr "Відцентрувати на цій області"
+
+#: coreplugins/measure/public/app.jsx:31
+msgid "Center on this line"
+msgstr "Відцентрувати на цій лінії"
+
+#: coreplugins/measure/public/app.jsx:32
+msgid "Center on this location"
+msgstr "Відцентрувати на цьому місці"
+
+#: coreplugins/measure/public/app.jsx:35
+msgid "Acres"
+msgstr "Акри"
+
+#: coreplugins/measure/public/app.jsx:36
+msgid "Feet"
+msgstr "Фути"
+
+#: coreplugins/measure/public/app.jsx:37
+msgid "Kilometers"
+msgstr "Кілометри"
+
+#: coreplugins/measure/public/app.jsx:38
+msgid "Hectares"
+msgstr "Гектари"
+
+#: coreplugins/measure/public/app.jsx:39
+msgid "Meters"
+msgstr "Метри"
+
+#: coreplugins/measure/public/app.jsx:40
+msgid "Miles"
+msgstr "Милі"
+
+#: coreplugins/measure/public/app.jsx:41
+msgid "Sq Feet"
+msgstr "Квадратні фути"
+
+#: coreplugins/measure/public/app.jsx:42
+msgid "Sq Meters"
+msgstr "Квадратні Метри"
+
+#: coreplugins/measure/public/app.jsx:43
+msgid "Sq Miles"
+msgstr "Квадратні милі"
+
+#: coreplugins/measure/public/app.jsx:55
+msgid "Export Measurements"
+msgstr "Експортувати Вимірювання"

@@ -1,0 +1,17 @@
+PYTHONUNBUFFERED=1
+HOSTNAME=b522b848c259
+WO_PORT=8000
+PWD=/webodm
+WO_BROKER=redis://broker
+HOME=/root
+WO_SECRET_KEY=hYFSIKrXjTfpjmqhgpqUjAfmbR8Y9HtxizwVY/wgCCnil/w6AatFU5gn8uocNl02umo=
+PYTHONPATH=:/webodm
+SHLVL=1
+PROJ_LIB=/usr/share/proj
+WO_DEBUG=YES
+WO_DEFAULT_NODES=1
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+WO_HOST=localhost
+WO_DEV=YES
+OLDPWD=/webodm/nodeodm/external/NodeODM
+_=/usr/bin/printenv

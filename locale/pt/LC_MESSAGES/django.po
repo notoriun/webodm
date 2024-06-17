@@ -1,0 +1,2062 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-31 17:09+0000\n"
+"PO-Revision-Date: 2023-11-13 13:58+0000\n"
+"Last-Translator: Kuriakin Toscan <kuriakin.toscan@gmail.com>\n"
+"Language-Team: Portuguese <https://hosted.weblate.org/projects/webodm/webodm/"
+"pt/>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.2-dev\n"
+
+#: app/admin.py:65
+msgid "Enter custom CSS"
+msgstr "Entre com CSS personalizado"
+
+#: app/admin.py:66 app/models/theme.py:40
+msgid "CSS"
+msgstr "CSS"
+
+#: app/admin.py:69
+msgid "HTML that will be displayed above site header"
+msgstr "HTML que será exibido acima do cabeçalho do site"
+
+#: app/admin.py:70 app/models/theme.py:41
+msgid "HTML (before header)"
+msgstr "HTML (antes do cabeçalho)"
+
+#: app/admin.py:73
+msgid "HTML that will be displayed after site header"
+msgstr "HTML que será exibido após o cabeçalho do site"
+
+#: app/admin.py:74 app/models/theme.py:42
+msgid "HTML (after header)"
+msgstr "HTML (após o cabeçalho)"
+
+#: app/admin.py:77
+msgid "HTML that will be displayed after the body tag"
+msgstr "HTML que será exibido após a tag \"body\""
+
+#: app/admin.py:78 app/models/theme.py:43
+msgid "HTML (after body)"
+msgstr "HTML (após \"body\")"
+
+#: app/admin.py:82
+#, python-brace-format
+msgid ""
+"HTML that will be displayed in the footer. You can also use the special tags "
+"such as {ORGANIZATION} and {YEAR}."
+msgstr ""
+"HTML que será exibido no rodapé. Também pode utilizar tags especiais como "
+"{ORGANIZATION} e {YEAR}."
+
+#: app/admin.py:83 app/models/theme.py:44
+msgid "HTML (footer)"
+msgstr "HTML (rodapé)"
+
+#: app/admin.py:115 app/models/project.py:25
+msgid "Description"
+msgstr "Descrição"
+
+#: app/admin.py:121
+msgid "Version"
+msgstr "Versão"
+
+#: app/admin.py:127
+msgid "Author"
+msgstr "Autor"
+
+#: app/admin.py:159
+#, python-format
+msgid "Restart required. Please restart WebODM to enable %(plugin)s"
+msgstr "Requer reinicio. Por favor reinicie WebODM para ativar %(plugin)s"
+
+#: app/admin.py:162
+#, python-format
+msgid "Cannot enable plugin %(plugin)s: %(message)s"
+msgstr "Não foi possível ativar o plugin %(plugin)s: %(message)s"
+
+#: app/admin.py:171
+#, python-format
+msgid "Restart required. Please restart WebODM to fully disable %(plugin)s"
+msgstr ""
+"Requer reinicio. Por favor reinicie WebODM para desativar completamente "
+"%(plugin)s"
+
+#: app/admin.py:174
+#, python-format
+msgid "Cannot disable plugin %(plugin)s: %(message)s"
+msgstr "Não foi possível desativar %(plugin)s: %(message)s"
+
+#: app/admin.py:183
+#, python-format
+msgid "Cannot delete plugin %(plugin)s: %(message)s"
+msgstr "Não foi possível deletar o plugin %(plugin)s: %(message)s"
+
+#: app/admin.py:231
+msgid "Plugin added successfully"
+msgstr "Plugin adicionado com sucesso"
+
+#: app/admin.py:233
+#, python-format
+msgid "Cannot load plugin: %(message)s"
+msgstr "Não foi possível carregar plugin: %(message)s"
+
+#: app/admin.py:239
+msgid "You need to upload a zip file"
+msgstr "Deve enviar um ficheiro zip"
+
+#: app/admin.py:253
+msgid "Disable"
+msgstr "Desativar"
+
+#: app/admin.py:256
+msgid "Enable"
+msgstr "Ativar"
+
+#: app/admin.py:261
+msgid "Actions"
+msgstr "Ações"
+
+#: app/api/formulas.py:12 app/api/formulas.py:32
+msgid ""
+"Normalized Difference Vegetation Index shows the amount of green vegetation."
+msgstr ""
+"O Índice de Vegetação por Diferença Normalizada (NDVI) indica a quantidade "
+"de vegetação verde."
+
+#: app/api/formulas.py:17
+msgid ""
+"Normalized difference yellowness index (NDYI), best model variability in "
+"relative yield potential in Canola."
+msgstr ""
+"Índice de diferença normalizada de amarelecimento (NDYI), melhor "
+"variabilidade do modelo no potencial de rendimento relativo em Canola."
+
+#: app/api/formulas.py:22
+msgid ""
+"Normalized Difference Red Edge Index shows the amount of green vegetation of "
+"permanent or later stage crops."
+msgstr ""
+"O Índice de Vegetação por Diferença Normalizada (NDVI) indica a quantidade "
+"de vegetação verde."
+
+#: app/api/formulas.py:27
+msgid ""
+"Normalized Difference Water Index shows the amount of water content in water "
+"bodies."
+msgstr ""
+"O Índice de Vegetação por Diferença Normalizada (NDVI) indica a quantidade "
+"de vegetação verde."
+
+#: app/api/formulas.py:37
+msgid ""
+"Enhanced Normalized Difference Vegetation Index is like NDVI, but uses Blue "
+"and Green bands instead of only Red to isolate plant health."
+msgstr ""
+"O Índice Aprimorado de Vegetação por Diferença Normalizada (ENDVI) é como o "
+"NDVI, mas usa as bandas do Azul e Verde além do Vermelho para indicar a súde "
+"da vegetação."
+
+#: app/api/formulas.py:41
+msgid ""
+"Visible NDVI is an un-normalized index for RGB sensors using constants "
+"derived from citrus, grape, and sugarcane crop data."
+msgstr ""
+"NDVI visível é um índice não normalizado para sensores RGB usando constantes "
+"derivadas para dados de plantações de citrus, videiras e cana de açucar."
+
+#: app/api/formulas.py:45
+msgid "Visual Atmospheric Resistance Index shows the areas of vegetation."
+msgstr ""
+"O Índice de Resistência Atmosférica Visual (VARI) indica áreas de vegetação."
+
+#: app/api/formulas.py:50
+msgid "Modified Photochemical Reflectance Index"
+msgstr "Índice de Reflectância Fotoquímica Modificado"
+
+#: app/api/formulas.py:55
+msgid ""
+"Excess Green Index (derived from only the RGB bands) emphasizes the "
+"greenness of leafy crops such as potatoes."
+msgstr ""
+"O Índice de Excesso de Verde (derivado apenas das bandas RGB) enfatiza o "
+"verde de safras folhosas, como batatas."
+
+#: app/api/formulas.py:59
+msgid ""
+"Burn Area Index hightlights burned land in the red to near-infrared spectrum."
+msgstr ""
+"O Índice de Área Queimada (BAI) destaca áreas queimadas no espectro do "
+"vermelho ao infra-vermelho próximo."
+
+#: app/api/formulas.py:63
+msgid "Green Leaf Index shows greens leaves and stems."
+msgstr "O Índice de Folhas Verdes (GLI) mostra folhas e caules verdes."
+
+#: app/api/formulas.py:68
+msgid ""
+"Green Normalized Difference Vegetation Index is similar to NDVI, but "
+"measures the green spectrum instead of red."
+msgstr ""
+"O Índice de Vegetação por Diferença Normalizada Verde (GNDVI) é similar ao "
+"NDVI, mas mede o espectro do Verde ao invés do Vermelho."
+
+#: app/api/formulas.py:73
+msgid ""
+"Green Ratio Vegetation Index is sensitive to photosynthetic rates in forests."
+msgstr ""
+"O Índice de Vegetação de Razão Verde (GRVI) é sensível às taxas "
+"fotossintéticas em florestas."
+
+#: app/api/formulas.py:77
+msgid ""
+"Soil Adjusted Vegetation Index is similar to NDVI but attempts to remove the "
+"effects of soil areas using an adjustment factor (0.5)."
+msgstr ""
+"O Índice de Vegetação Ajustado ao Solo (SAVI) é similar ao NDVI mas procura "
+"remover os efeitos de áreas de solo a usar um fator de ajuste (0.5)."
+
+#: app/api/formulas.py:81
+msgid ""
+"Modified Non-Linear Index improves the Non-Linear Index algorithm to account "
+"for soil areas."
+msgstr ""
+"O Índice Modificado Não-Linear (MNLI) melhora o algoritmo do Índice Não-"
+"Linear para considerar áreas de solo."
+
+#: app/api/formulas.py:85
+msgid ""
+"Modified Simple Ratio is an improvement of the Simple Ratio (SR) index to be "
+"more sensitive to vegetation."
+msgstr ""
+"A Razão Simples Modificada (MSR) é uma melhoria do índice de Razão Simples "
+"(SR) para ser mais sensível à vegetação."
+
+#: app/api/formulas.py:89
+msgid ""
+"Renormalized Difference Vegetation Index uses the difference between near-IR "
+"and red, plus NDVI to show areas of healthy vegetation."
+msgstr ""
+"O Índice de Vegetação por Diferença Renormalizada (RDVI) usa a diferença "
+"entre infra-vermelho próximo e vermelho, além do NDVI para exibir áreas de "
+"vegetação sadia."
+
+#: app/api/formulas.py:93
+msgid ""
+"Transformed Difference Vegetation Index highlights vegetation cover in urban "
+"environments."
+msgstr ""
+"O Índice de Vegetação por Diferença Transformada (TDVI) destaca a cobertura "
+"de vegetação em ambientes urbanos."
+
+#: app/api/formulas.py:97
+msgid ""
+"Optimized Soil Adjusted Vegetation Index is based on SAVI, but tends to work "
+"better in areas with little vegetation where soil is visible."
+msgstr ""
+"O Índice de Vegetação Ajustado ao Solo Otimizado (OSAVI) é baseado no SAVI, "
+"mas tende a funcionar melhor em áreas com pouca vegetação onde o solo é "
+"visível."
+
+#: app/api/formulas.py:101
+msgid "Leaf Area Index estimates foliage areas and predicts crop yields."
+msgstr ""
+"O Índice de Área Foliar (LAI) estima a área de folhagem e prevê o rendimento "
+"das colheitas."
+
+#: app/api/formulas.py:106
+msgid ""
+"Enhanced Vegetation Index is useful in areas where NDVI might saturate, by "
+"using blue wavelengths to correct soil signals."
+msgstr ""
+"O Índice de Vegetação Aprimorado (EVI) é útil em áreas onde o NDVI pode "
+"saturar, ao usar comprimentos de onda do azul para corrigir os sinais do "
+"solo."
+
+#: app/api/formulas.py:111
+msgid ""
+"Atmospherically Resistant Vegetation Index. Useful when working with imagery "
+"for regions with high atmospheric aerosol content."
+msgstr ""
+"Índice de Vegetação Atmosférica Resistente. Útil ao trabalhar com imagens "
+"para regiões com alto teor de aerossóis atmosféricos."
+
+#: app/api/formulas.py:116
+msgid "Temperature in Celsius degrees."
+msgstr "Temperatura em graus Celsius."
+
+#: app/api/formulas.py:120
+msgid "Temperature in Centikelvin degrees."
+msgstr "Temperatura térmica em graus Centikelvin."
+
+#: app/api/projects.py:125
+msgid "Cannot duplicate project"
+msgstr "Não é possível duplicar o projeto"
+
+#: app/api/projects.py:193
+msgid "Invalid user in permissions list"
+msgstr "Usuário inválido na lista de permissões"
+
+#: app/api/projects.py:195
+msgid "Invalid permissions"
+msgstr "Permissões inválida"
+
+#: app/api/tasks.py:186
+msgid "You need to upload at least 1 file before commit"
+msgstr "Precisa fazer upload de pelo menos 1 arquivo antes de confirmar"
+
+#: app/api/tasks.py:208
+msgid "No files uploaded"
+msgstr "Nenhum ficheiro enviado"
+
+#: app/api/tasks.py:234
+msgid "Cannot duplicate task"
+msgstr "Não é possível duplicar a tarefa"
+
+#: app/api/tasks.py:251
+msgid "Cannot create task, you need at least 2 images"
+msgstr "Não é possível criar tarefa, precisa de ao menos 2 imagens"
+
+#: app/api/tasks.py:370 app/api/tasks.py:374 app/api/tasks.py:398
+#: app/api/tasks.py:401 app/api/tasks.py:419
+msgid "Asset does not exist"
+msgstr "Recurso não existe"
+
+#: app/api/tasks.py:437
+msgid "Imported Task"
+msgstr "Tarefa importada"
+
+#: app/api/tasks.py:440
+msgid "Cannot create task, you need to upload 1 file"
+msgstr "Não é possível criar tarefa, precisa enviar 1 ficheiro"
+
+#: app/api/tasks.py:443
+msgid "Cannot create task, either specify a URL or upload 1 file."
+msgstr ""
+"Não é possível criar uma tarefa, ou especifique a URL ou carregue 1 ficheiro."
+
+#: app/api/tiler.py:307
+msgid "Invalid boundaries parameter"
+msgstr "Parâmetros de limites inválidos"
+
+#: app/api/tiler.py:326
+msgid "Invalid tile size parameter"
+msgstr "Parâmetros de limites inválidos"
+
+#: app/api/tiler.py:356 app/api/tiler.py:428
+msgid "Outside of bounds"
+msgstr "Fora dos limites"
+
+#: app/api/tiler.py:366
+msgid "Invalid boundaries"
+msgstr "Limites inválidos"
+
+#: app/api/tiler.py:434 app/api/tiler.py:553
+msgid "Not a valid color_map value"
+msgstr "Valor de color_map inválido"
+
+#: app/api/tiler.py:440
+msgid "Invalid rescale value"
+msgstr "Valor de reescala inválido"
+
+#: app/api/tiler.py:462
+msgid "Invalid hillshade value"
+msgstr "Valor de sombreado inválido"
+
+#: app/api/tiler.py:465
+msgid "Cannot compute hillshade of non-elevation raster (multiple bands found)"
+msgstr ""
+"Não é possível computar o sombreado de um raster de não elevação (míltiplas "
+"bandas encontradas)"
+
+#: app/api/tiler.py:489
+msgid ""
+"Cannot process tile: intensity image provided, but no RGB data was computed."
+msgstr ""
+"Impossível processar o tile: imagem de intensidade fornecida, mas nenhum "
+"dado RGB foi calculado."
+
+#: app/api/tiler.py:538 app/api/tiler.py:540
+#, python-format
+msgid "Unsupported format: %(value)s"
+msgstr "Formato não suportado:%(value)s"
+
+#: app/api/tiler.py:559
+#, python-format
+msgid "Invalid EPSG code: %(value)s"
+msgstr "Código EPSG Inválido: %(value)s"
+
+#: app/api/tiler.py:562
+msgid "Both formula and bands parameters are required"
+msgstr "Parâmetros de bandas e fórmulas são requiridos"
+
+#: app/api/tiler.py:585
+#, python-format
+msgid "Invalid rescale value: %(value)s"
+msgstr "Valor de reescala inválido: %(value)s"
+
+#: app/api/tiler.py:593
+#, python-format
+msgid "Invalid hillshade value: %(value)s"
+msgstr "Valor de sombreamento inválido: %(value)s"
+
+#: app/api/tiler.py:604
+msgid "Cannot use epsg on non-georeferenced dataset"
+msgstr "Não é possível usar epsg no conjunto de dados não georreferenciado"
+
+#: app/models/plugin.py:5
+msgid "Plugin name"
+msgstr "Nome do plugin"
+
+#: app/models/plugin.py:5 app/models/preset.py:10 app/models/project.py:24
+#: app/models/task.py:245 app/models/theme.py:18
+msgid "Name"
+msgstr "Nome"
+
+#: app/models/plugin.py:6
+msgid "Whether this plugin is turned on."
+msgstr "Se este plugin está ativado."
+
+#: app/models/plugin.py:6
+msgid "Enabled"
+msgstr "Ativado"
+
+#: app/models/plugin.py:20
+msgid "Plugin"
+msgstr "Plugin"
+
+#: app/models/plugin.py:21 app/templates/app/logged_in_base.html:122
+msgid "Plugins"
+msgstr "Plugins"
+
+#: app/models/plugin_datum.py:7
+msgid "Setting key"
+msgstr "Chave de configuração"
+
+#: app/models/plugin_datum.py:7
+msgid "Key"
+msgstr "Chave"
+
+#: app/models/plugin_datum.py:8
+msgid "The user this setting belongs to. If NULL, the setting is global."
+msgstr ""
+"O utilizador ao qual esta configuração pertence. Se NULL, a configuração é "
+"global."
+
+#: app/models/plugin_datum.py:8 app/templates/app/admin/object_history.html:23
+msgid "User"
+msgstr "Utilizador"
+
+#: app/models/plugin_datum.py:9
+msgid "Integer value"
+msgstr "Valor inteiro"
+
+#: app/models/plugin_datum.py:10
+msgid "Float value"
+msgstr "Valor decimal"
+
+#: app/models/plugin_datum.py:11
+msgid "Bool value"
+msgstr "Valor booleano"
+
+#: app/models/plugin_datum.py:12
+msgid "String value"
+msgstr "Valor da cadeia"
+
+#: app/models/plugin_datum.py:13
+msgid "JSON value"
+msgstr "Valor JSON"
+
+#: app/models/plugin_datum.py:19 app/models/plugin_datum.py:20
+msgid "Plugin Datum"
+msgstr "Dados do plugin"
+
+#: app/models/preset.py:9
+msgid "The person who owns this preset"
+msgstr "A pessoa que é dona deste preset"
+
+#: app/models/preset.py:9 app/models/project.py:23
+msgid "Owner"
+msgstr "Proprietário"
+
+#: app/models/preset.py:10
+msgid "A label used to describe the preset"
+msgstr "Um rótulo usado para descrever este preset"
+
+#: app/models/preset.py:11
+msgid "Options that define this preset (same format as in a Task's options)."
+msgstr ""
+"Opções que definem este preset (mesmo formato que numa opção de Tarefa)."
+
+#: app/models/preset.py:11 app/models/task.py:251
+msgid "Options"
+msgstr "Opções"
+
+#: app/models/preset.py:13 app/models/project.py:26 app/models/task.py:259
+msgid "Creation date"
+msgstr "Data de criação"
+
+#: app/models/preset.py:13 app/models/project.py:26 app/models/task.py:259
+msgid "Created at"
+msgstr "Criado em"
+
+#: app/models/preset.py:14
+msgid ""
+"Whether this preset is available to every user in the system or just to its "
+"owner."
+msgstr ""
+"Se este preset está disponível a todos utilizadores no sistema ou apenas ao "
+"seu dono."
+
+#: app/models/preset.py:14
+msgid "System"
+msgstr "Sistema"
+
+#: app/models/preset.py:20
+msgid "Preset"
+msgstr "Predefinição"
+
+#: app/models/preset.py:21
+msgid "Presets"
+msgstr "Predefinições"
+
+#: app/models/profile.py:15
+msgid "Maximum disk quota in megabytes"
+msgstr "Cota máxima de disco em megabytes"
+
+#: app/models/profile.py:15
+msgid "Quota"
+msgstr "Cota"
+
+#: app/models/project.py:23
+msgid "The person who created the project"
+msgstr "A pessoa que criou o projeto"
+
+#: app/models/project.py:24
+msgid "A label used to describe the project"
+msgstr "Um rótulo usado para descrever o projeto"
+
+#: app/models/project.py:25
+msgid "More in-depth description of the project"
+msgstr "Descrição mais detalhada do projeto"
+
+#: app/models/project.py:27
+msgid ""
+"Whether this project has been marked for deletion. Projects that have "
+"running tasks need to wait for tasks to be properly cleaned up before they "
+"can be deleted."
+msgstr ""
+"Se este projeto foi marcado para exclusão. Os projetos que têm tarefas em "
+"execução precisam esperar que as tarefas sejam devidamente limpas antes de "
+"poderem ser excluídos."
+
+#: app/models/project.py:27
+msgid "Deleting"
+msgstr "Apagando"
+
+#: app/models/project.py:28
+msgid "Project tags"
+msgstr "Projetos Tags"
+
+#: app/models/project.py:28 app/models/task.py:282
+msgid "Tags"
+msgstr "Tags"
+
+#: app/models/project.py:65 app/models/task.py:430
+#, python-format
+msgid "Copy of %(task)s"
+msgstr "Cópia de %(task)s"
+
+#: app/models/project.py:90 app/models/task.py:244
+msgid "Project"
+msgstr "Projeto"
+
+#: app/models/project.py:91 coreplugins/projects-charts/templates/index.html:7
+msgid "Projects"
+msgstr "Projetos"
+
+#: app/models/setting.py:20
+msgid "The name of your application"
+msgstr "O nome da sua aplicação"
+
+#: app/models/setting.py:20
+msgid "App name"
+msgstr "Nome do App"
+
+#: app/models/setting.py:21
+msgid "A 512x512 logo of your application (.png or .jpeg)"
+msgstr "Um logo em 512x512 da sua aplicação (.png ou .jpeg)"
+
+#: app/models/setting.py:21
+msgid "App logo"
+msgstr "Logo do app"
+
+#: app/models/setting.py:31
+msgid "The name of your organization"
+msgstr "O nome da sua organização"
+
+#: app/models/setting.py:31
+msgid "Organization name"
+msgstr "Nome da organização"
+
+#: app/models/setting.py:32
+msgid "The website URL of your organization"
+msgstr "A URL do website da sua organização"
+
+#: app/models/setting.py:32
+msgid "Organization website"
+msgstr "Website da organização"
+
+#: app/models/setting.py:33 app/models/theme.py:50 app/models/theme.py:51
+#: app/templates/app/logged_in_base.html:119
+msgid "Theme"
+msgstr "Tema"
+
+#: app/models/setting.py:34
+msgid "Active theme"
+msgstr "Tema ativo"
+
+#: app/models/setting.py:73 app/templates/app/logged_in_base.html:125
+msgid "Application"
+msgstr "Aplicação"
+
+#: app/models/setting.py:76 app/models/setting.py:77
+msgid "Settings"
+msgstr "Configurações"
+
+#: app/models/task.py:241
+msgid "Id"
+msgstr "Identidade (ID)"
+
+#: app/models/task.py:243
+msgid "Identifier of the task (as returned by NodeODM API)"
+msgstr "Identificador da tarefa (tal como retornado pela API NodeODM)"
+
+#: app/models/task.py:243
+msgid "UUID"
+msgstr "UUID"
+
+#: app/models/task.py:244
+msgid "Project that this task belongs to"
+msgstr "Projeto ao qual esta tarefa pertence"
+
+#: app/models/task.py:245
+msgid "A label for the task"
+msgstr "Um rótulo para a tarefa"
+
+#: app/models/task.py:246
+msgid ""
+"Number of milliseconds that elapsed since the beginning of this task (-1 "
+"indicates that no information is available)"
+msgstr ""
+"Quantidade de milissegundos passados desde o início da tarefa (-1 indica que "
+"não há informação disponível)"
+
+#: app/models/task.py:246
+msgid "Processing Time"
+msgstr "Tempo de processamento"
+
+#: app/models/task.py:247
+msgid ""
+"Processing node assigned to this task (or null if this task has not been "
+"associated yet)"
+msgstr ""
+"Nó de processamento designado para esta tarefa (ou nulo se esta tarefa ainda "
+"não foi associada)"
+
+#: app/models/task.py:247 app/views/app.py:118 nodeodm/models.py:36
+msgid "Processing Node"
+msgstr "Nó de processamento"
+
+#: app/models/task.py:248
+msgid ""
+"A flag indicating whether this task should be automatically assigned a "
+"processing node"
+msgstr ""
+"Um sinal (flag) que indica se esta tarefa deveria ser designada "
+"automaticamente a um nó de processamento"
+
+#: app/models/task.py:248
+msgid "Auto Processing Node"
+msgstr "Nó de procesamento automático"
+
+#: app/models/task.py:249
+msgid "Current status of the task"
+msgstr "Status atual da tarefa"
+
+#: app/models/task.py:249
+msgid "Status"
+msgstr "Status"
+
+#: app/models/task.py:250
+msgid "The last processing error received"
+msgstr "O último erro de processamento recebido"
+
+#: app/models/task.py:250
+msgid "Last Error"
+msgstr "Último Erro"
+
+#: app/models/task.py:251
+msgid "Options that are being used to process this task"
+msgstr "Opções que estão a ser usadas para processar esta tarefa"
+
+#: app/models/task.py:252
+msgid "List of available assets to download"
+msgstr "Lista de recursos disponíveis para download"
+
+#: app/models/task.py:252
+msgid "Available Assets"
+msgstr "Recursos Disponíveis"
+
+#: app/models/task.py:254
+msgid "Extent of the orthophoto"
+msgstr "Extensão da ortofoto"
+
+#: app/models/task.py:254
+msgid "Orthophoto Extent"
+msgstr "Extensão de ortofoto"
+
+#: app/models/task.py:255
+msgid "DSM Extent"
+msgstr "Extensão do MDS"
+
+#: app/models/task.py:256
+msgid "DTM Extent"
+msgstr "Extensão do MDT"
+
+#: app/models/task.py:260
+msgid ""
+"A requested action to be performed on the task. The selected action will be "
+"performed by the worker at the next iteration."
+msgstr ""
+"Uma ação solicitada a ser executada na tarefa. A ação selecionada será "
+"executada pelo trabalhador na próxima iteração."
+
+#: app/models/task.py:260
+msgid "Pending Action"
+msgstr "Ação Pendente"
+
+#: app/models/task.py:262
+msgid "A flag indicating whether this task is available to the public"
+msgstr "Um sinal (flag) que indica se esta tarefa está disponível ao público"
+
+#: app/models/task.py:262
+msgid "Public"
+msgstr "Público"
+
+#: app/models/task.py:263
+msgid ""
+"When set to a value different than -1, indicates that the images for this "
+"task have been / will be resized to the size specified here before "
+"processing."
+msgstr ""
+"Quando definido com um valor diferente de -1, indica que as imagens para "
+"esta tarefa foram / serão redimensionadas para o tamanho especificado aqui "
+"antes do processamento."
+
+#: app/models/task.py:263
+msgid "Resize To"
+msgstr "Redimensionar para"
+
+#: app/models/task.py:266
+msgid ""
+"Value between 0 and 1 indicating the upload progress of this task's files to "
+"the processing node"
+msgstr ""
+"Valor entre 0 e 1 a indicar o andamento do upload dos ficheiros desta tarefa "
+"para o nó de processamento"
+
+#: app/models/task.py:267
+msgid "Upload Progress"
+msgstr "Progresso do upload"
+
+#: app/models/task.py:270
+msgid ""
+"Value between 0 and 1 indicating the resize progress of this task's images"
+msgstr ""
+"Valor entre 0 e 1 a indicar o andamento do redimensionamento das imagens "
+"desta tarefa"
+
+#: app/models/task.py:271
+msgid "Resize Progress"
+msgstr "Progresso do redimensionamento"
+
+#: app/models/task.py:274
+msgid ""
+"Value between 0 and 1 indicating the running progress (estimated) of this "
+"task"
+msgstr ""
+"Valor entre 0 e 1 a indicar o andamento da execução (estimado) desta tarefa"
+
+#: app/models/task.py:275
+msgid "Running Progress"
+msgstr "Progresso da execução"
+
+#: app/models/task.py:277
+msgid "URL this task is imported from (only for imported tasks)"
+msgstr "URL de onde esta tarefa foi importada (apenas para tarefas importadas)"
+
+#: app/models/task.py:277
+msgid "Import URL"
+msgstr "Importar URL"
+
+#: app/models/task.py:278
+msgid "Number of images associated with this task"
+msgstr "Quantidade de imagens associadas a esta tarefa"
+
+#: app/models/task.py:278
+msgid "Images Count"
+msgstr "Contagem de imagens"
+
+#: app/models/task.py:279
+msgid ""
+"A flag indicating whether this task is currently waiting for information or "
+"files to be uploaded before being considered for processing."
+msgstr ""
+"Um sinal (flag) que indica se esta tarefa está atualmente à espera de "
+"informações ou ficheiros a serem enviados antes de ser considerada para "
+"processamento."
+
+#: app/models/task.py:279
+msgid "Partial"
+msgstr "Parcial"
+
+#: app/models/task.py:280
+msgid ""
+"Serialized potree scene information used to save/load measurements and "
+"camera view angle"
+msgstr ""
+"Informações serializadas da cena potree usadas para salvar/carregar medições "
+"e ângulo de visão da câmera"
+
+#: app/models/task.py:280
+msgid "Potree Scene"
+msgstr "Cena de Potree"
+
+#: app/models/task.py:281
+msgid "EPSG code of the dataset (if georeferenced)"
+msgstr "Código EPSG do conjunto de dados (se georreferenciado)"
+
+#: app/models/task.py:282
+msgid "Task tags"
+msgstr "Tags de tarefa"
+
+#: app/models/task.py:283
+msgid "List of orthophoto bands"
+msgstr "Lista de bandas de ortofotos"
+
+#: app/models/task.py:283
+msgid "Orthophoto Bands"
+msgstr "Bandas de ortofoto"
+
+#: app/models/task.py:284
+msgid "Size of the task on disk in megabytes"
+msgstr "Tamanho da tarefa no disco em megabytes"
+
+#: app/models/task.py:284
+msgid "Size"
+msgstr "Tamanho"
+
+#: app/models/task.py:287
+msgid "Task"
+msgstr "Tarefa"
+
+#: app/models/task.py:288
+msgid "Tasks"
+msgstr "Tarefas"
+
+#: app/models/task.py:299
+msgid "unnamed"
+msgstr "sem nome"
+
+#: app/models/task.py:549
+msgid "Importing assets..."
+msgstr "Importando recursos ..."
+
+#: app/models/task.py:601 app/models/task.py:869
+msgid "Invalid zip file"
+msgstr "Ficheiro zip inválido"
+
+#: app/models/task.py:695
+#, python-format
+msgid "Connection error: %(error)s"
+msgstr "Erro de conexão: %(error)s"
+
+#: app/models/task.py:775
+msgid "Cannot restart a task that has no processing node"
+msgstr "Não é possível reiniciar uma tarefa que não possui nó de processamento"
+
+#: app/models/task.py:949
+#, python-format
+msgid "Unsupported SRS %(code)s. Please make sure you picked a supported SRS."
+msgstr ""
+"SRS não suportado %(code)s. Por favor ceertifique-se que escolheu um SRS "
+"suportado."
+
+#: app/models/task.py:963
+msgid "Done!"
+msgstr "Pronto!"
+
+#: app/models/theme.py:18
+msgid "Name of theme"
+msgstr "Nome do tema"
+
+#: app/models/theme.py:21
+msgid "Most text, icons, and borders."
+msgstr "A maioria dos textos, ícones e bordas."
+
+#: app/models/theme.py:21
+msgid "Primary"
+msgstr "Primário"
+
+#: app/models/theme.py:22
+msgid "The main background color, and text color of some buttons."
+msgstr "A cor de fundo principal e a cor do texto de alguns botões."
+
+#: app/models/theme.py:22
+msgid "Secondary"
+msgstr "Secundário"
+
+#: app/models/theme.py:23
+msgid "Navigation links."
+msgstr "Ligações de navegação."
+
+#: app/models/theme.py:23
+msgid "Tertiary"
+msgstr "Terciário"
+
+#: app/models/theme.py:25
+msgid "Primary button color."
+msgstr "Cor primária do botão."
+
+#: app/models/theme.py:25
+msgid "Button Primary"
+msgstr "Botão primário"
+
+#: app/models/theme.py:26
+msgid "Default button color."
+msgstr "Cor padrão do botão."
+
+#: app/models/theme.py:26
+msgid "Button Default"
+msgstr "Botão padrão"
+
+#: app/models/theme.py:27
+msgid "Delete button color."
+msgstr "Excluir cor do botão."
+
+#: app/models/theme.py:27
+msgid "Button Danger"
+msgstr "Botão de perigo"
+
+#: app/models/theme.py:29
+msgid "Background color of the site's header."
+msgstr "Cor de fundo do cabeçalho do site."
+
+#: app/models/theme.py:29
+msgid "Header Background"
+msgstr "Fundo do cabeçalho"
+
+#: app/models/theme.py:30
+msgid "Text and icons in the site's header."
+msgstr "Texto e ícones no cabeçalho do site."
+
+#: app/models/theme.py:30
+msgid "Header Primary"
+msgstr "Cabeçalho Primário"
+
+#: app/models/theme.py:32
+msgid "The color of most borders."
+msgstr "A cor da maioria das bordas."
+
+#: app/models/theme.py:32
+msgid "Border"
+msgstr "Borda"
+
+#: app/models/theme.py:33
+msgid "The background color of panels and some borders."
+msgstr "A cor de fundo dos painéis e algumas bordas."
+
+#: app/models/theme.py:33
+msgid "Highlight"
+msgstr "Destaque"
+
+#: app/models/theme.py:35
+msgid "The border color of warning dialogs."
+msgstr "A cor da borda dos diálogos de aviso."
+
+#: app/models/theme.py:35
+msgid "Dialog Warning"
+msgstr "Diálogo de aviso"
+
+#: app/models/theme.py:37
+msgid "The background color of failed notifications."
+msgstr "A cor de fundo das notificações de falha."
+
+#: app/models/theme.py:37
+msgid "Failed"
+msgstr "Falha"
+
+#: app/models/theme.py:38
+msgid "The background color of success notifications."
+msgstr "A cor de fundo das notificações de sucesso."
+
+#: app/models/theme.py:38
+msgid "Success"
+msgstr "Sucesso"
+
+#: app/templates/app/404.html:6
+msgid "404 Page Not Found"
+msgstr "404 Página Não Encontrada"
+
+#: app/templates/app/404.html:7
+msgid "Are you sure the address is correct?"
+msgstr "Tem certeza que o endereço está correto?"
+
+#: app/templates/app/500.html:5
+msgid "500 Internal Server Error"
+msgstr "Erro interno do servidor"
+
+#: app/templates/app/500.html:6
+msgid "Something happened. The server logs contain more information."
+msgstr "Algo aconteceu. Os logs do servidor contêm mais informações."
+
+#: app/templates/app/about.html:94
+#, python-format
+msgid ""
+"This program is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU Affero General Public License as published by the "
+"Free Software Foundation, either version 3 of the License, or (at your "
+"option) any later version. See %(link_start)sthe GNU Affero General Public "
+"License%(link_end)s for more details."
+msgstr ""
+"Este programa é um software livre: pode redistribuí-lo e / ou modificá-lo "
+"sob os termos da GNU Affero General Public License conforme publicada pela "
+"Free Software Foundation, seja a versão 3 da Licença, ou (por sua opção) "
+"qualquer versão posterior. Veja %(link_start)sthe GNU Affero General Public "
+"License %(link_end)s para mais detalhes."
+
+#: app/templates/app/admin/404.html:4 app/templates/app/admin/404.html:8
+msgid "Page not found"
+msgstr "Página não encontrada"
+
+#: app/templates/app/admin/404.html:10
+msgid "We're sorry, but the requested page could not be found."
+msgstr "Desculpe, mas a página solicitada não foi encontrada."
+
+#: app/templates/app/admin/500.html:6 app/templates/app/admin/app_index.html:9
+#: app/templates/app/admin/auth/user/change_password.html:13
+#: app/templates/app/admin/base.html:19
+#: app/templates/app/admin/change_form.html:18
+#: app/templates/app/admin/change_list.html:31
+#: app/templates/app/admin/delete_confirmation.html:13
+#: app/templates/app/admin/delete_selected_confirmation.html:13
+#: app/templates/app/admin/invalid_setup.html:6
+#: app/templates/app/admin/object_history.html:6
+msgid "Home"
+msgstr "Início"
+
+#: app/templates/app/admin/500.html:7
+msgid "Server error"
+msgstr "Erro no servidor"
+
+#: app/templates/app/admin/500.html:11
+msgid "Server error (500)"
+msgstr "Erro do servidor (500)"
+
+#: app/templates/app/admin/500.html:14
+msgid "Server Error (500)"
+msgstr "Erro do servidor (500)"
+
+#: app/templates/app/admin/500.html:15
+msgid ""
+"There's been an error. It's been reported to the site administrators via "
+"email and should be fixed shortly. Thanks for your patience."
+msgstr ""
+"Ocorreu um erro. Isso foi relatado aos administradores do site por e-mail e "
+"deve ser corrigido em breve. Obrigado pela sua paciência."
+
+#: app/templates/app/admin/actions.html:4
+msgid "Run the selected action"
+msgstr "Executa a ação selecionada"
+
+#: app/templates/app/admin/actions.html:4
+msgid "Go"
+msgstr "Ir"
+
+#: app/templates/app/admin/actions.html:10
+msgid "Click here to select the objects across all pages"
+msgstr "Clique aqui para selecionar os objetos em todas as páginas"
+
+#: app/templates/app/admin/actions.html:10
+#, python-format
+msgid "Select all %(total_count)s %(module_name)s"
+msgstr "Seleciona todos %(total_count)s %(module_name)s"
+
+#: app/templates/app/admin/actions.html:12
+msgid "Clear selection"
+msgstr "Limpar seleção"
+
+#: app/templates/app/admin/auth/user/add_form.html:6
+msgid ""
+"First, enter a username and password. Then, you'll be able to edit more user "
+"options."
+msgstr ""
+"Primeiro, insira um nome de utilizador e uma palavra-passe. Então, poderá "
+"editar mais opções do utilizador."
+
+#: app/templates/app/admin/auth/user/add_form.html:8
+msgid "Enter a username and password."
+msgstr "Digite um nome de usuário e senha."
+
+#: app/templates/app/admin/auth/user/change_password.html:17
+#: app/templates/app/admin/auth/user/change_password.html:54
+msgid "Change password"
+msgstr "Alterar palavra-passe"
+
+#: app/templates/app/admin/auth/user/change_password.html:27
+#: app/templates/app/admin/change_form.html:47
+#: app/templates/app/admin/change_list.html:58
+#: app/templates/app/admin/login.html:21
+msgid "Please correct the error below."
+msgstr "Por favor corrigir o erro abaixo."
+
+#: app/templates/app/admin/auth/user/change_password.html:27
+#: app/templates/app/admin/change_form.html:47
+#: app/templates/app/admin/change_list.html:58
+#: app/templates/app/admin/login.html:21
+msgid "Please correct the errors below."
+msgstr "Por favor corrigir os erros abaixo."
+
+#: app/templates/app/admin/auth/user/change_password.html:31
+#, python-format
+msgid "Enter a new password for the user <strong>%(username)s</strong>."
+msgstr ""
+"Entre uma nova palavra-passe para o utilizador <strong>%(username)s</strong>."
+
+#: app/templates/app/admin/base_site.html:3
+msgid "Django site admin"
+msgstr "Administrador do site django"
+
+#: app/templates/app/admin/base_site.html:6
+msgid "Django administration"
+msgstr "Administração django"
+
+#: app/templates/app/admin/change_form.html:21
+#: app/templates/app/admin/change_list.html:49
+#, python-format
+msgid "Add %(name)s"
+msgstr "Adicionar %(name)s"
+
+#: app/templates/app/admin/change_form.html:33
+#: app/templates/app/admin/object_history.html:10
+msgid "History"
+msgstr "Histórico"
+
+#: app/templates/app/admin/change_form.html:35
+#: app/templates/app/admin/edit_inline/stacked.html:14
+#: app/templates/app/admin/edit_inline/tabular.html:36
+msgid "View on site"
+msgstr "Ver no site"
+
+#: app/templates/app/admin/change_list.html:69
+msgid "Filter"
+msgstr "Filtro"
+
+#: app/templates/app/admin/change_list_plugin.html:24
+msgid "Load Plugin (.zip)"
+msgstr "Carregar plugin (.zip)"
+
+#: app/templates/app/admin/change_list_plugin.html:28
+msgid "Manage Plugins"
+msgstr "Gerir plugins"
+
+#: app/templates/app/admin/change_list_results.html:17
+msgid "Remove from sorting"
+msgstr "Remover da ordenação"
+
+#: app/templates/app/admin/change_list_results.html:18
+#, python-format
+msgid "Sorting priority: %(priority_number)s"
+msgstr "Prioridade de ordenação: %(priority_number)s"
+
+#: app/templates/app/admin/change_list_results.html:19
+msgid "Toggle sorting"
+msgstr "Alternar ordenação"
+
+#: app/templates/app/admin/delete_confirmation.html:17
+#: app/templates/app/admin/related_widget_wrapper.html:23
+#: app/templates/app/admin/submit_line.html:6
+#: app/templates/app/processing_node.html:54
+msgid "Delete"
+msgstr "Excluir"
+
+#: app/templates/app/admin/delete_confirmation.html:23
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(escaped_object)s' would result in deleting "
+"related objects, but your account doesn't have permission to delete the "
+"following types of objects:"
+msgstr ""
+"A exclusão de %(object_name)s '%(escaped_object)s' resultaria na exclusão de "
+"objetos relacionados, mas a sua conta não tem permissão para excluir os "
+"seguintes tipos de objetos:"
+
+#: app/templates/app/admin/delete_confirmation.html:30
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(escaped_object)s' would require deleting the "
+"following protected related objects:"
+msgstr ""
+"A exclusão de %(object_name)s '%(escaped_object)s' exigiria a exclusão dos "
+"seguintes objetos relacionados protegidos:"
+
+#: app/templates/app/admin/delete_confirmation.html:37
+#, python-format
+msgid ""
+"Are you sure you want to delete the %(object_name)s \"%(escaped_object)s\"? "
+"All of the following related items will be deleted:"
+msgstr ""
+"Tem certeza de que deseja excluir %(object_name)s \"%(escaped_object)s\"? "
+"Todos os seguintes itens relacionados serão excluídos:"
+
+#: app/templates/app/admin/delete_confirmation.html:39
+#: app/templates/app/admin/delete_selected_confirmation.html:38
+msgid "Objects"
+msgstr "Objetos"
+
+#: app/templates/app/admin/delete_confirmation.html:46
+#: app/templates/app/admin/delete_selected_confirmation.html:49
+msgid "Yes, I'm sure"
+msgstr "Sim, tenho certeza"
+
+#: app/templates/app/admin/delete_confirmation.html:47
+#: app/templates/app/admin/delete_selected_confirmation.html:50
+msgid "No, take me back"
+msgstr "Não, me leve de volta"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:16
+msgid "Delete multiple objects"
+msgstr "Excluir vários objetos"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:22
+#, python-format
+msgid ""
+"Deleting the selected %(objects_name)s would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr ""
+"Excluir o %(objects_name)s selecionado resultaria na exclusão de objetos "
+"relacionados, mas a sua conta não tem permissão para excluir os seguintes "
+"tipos de objetos:"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:29
+#, python-format
+msgid ""
+"Deleting the selected %(objects_name)s would require deleting the following "
+"protected related objects:"
+msgstr ""
+"A exclusão de %(objects_name)s selecionados exigiria a exclusão dos "
+"seguintes objetos relacionados protegidos:"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:36
+#, python-format
+msgid ""
+"Are you sure you want to delete the selected %(objects_name)s? All of the "
+"following objects and their related items will be deleted:"
+msgstr ""
+"Tem certeza de que deseja excluir os %(objects_name)s selecionados? Todos os "
+"seguintes objetos e os itens deles relacionados serão excluídos:"
+
+#: app/templates/app/admin/edit_inline/stacked.html:12
+#: app/templates/app/admin/edit_inline/tabular.html:34
+#: app/templates/app/admin/index.html:37
+#: app/templates/app/admin/related_widget_wrapper.html:9
+msgid "Change"
+msgstr "Alterar"
+
+#: app/templates/app/admin/edit_inline/tabular.html:20
+msgid "Delete?"
+msgstr "Excluir?"
+
+#: app/templates/app/admin/filter.html:2
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " Por %(filter_title)s "
+
+#: app/templates/app/admin/includes/object_delete_summary.html:2
+msgid "Summary"
+msgstr "Resumo"
+
+#: app/templates/app/admin/index.html:20
+#, python-format
+msgid "Models in the %(name)s application"
+msgstr "Modelos na aplicação %(name)s"
+
+#: app/templates/app/admin/index.html:31
+#: app/templates/app/admin/related_widget_wrapper.html:16
+msgid "Add"
+msgstr "Adicionar"
+
+#: app/templates/app/admin/index.html:47
+msgid "You don't have permission to edit anything."
+msgstr "Não tem permissão para editar nada."
+
+#: app/templates/app/admin/index.html:55
+msgid "Recent actions"
+msgstr "Ações recentes"
+
+#: app/templates/app/admin/index.html:56
+msgid "My actions"
+msgstr "Minhas ações"
+
+#: app/templates/app/admin/index.html:60
+msgid "None available"
+msgstr "Nenhum disponível"
+
+#: app/templates/app/admin/index.html:74
+msgid "Unknown content"
+msgstr "Conteúdo desconhecido"
+
+#: app/templates/app/admin/invalid_setup.html:12
+msgid ""
+"Something's wrong with your database installation. Make sure the appropriate "
+"database tables have been created, and make sure the database is readable by "
+"the appropriate user."
+msgstr ""
+"Algo está errado com a instalação do seu banco de dados. Certifique-se de "
+"que as tabelas de banco de dados apropriadas tenham sido criadas e que o "
+"banco de dados possa ser lido pelo utilizador apropriado."
+
+#: app/templates/app/admin/login.html:37
+#, python-format
+msgid ""
+"You are authenticated as %(username)s, but are not authorized to access this "
+"page. Would you like to login to a different account?"
+msgstr ""
+"Está autenticado como %(username)s, mas não está autorizado a acessar esta "
+"página. Gostaria de entrar numa conta diferente?"
+
+#: app/templates/app/admin/login.html:57
+msgid "Forgotten your password or username?"
+msgstr "Esqueceu-se da sua palavra-passe ou nome de utilizador?"
+
+#: app/templates/app/admin/login.html:61
+msgid "Log in"
+msgstr "Entrar"
+
+#: app/templates/app/admin/object_history.html:22
+msgid "Date/time"
+msgstr "Data/hora"
+
+#: app/templates/app/admin/object_history.html:24
+msgid "Action"
+msgstr "Ação"
+
+#: app/templates/app/admin/object_history.html:38
+msgid ""
+"This object doesn't have a change history. It probably wasn't added via this "
+"admin site."
+msgstr ""
+"Este objeto não tem um histórico de alterações. Provavelmente não foi "
+"adicionado por meio da administração do site."
+
+#: app/templates/app/admin/pagination.html:10
+#: app/templates/app/admin/search_form.html:9
+msgid "Show all"
+msgstr "Mostrar tudo"
+
+#: app/templates/app/admin/pagination.html:11
+#: app/templates/app/admin/submit_line.html:3
+msgid "Save"
+msgstr "Gravar"
+
+#: app/templates/app/admin/popup_response.html:3
+msgid "Popup closing..."
+msgstr "Fechando pop-up ..."
+
+#: app/templates/app/admin/related_widget_wrapper.html:8
+#, python-format
+msgid "Change selected %(model)s"
+msgstr "Alterar %(model)s selecionado"
+
+#: app/templates/app/admin/related_widget_wrapper.html:15
+#, python-format
+msgid "Add another %(model)s"
+msgstr "Adicionar outro %(model)s"
+
+#: app/templates/app/admin/related_widget_wrapper.html:22
+#, python-format
+msgid "Delete selected %(model)s"
+msgstr "Excluir %(model)s selecionado"
+
+#: app/templates/app/admin/search_form.html:7
+msgid "Search"
+msgstr "Pesquisar"
+
+#: app/templates/app/admin/search_form.html:9
+#, python-format
+msgid "%(counter)s result"
+msgid_plural "%(counter)s results"
+msgstr[0] "%(counter)s resultado"
+msgstr[1] "%(counter)s resultados"
+
+#: app/templates/app/admin/search_form.html:9
+#, python-format
+msgid "%(full_result_count)s total"
+msgstr "%(full_result_count)s total"
+
+#: app/templates/app/admin/submit_line.html:8
+msgid "Save as new"
+msgstr "Gravar como novo"
+
+#: app/templates/app/admin/submit_line.html:9
+msgid "Save and add another"
+msgstr "Gravar e adicionar outro"
+
+#: app/templates/app/admin/submit_line.html:10
+msgid "Save and continue editing"
+msgstr "Gravar e continuar editar"
+
+#: app/templates/app/dashboard.html:18 app/templates/app/dashboard.html:31
+#: app/templates/app/welcome.html:227
+msgid "Welcome!"
+msgstr "Bem-vindo!"
+
+#: app/templates/app/dashboard.html:19
+msgid "Add a Processing Node"
+msgstr "Adicionar um nó de processamento"
+
+#: app/templates/app/dashboard.html:22
+#, python-format
+msgid ""
+"To get started, \"%(add_processing_node)s\". A processing node is a computer "
+"running an instance of %(nodeodm_link)s or some other software implementing "
+"this %(api_link)s."
+msgstr ""
+"Para começar, \"%(add_processing_node)s\". Um nó de processamento é um "
+"computador a executar uma instância de %(nodeodm_link)s ou algum outro "
+"software a implementar este %(api_link)s."
+
+#: app/templates/app/dashboard.html:32
+msgid "Select Images and GCP"
+msgstr "Selecionar imagens e GCPs"
+
+#: app/templates/app/dashboard.html:34
+#, python-format
+msgid ""
+"To create a map, press the \"%(upload_images)s\" button, or drag and drop "
+"some images into a project."
+msgstr ""
+"Para criar um mapa, pressione o botão \"%(upload_images)s\" ou arraste e "
+"solte algumas imagens num projeto."
+
+#: app/templates/app/dashboard.html:38
+msgid "You need at least 5 images, but 16-32 is typically the minimum."
+msgstr ""
+"Você precisa de pelo menos 5 imagens, mas 16-32 normalmente é o mínimo."
+
+#: app/templates/app/dashboard.html:39
+#, python-format
+msgid "Images must overlap by 65%% or more. Aim for 70-72%%"
+msgstr "As imagens devem se sobrepor em 65%% ou mais. Apontar para 70-72%%"
+
+#: app/templates/app/dashboard.html:40
+#, python-format
+msgid "For great 3D, images must overlap by 83%%"
+msgstr "Para 3D ótimo, as imagens precisam de sobreposição de 83%%"
+
+#: app/templates/app/dashboard.html:41
+#, python-format
+msgid ""
+"A %(link_start)sGCP File%(link_end)s is optional, but can increase "
+"georeferencing accuracy"
+msgstr ""
+"Um ficheiro %(link_start)s de GCPs %(link_end)s é opcional, mas pode "
+"aumentar a precisão do georreferenciamento"
+
+#: app/templates/app/dev_tools.html:6 app/templates/app/logged_in_base.html:134
+#: app/views/dev.py:78
+msgid "Developer Tools"
+msgstr "Ferramentas de Desenvolvimento"
+
+#: app/templates/app/dev_tools.html:9
+msgid "Close"
+msgstr "Fechar"
+
+#: app/templates/app/dev_tools.html:14
+msgid "Current Locale:"
+msgstr "Localidade atual:"
+
+#: app/templates/app/dev_tools.html:15
+msgid ""
+"To change locale, modify your browser's locale settings, then refresh the "
+"page, or use the set locale button below."
+msgstr ""
+"Para alterar a localidade, modifique as configurações de localidade do seu "
+"navegador e então atualize a página, ou utilize o botão abaixo."
+
+#: app/templates/app/dev_tools.html:18
+msgid "Translation Files (.zip):"
+msgstr "Ficheiros de tradução (.zip):"
+
+#: app/templates/app/dev_tools.html:22
+msgid "Download and Replace Translation Files"
+msgstr "Descarragar e substituir ficheiros de tradução"
+
+#: app/templates/app/dev_tools.html:27
+msgid "Set locale:"
+msgstr "Localidade atual:"
+
+#: app/templates/app/dev_tools.html:29
+msgid "Apply"
+msgstr "Aplicar"
+
+#: app/templates/app/dev_tools.html:33
+msgid "Executing… do not refresh the page! This could take a while."
+msgstr "Executando… não atualize a página! Isso pode demorar um pouco."
+
+#: app/templates/app/logged_in_base.html:16
+#, python-format
+msgid "Hello, %(user)s!"
+msgstr "Olá, %(user)s!"
+
+#: app/templates/app/logged_in_base.html:30
+#, python-format
+msgid "%(used)s of %(total)s used"
+msgstr "%(used)s do %(total)s usado"
+
+#: app/templates/app/logged_in_base.html:43
+msgid "Logout"
+msgstr "Sair"
+
+#: app/templates/app/logged_in_base.html:57 app/views/app.py:48
+msgid "Dashboard"
+msgstr "Painel"
+
+#: app/templates/app/logged_in_base.html:83 nodeodm/models.py:37
+msgid "Processing Nodes"
+msgstr "Nós de processamento"
+
+#: app/templates/app/logged_in_base.html:93
+msgid "Add New"
+msgstr "Adicionar novo"
+
+#: app/templates/app/logged_in_base.html:103
+msgid "Administration"
+msgstr "Administração"
+
+#: app/templates/app/logged_in_base.html:108
+msgid "Accounts"
+msgstr "Contas"
+
+#: app/templates/app/logged_in_base.html:111
+msgid "Groups"
+msgstr "Grupos"
+
+#: app/templates/app/logged_in_base.html:116
+msgid "Brand"
+msgstr "Marca"
+
+#: app/templates/app/logged_in_base.html:138 app/views/app.py:108
+msgid "About"
+msgstr "Sobre"
+
+#: app/templates/app/processing_node.html:11 nodeodm/models.py:23
+msgid "Hostname"
+msgstr "Nome do host"
+
+#: app/templates/app/processing_node.html:15 nodeodm/models.py:24
+msgid "Port"
+msgstr "Porta"
+
+#: app/templates/app/processing_node.html:19 nodeodm/models.py:25
+msgid "API Version"
+msgstr "Versão da API"
+
+#: app/templates/app/processing_node.html:23 nodeodm/models.py:33
+msgid "Engine"
+msgstr "Engine"
+
+#: app/templates/app/processing_node.html:27 nodeodm/models.py:31
+msgid "Engine Version"
+msgstr "Versão da engine"
+
+#: app/templates/app/processing_node.html:31 nodeodm/models.py:27
+msgid "Queue Count"
+msgstr "Contagem da fila"
+
+#: app/templates/app/processing_node.html:35
+msgid "Max Images Limit"
+msgstr "Limite máximo de imagens"
+
+#: app/templates/app/processing_node.html:39 nodeodm/models.py:32
+msgid "Label"
+msgstr "Rótulo"
+
+#: app/templates/app/processing_node.html:43 nodeodm/models.py:26
+msgid "Last Refreshed"
+msgstr "Última atualização"
+
+#: app/templates/app/processing_node.html:44
+msgctxt "5 minutes ago"
+msgid "ago"
+msgstr "atrás"
+
+#: app/templates/app/processing_node.html:47
+msgid "Options (JSON)"
+msgstr "Opções (JSON)"
+
+#: app/templates/app/processing_node.html:53
+msgid "Edit"
+msgstr "Editar"
+
+#: app/templates/app/quota.html:9
+#, python-format
+msgid ""
+"The disk quota is being exceeded (%(used)s of %(total)s used). The most "
+"recent tasks will be automatically deleted %(when)s, until usage falls below "
+"%(total)s."
+msgstr ""
+"A cota de disco esta sendo excedida (%(used)s de %(total)s usado). A tarefa "
+"mais recente será automaticamente excluída %(when)s, até o uso cair abaixo "
+"de %(total)s."
+
+#: app/templates/app/quota.html:14
+#, python-format
+msgid ""
+"Your account does not have a storage quota. Any new task will be "
+"automatically deleted %(when)s"
+msgstr ""
+"Sua conta não tem cota de armazenamento. Qualquer nova tarefa será "
+"automaticamente removida %(when)s"
+
+#: app/templates/app/welcome.html:224
+msgid "Uh oh! Could you please check the errors below?"
+msgstr "Poderia verificar os erros abaixo?"
+
+#: app/templates/app/welcome.html:228
+msgid ""
+"Before we get started, we need to create an administrator account for you:"
+msgstr ""
+"Antes de começarmos, precisamos criar uma conta de administrador para você:"
+
+#: app/templates/app/welcome.html:237
+msgid "Create Account"
+msgstr "Criar Conta"
+
+#: app/templatetags/settings.py:57
+#, python-format
+msgid "in %(num)s days"
+msgstr "em %(num)s dias"
+
+#: app/templatetags/settings.py:59
+#, python-format
+msgid "in %(num)s hours"
+msgstr "em %(num)s horas"
+
+#: app/templatetags/settings.py:61
+#, python-format
+msgid "in %(num)s minutes"
+msgstr "em %(num)s minutos"
+
+#: app/templatetags/settings.py:63
+msgid "very soon"
+msgstr "Em breve"
+
+#: app/translations/plugin_manifest_autogenerated.py:4
+msgid "Import images from external sources directly"
+msgstr "Importe imagens de fontes externas diretamente"
+
+#: app/translations/plugin_manifest_autogenerated.py:5
+msgid "Compute, preview and export contours from DEMs"
+msgstr "Calcule, visualize e exporte curvas de nível de MDEs"
+
+#: app/translations/plugin_manifest_autogenerated.py:6
+msgid "Display program version, memory and disk space usage statistics"
+msgstr ""
+"Exibir versão do programa e estatísticas de uso de memória e de espaço em "
+"disco"
+
+#: app/translations/plugin_manifest_autogenerated.py:7
+msgid "Integrate WebODM with DroneDB: import images and share results"
+msgstr "Integre WebODM com DroneDB: importe imagens e compartilhe resultados"
+
+#: app/translations/plugin_manifest_autogenerated.py:8
+msgid "Create editable short links when sharing task URLs"
+msgstr "Crie links curtos editáveis ao compartilhar URLs de tarefas"
+
+#: app/translations/plugin_manifest_autogenerated.py:9
+msgid "Add a fullscreen button to the 2D map view"
+msgstr "Adicionar um botão de tela cheia à visualização do mapa 2D"
+
+#: app/translations/plugin_manifest_autogenerated.py:10
+msgid "Process in the cloud with webodm.net"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:11
+#, fuzzy
+msgid "Compute volume, area and length measurements on Leaflet"
+msgstr "Calcule medidas de volume, área e comprimento na aba"
+
+#: app/translations/plugin_manifest_autogenerated.py:12
+msgid "A plugin to upload orthophotos to OpenAerialMap"
+msgstr "Um plugin para fazer upload de ortofotos para OpenAerialMap"
+
+#: app/translations/plugin_manifest_autogenerated.py:13
+msgid ""
+"A plugin to add a button for quickly opening OpenStreetMap's iD editor and "
+"setup a TMS basemap."
+msgstr ""
+"Um plugin para adicionar um botão para abrir rapidamente o editor de iD do "
+"OpenStreetMap e configurar um mapa base TMS."
+
+#: app/translations/plugin_manifest_autogenerated.py:14
+#: app/translations/plugin_manifest_autogenerated.py:18
+msgid "A plugin to create GCP files from images"
+msgstr "Um plugin para criar ficheiros de GCP a partir de imagens"
+
+#: app/translations/plugin_manifest_autogenerated.py:15
+msgid "A plugin to show charts of projects and tasks"
+msgstr "Um plugin para mostras gráficos de projetos e tarefas"
+
+#: app/translations/plugin_manifest_autogenerated.py:16
+msgid "Create short links when sharing task URLs"
+msgstr "Crie links curtos ao compartilhar URLs de tarefas"
+
+#: app/translations/plugin_manifest_autogenerated.py:17
+msgid ""
+"Get notified when a task has finished processing, has been removed or has "
+"failed"
+msgstr ""
+"Receber notificações quando uma tarefa for concluída, removida ou falhou"
+
+#: app/translations/plugin_manifest_autogenerated.py:19
+msgid "Annotate and measure on 2D maps with ease"
+msgstr ""
+
+#: app/views/app.py:46
+msgid "First Project"
+msgstr "Primeiro projeto"
+
+#: app/views/app.py:56 app/views/public.py:28
+msgid "Map"
+msgstr "Mapa"
+
+#: app/views/app.py:85
+msgid "3D Model Display"
+msgstr "Exibe o modelo 3D"
+
+#: app/views/app.py:114
+#, python-format
+msgid "%(node)s seems to be offline."
+msgstr "%(node)s parece estar offline."
+
+#: app/views/app.py:152
+msgid "Welcome"
+msgstr "Bem-vindo"
+
+#: app/views/dev.py:59
+msgid "Cannot find locale/ folder in .zip archive"
+msgstr "Não é possível encontrar local/pasta no arquivo .zip"
+
+#: app/views/dev.py:71
+msgid "Translation files reloaded!"
+msgstr "Arquivos de tradução recarregados!"
+
+#: app/views/dev.py:75
+msgid "Invalid action"
+msgstr "Ação inválida"
+
+#: coreplugins/annotate/api.py:46 coreplugins/annotate/dist/annotate/api.py:46
+#: coreplugins/measure/api.py:21
+msgid ""
+"No surface model available. From the Dashboard, select this task, press "
+"Edit, from the options make sure to check \"dsm\", then press Restart --> "
+"From DEM."
+msgstr ""
+"Nenhum modelo de superfície disponível. No Painel de controle, selecione "
+"esta tarefa, pressione Editar, nas opções certifique-se de marcar \"dsm\" e "
+"pressione reiniciar --> do MDE."
+
+#: coreplugins/annotate/api.py:69 coreplugins/annotate/dist/annotate/api.py:69
+msgid "A digital surface model is required to compute elevation values."
+msgstr ""
+
+#: coreplugins/contours/api.py:86
+msgid "No DSM layer is available."
+msgstr "Nenhuma camada DSM está disponível."
+
+#: coreplugins/contours/api.py:88
+msgid "No DTM layer is available."
+msgstr "Nenhuma camada MDT está disponível."
+
+#: coreplugins/contours/api.py:119
+msgid "Could not generate contour file. This might be a bug."
+msgstr ""
+"Não foi possível gerar o arquivo de curvas de nível. Isso pode ser um bug."
+
+#: coreplugins/diagnostic/plugin.py:36
+msgid "Diagnostic"
+msgstr "Diagnóstico"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:6
+msgid "Diagnostic Information"
+msgstr "Informação diagnóstica"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:10
+msgid "Storage Space"
+msgstr "Espaço de armazenamento"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:14
+#: coreplugins/diagnostic/templates/diagnostic.html:40
+#: coreplugins/diagnostic/templates/diagnostic.html:45
+msgctxt "Megabytes of storage space"
+msgid "Free"
+msgstr "Livre"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:15
+#: coreplugins/diagnostic/templates/diagnostic.html:39
+#: coreplugins/diagnostic/templates/diagnostic.html:45
+msgctxt "Megabytes of storage space"
+msgid "Used"
+msgstr "Utilizado"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:16
+msgctxt "Megabytes of storage space"
+msgid "Total"
+msgstr "Total"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:20
+msgctxt "Computer memory (RAM)"
+msgid "Memory"
+msgstr "Memória"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:24
+#: coreplugins/diagnostic/templates/diagnostic.html:75
+#: coreplugins/diagnostic/templates/diagnostic.html:80
+msgctxt "Megabytes of memory space"
+msgid "Free"
+msgstr "Livre"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:25
+#: coreplugins/diagnostic/templates/diagnostic.html:74
+#: coreplugins/diagnostic/templates/diagnostic.html:80
+msgctxt "Megabytes of memory space"
+msgid "Used"
+msgstr "Utilizado"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:26
+msgctxt "Megabytes of memory space"
+msgid "Total"
+msgstr "Total"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:33
+msgid "Note!"
+msgstr "Nota!"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:33
+#, python-format
+msgid ""
+"These values might be relative to the virtualization environment in which "
+"the application is running, not necessarily the values of the your machine. "
+"See instructions for %(win_hyperv_link)s, %(win_wsl2_link)s, and "
+"%(mac_link)s for changing these values in a Docker setup."
+msgstr ""
+"Esses valores podem ser relativos ao ambiente de virtualização no qual o "
+"aplicações está a ser executado, não necessariamente os valores da sua "
+"máquina. Consulte as instruções para %(win_hyperv_link)s, %(win_wsl2_link)s "
+"e %(mac_link)s para alterar esses valores numa configuração do Docker."
+
+#: coreplugins/diagnostic/templates/diagnostic.html:47
+#: coreplugins/diagnostic/templates/diagnostic.html:82
+msgid "Disk Space"
+msgstr "Espaço em disco"
+
+#: coreplugins/editshortlinks/api.py:59
+msgid ""
+"Short URLs can only include letters, numbers, underscore and dash characters "
+"(A-Z, 0-9, _, -)."
+msgstr ""
+"Os URLs curtos podem incluir apenas letras, números, sublinhados e traços (A-"
+"Z, 0-9, _, -)."
+
+#: coreplugins/editshortlinks/api.py:63
+msgid "This short URL is already taken."
+msgstr "Este URL curto já foi usado."
+
+#: coreplugins/lightning/plugin.py:25 coreplugins/lightning/plugin.py:39
+#, fuzzy
+#| msgid "Lightning Network"
+msgid "Lightning"
+msgstr "Rede Lightning"
+
+#: coreplugins/posm-gcpi/plugin.py:9
+msgid "GCP Interface"
+msgstr "Interface de GCPs"
+
+#: coreplugins/projects-charts/plugin.py:55
+msgid "Charts"
+msgstr "Gráficos"
+
+#: coreplugins/projects-charts/templates/index.html:11
+msgid "Year"
+msgstr "Ano"
+
+#: coreplugins/projects-charts/templates/index.html:23
+msgid "Next"
+msgstr "Próximo"
+
+#: coreplugins/projects-charts/templates/index.html:69
+msgid "Projects by month"
+msgstr "Projetos por mês"
+
+#: coreplugins/projects-charts/templates/index.html:111
+msgid "Tasks by month"
+msgstr "Tarefas por mês"
+
+#: coreplugins/tasknotification/plugin.py:84
+msgid "Task Notification"
+msgstr "Notificação de Tarefa"
+
+#: coreplugins/tasknotification/templates/index.html:5
+msgid "Tasks Notification"
+msgstr "Notificações de Tarefas"
+
+#: nodeodm/apps.py:8
+msgid "Node Management"
+msgstr "Gestão de nó"
+
+#: nodeodm/models.py:23
+msgid ""
+"Hostname or IP address where the node is located (can be an internal "
+"hostname as well). If you are using Docker, this is never 127.0.0.1 or "
+"localhost. Find the IP address of your host machine by running ifconfig on "
+"Linux or by checking your network settings."
+msgstr ""
+"Nome do host ou endereço IP onde o nó está localizado (também pode ser um "
+"nome de host interno). Se estiver usando o Docker, nunca será 127.0.0.1 ou "
+"localhost. Encontre o endereço IP da sua máquina host a executar ifconfig no "
+"Linux ou a verificar as suas configurações de rede."
+
+#: nodeodm/models.py:24
+msgid "Port that connects to the node's API"
+msgstr "Porta que conecta à API do nó"
+
+#: nodeodm/models.py:25
+msgid "API version used by the node"
+msgstr "Versão da API utilizada pelo nó"
+
+#: nodeodm/models.py:26
+msgid "When was the information about this node last retrieved?"
+msgstr "Quando as informações sobre este nó foram recuperadas pela última vez?"
+
+#: nodeodm/models.py:27
+msgid ""
+"Number of tasks currently being processed by this node (as reported by the "
+"node itself)"
+msgstr ""
+"Quantidade de tarefas atualmente a ser processadas por este nó (conforme "
+"relatado pelo próprio nó)"
+
+#: nodeodm/models.py:28
+msgid "Available Options"
+msgstr "Opções disponíveis"
+
+#: nodeodm/models.py:28
+msgid "Description of the options that can be used for processing"
+msgstr "Descrição das opções que podem ser usadas para processamento"
+
+#: nodeodm/models.py:29
+msgid "Token"
+msgstr "Token"
+
+#: nodeodm/models.py:29
+msgid ""
+"Token to use for authentication. If the node doesn't have authentication, "
+"you can leave this field blank."
+msgstr ""
+"Token usado para autenticação. Se o nó não tiver autenticação, pode deixar "
+"este campo em branco."
+
+#: nodeodm/models.py:30
+msgid "Max Images"
+msgstr "Quantidade máxima de imagens"
+
+#: nodeodm/models.py:30
+msgid "Maximum number of images accepted by this node."
+msgstr "Quantidade máxima de imagens aceitas por este nó."
+
+#: nodeodm/models.py:31
+msgid "Engine version used by the node."
+msgstr "Versão da engine usada pelo nó."
+
+#: nodeodm/models.py:32
+msgid ""
+"Optional label for this node. When set, this label will be shown instead of "
+"the hostname:port name."
+msgstr ""
+"Rótulo opcional para este nó. Quando definido, este rótulo será mostrado em "
+"vez de nome do host:nome da porta."
+
+#: nodeodm/models.py:33
+msgid "Engine used by the node."
+msgstr "Engine utilizada pelo nó."
+
+#~ msgid "Sync accounts from webodm.net"
+#~ msgstr "Sincronizar contas de webodm.net"
+
+#~ msgid ""
+#~ "Triangular Greenness Index (derived from only the RGB bands) performs "
+#~ "similarly to EXG but with improvements over certain environments."
+#~ msgstr ""
+#~ "Índice Triangular de Verdor (derivado apenas das bandas RGB) performa "
+#~ "semelhante ao EXG mas com vantagens em certos ambientes."
+
+#~ msgid "Detect changes between two different tasks in the same project."
+#~ msgstr "Detecte mudanças entre duas tarefas diferentes no mesmo projeto."
+
+#~ msgid "Calculate and draw an elevation map based on a task's DEMs"
+#~ msgstr ""
+#~ "Calcule e desenhe um mapa de elevação com base nos MDEs de uma tarefa"
+
+#~ msgid "Console output of the processing node"
+#~ msgstr "Saída do console do nó de processamento"
+
+#~ msgid "Console Output"
+#~ msgstr "Saída do Console"
+
+#~ msgid "Task this image belongs to"
+#~ msgstr "Tarefa à qual esta imagem pertence"
+
+#~ msgid "File uploaded by a user"
+#~ msgstr "Ficheiro enviado por um(a) utilizador(a)"
+
+#~ msgid "Image"
+#~ msgstr "Imagem"
+
+#~ msgid "Image Upload"
+#~ msgstr "Enviar Imagem"
+
+#~ msgid "Image Uploads"
+#~ msgstr "Uploads de imagens"
+
+#~ msgid "You need at least 5 images"
+#~ msgstr "Precisa de ao menos 5 imagens"
+
+#~ msgid "Upload and tile ODM assets with Cesium ion."
+#~ msgstr "Faça upload e agrupe recursos ODM com Cesium ion."
+
+#~ msgid "No matching enum type."
+#~ msgstr "Nenhum tipo de enum correspondente."

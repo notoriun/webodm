@@ -1,0 +1,2003 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-31 17:09+0000\n"
+"PO-Revision-Date: 2022-05-15 17:17+0000\n"
+"Last-Translator: Chingchai Humhong <chingchai.h@gmail.com>\n"
+"Language-Team: Thai <https://hosted.weblate.org/projects/webodm/webodm/th/>\n"
+"Language: th\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.13-dev\n"
+
+#: app/admin.py:65
+msgid "Enter custom CSS"
+msgstr "ป้อน CSS ที่กำหนดเอง"
+
+#: app/admin.py:66 app/models/theme.py:40
+msgid "CSS"
+msgstr "CSS"
+
+#: app/admin.py:69
+msgid "HTML that will be displayed above site header"
+msgstr "HTML ที่จะแสดงเหนือส่วนหัวของเว็บไซต์"
+
+#: app/admin.py:70 app/models/theme.py:41
+msgid "HTML (before header)"
+msgstr "HTML (ก่อนส่วนหัว)"
+
+#: app/admin.py:73
+msgid "HTML that will be displayed after site header"
+msgstr "HTML ที่จะแสดงหลังส่วนหัวของเว็บไซต์"
+
+#: app/admin.py:74 app/models/theme.py:42
+msgid "HTML (after header)"
+msgstr "HTML (หลังส่วนหัว)"
+
+#: app/admin.py:77
+msgid "HTML that will be displayed after the body tag"
+msgstr "HTML ที่จะแสดงหลังแท็ก body"
+
+#: app/admin.py:78 app/models/theme.py:43
+msgid "HTML (after body)"
+msgstr "HTML (หลังเนื้อหา)"
+
+#: app/admin.py:82
+#, python-brace-format
+msgid ""
+"HTML that will be displayed in the footer. You can also use the special tags "
+"such as {ORGANIZATION} and {YEAR}."
+msgstr "HTML ที่จะแสดงในส่วนท้าย คุณยังสามารถใช้แท็กพิเศษ เช่น {ORGANIZATION} และ {YEAR}"
+
+#: app/admin.py:83 app/models/theme.py:44
+msgid "HTML (footer)"
+msgstr "HTML (ส่วนท้าย)"
+
+#: app/admin.py:115 app/models/project.py:25
+msgid "Description"
+msgstr "คำอธิบาย"
+
+#: app/admin.py:121
+msgid "Version"
+msgstr "เวอร์ชัน"
+
+#: app/admin.py:127
+msgid "Author"
+msgstr "ผู้เขียน"
+
+#: app/admin.py:159
+#, python-format
+msgid "Restart required. Please restart WebODM to enable %(plugin)s"
+msgstr "จำเป็นต้องรีสตาร์ท โปรดรีสตาร์ท WebODM เพื่อเปิดใช้งาน %(plugin)s"
+
+#: app/admin.py:162
+#, python-format
+msgid "Cannot enable plugin %(plugin)s: %(message)s"
+msgstr "ไม่สามารถเปิดใช้งานปลั๊กอิน %(plugin)s: %(message)s"
+
+#: app/admin.py:171
+#, python-format
+msgid "Restart required. Please restart WebODM to fully disable %(plugin)s"
+msgstr "จำเป็นต้องรีสตาร์ท โปรดรีสตาร์ท WebODM เพื่อปิดการใช้งาน %(plugin)s . อย่างสมบูรณ์"
+
+#: app/admin.py:174
+#, python-format
+msgid "Cannot disable plugin %(plugin)s: %(message)s"
+msgstr "ไม่สามารถปิดการใช้งานปลั๊กอิน %(plugin)s: %(message)s"
+
+#: app/admin.py:183
+#, python-format
+msgid "Cannot delete plugin %(plugin)s: %(message)s"
+msgstr "ไม่สามารถลบปลั๊กอิน %(plugin)s: %(message)s"
+
+#: app/admin.py:231
+msgid "Plugin added successfully"
+msgstr "เพิ่มปลั๊กอินเรียบร้อยแล้ว"
+
+#: app/admin.py:233
+#, python-format
+msgid "Cannot load plugin: %(message)s"
+msgstr "ไม่สามารถโหลดปลั๊กอิน: %(message)s"
+
+#: app/admin.py:239
+msgid "You need to upload a zip file"
+msgstr "คุณต้องอัปโหลดไฟล์ zip"
+
+#: app/admin.py:253
+msgid "Disable"
+msgstr "ปิดการใช้งาน"
+
+#: app/admin.py:256
+msgid "Enable"
+msgstr "เปิดใช้งาน"
+
+#: app/admin.py:261
+msgid "Actions"
+msgstr "การกระทำ"
+
+#: app/api/formulas.py:12 app/api/formulas.py:32
+msgid ""
+"Normalized Difference Vegetation Index shows the amount of green vegetation."
+msgstr "ดัชนีความแตกต่างพืชพรรณแบบนอมัลไลซ์แสดงปริมาณพืชพรรณสีเขียว"
+
+#: app/api/formulas.py:17
+msgid ""
+"Normalized difference yellowness index (NDYI), best model variability in "
+"relative yield potential in Canola."
+msgstr ""
+
+#: app/api/formulas.py:22
+#, fuzzy
+#| msgid ""
+#| "Normalized Difference Vegetation Index shows the amount of green "
+#| "vegetation."
+msgid ""
+"Normalized Difference Red Edge Index shows the amount of green vegetation of "
+"permanent or later stage crops."
+msgstr "ดัชนีความแตกต่างพืชพรรณแบบนอมัลไลซ์แสดงปริมาณพืชพรรณสีเขียว"
+
+#: app/api/formulas.py:27
+#, fuzzy
+#| msgid ""
+#| "Normalized Difference Vegetation Index shows the amount of green "
+#| "vegetation."
+msgid ""
+"Normalized Difference Water Index shows the amount of water content in water "
+"bodies."
+msgstr "ดัชนีความแตกต่างพืชพรรณแบบนอมัลไลซ์แสดงปริมาณพืชพรรณสีเขียว"
+
+#: app/api/formulas.py:37
+msgid ""
+"Enhanced Normalized Difference Vegetation Index is like NDVI, but uses Blue "
+"and Green bands instead of only Red to isolate plant health."
+msgstr ""
+"Enhanced Normalized Difference Vegetation Index นั้นเหมือนกับ NDVI "
+"แต่ใช้แถบสีน้ำเงินและสีเขียวแทนสีแดงเพื่อแยกสุขภาพของพืช"
+
+#: app/api/formulas.py:41
+msgid ""
+"Visible NDVI is an un-normalized index for RGB sensors using constants "
+"derived from citrus, grape, and sugarcane crop data."
+msgstr ""
+"Visible NDVI เป็นดัชนีผลต่างพืชพรรณแบบไม่นอมัลไลซ์สำหรับเซ็นเซอร์ RGB "
+"โดยใช้ค่าคงที่ของข้อมูลพืชผลจากส้ม องุ่น และอ้อย"
+
+#: app/api/formulas.py:45
+msgid "Visual Atmospheric Resistance Index shows the areas of vegetation."
+msgstr "ดัชนีความต้านทานบรรยากาศภาพแสดงพื้นที่ของพืช"
+
+#: app/api/formulas.py:50
+msgid "Modified Photochemical Reflectance Index"
+msgstr ""
+
+#: app/api/formulas.py:55
+#, fuzzy
+msgid ""
+"Excess Green Index (derived from only the RGB bands) emphasizes the "
+"greenness of leafy crops such as potatoes."
+msgstr "ดัชนีสีเขียวส่วนเกินเน้นความเขียวของพืชใบเช่นมันฝรั่ง"
+
+#: app/api/formulas.py:59
+msgid ""
+"Burn Area Index hightlights burned land in the red to near-infrared spectrum."
+msgstr "ไฮไลท์ดัชนีพื้นที่การเผา เผาพื้นที่เป็นสีแดงถึงสเปกตรัมใกล้อินฟราเรด"
+
+#: app/api/formulas.py:63
+msgid "Green Leaf Index shows greens leaves and stems."
+msgstr "Green Leaf Index แสดงใบและลำต้นสีเขียว"
+
+#: app/api/formulas.py:68
+msgid ""
+"Green Normalized Difference Vegetation Index is similar to NDVI, but "
+"measures the green spectrum instead of red."
+msgstr ""
+"Green Normalized Difference Vegetation Index คล้ายกับ NDVI "
+"แต่วัดสเปกตรัมสีเขียวแทนที่จะเป็นสีแดง"
+
+#: app/api/formulas.py:73
+msgid ""
+"Green Ratio Vegetation Index is sensitive to photosynthetic rates in forests."
+msgstr "Green Ratio Vegetation Index มีความไวต่ออัตราการสังเคราะห์แสงในป่า"
+
+#: app/api/formulas.py:77
+msgid ""
+"Soil Adjusted Vegetation Index is similar to NDVI but attempts to remove the "
+"effects of soil areas using an adjustment factor (0.5)."
+msgstr ""
+"Soil Adjusted Vegetation Index คล้ายกับ NDVI "
+"แต่พยายามขจัดผลกระทบของพื้นที่ดินโดยใช้ปัจจัยการปรับ (0.5)"
+
+#: app/api/formulas.py:81
+msgid ""
+"Modified Non-Linear Index improves the Non-Linear Index algorithm to account "
+"for soil areas."
+msgstr ""
+"Modified Non-Linear Index ปรับปรุงอัลกอริธึม Non-Linear Index เพื่อพิจารณาพื้นที่ดิน"
+
+#: app/api/formulas.py:85
+msgid ""
+"Modified Simple Ratio is an improvement of the Simple Ratio (SR) index to be "
+"more sensitive to vegetation."
+msgstr ""
+"Modified Simple Ratio คือการปรับปรุงดัชนี Simple Ratio (SR) ให้มีความไวต่อพืชมากขึ้น"
+
+#: app/api/formulas.py:89
+msgid ""
+"Renormalized Difference Vegetation Index uses the difference between near-IR "
+"and red, plus NDVI to show areas of healthy vegetation."
+msgstr ""
+"Renormalized Difference Vegetation Index ใช้ความแตกต่างระหว่างใกล้ IR และสีแดง "
+"บวก NDVI เพื่อแสดงพื้นที่ของพืชที่มีสุขภาพดี"
+
+#: app/api/formulas.py:93
+msgid ""
+"Transformed Difference Vegetation Index highlights vegetation cover in urban "
+"environments."
+msgstr ""
+"Transformed Difference Vegetation Index "
+"เน้นให้เห็นถึงพืชพรรณที่ปกคลุมในสภาพแวดล้อมในเมือง"
+
+#: app/api/formulas.py:97
+msgid ""
+"Optimized Soil Adjusted Vegetation Index is based on SAVI, but tends to work "
+"better in areas with little vegetation where soil is visible."
+msgstr ""
+"ดัชนีพืชผักที่ปรับปรุงแล้วของดินที่ปรับให้เหมาะสมนั้นอิงตาม SAVI "
+"แต่มีแนวโน้มที่จะทำงานได้ดีขึ้นในพื้นที่ที่มีพืชพันธุ์น้อยซึ่งมองเห็นดินได้"
+
+#: app/api/formulas.py:101
+msgid "Leaf Area Index estimates foliage areas and predicts crop yields."
+msgstr "Leaf Area Index ประมาณการพื้นที่ใบและคาดการณ์ผลผลิตพืชผล"
+
+#: app/api/formulas.py:106
+msgid ""
+"Enhanced Vegetation Index is useful in areas where NDVI might saturate, by "
+"using blue wavelengths to correct soil signals."
+msgstr ""
+"Enhanced Vegetation Index มีประโยชน์ในพื้นที่ที่ NDVI อาจอิ่มตัว "
+"โดยใช้ความยาวคลื่นสีน้ำเงินเพื่อแก้ไขสัญญาณดิน"
+
+#: app/api/formulas.py:111
+msgid ""
+"Atmospherically Resistant Vegetation Index. Useful when working with imagery "
+"for regions with high atmospheric aerosol content."
+msgstr ""
+
+#: app/api/formulas.py:116
+msgid "Temperature in Celsius degrees."
+msgstr ""
+
+#: app/api/formulas.py:120
+msgid "Temperature in Centikelvin degrees."
+msgstr ""
+
+#: app/api/projects.py:125
+msgid "Cannot duplicate project"
+msgstr ""
+
+#: app/api/projects.py:193
+msgid "Invalid user in permissions list"
+msgstr ""
+
+#: app/api/projects.py:195
+#, fuzzy
+#| msgid "Invalid action"
+msgid "Invalid permissions"
+msgstr "การกระทำที่ไม่ถูกต้อง"
+
+#: app/api/tasks.py:186
+#, fuzzy
+#| msgid "You need to upload at least 2 images before commit"
+msgid "You need to upload at least 1 file before commit"
+msgstr "คุณต้องอัปโหลดรูปภาพอย่างน้อย 2 รูปก่อนส่ง"
+
+#: app/api/tasks.py:208
+msgid "No files uploaded"
+msgstr "ไม่มีไฟล์อัปโหลด"
+
+#: app/api/tasks.py:234
+msgid "Cannot duplicate task"
+msgstr ""
+
+#: app/api/tasks.py:251
+msgid "Cannot create task, you need at least 2 images"
+msgstr "สร้างงานไม่ได้ คุณต้องมีรูปภาพอย่างน้อย 2 รูป"
+
+#: app/api/tasks.py:370 app/api/tasks.py:374 app/api/tasks.py:398
+#: app/api/tasks.py:401 app/api/tasks.py:419
+msgid "Asset does not exist"
+msgstr "ไม่มีเนื้อหา"
+
+#: app/api/tasks.py:437
+msgid "Imported Task"
+msgstr "งานที่นำเข้า"
+
+#: app/api/tasks.py:440
+msgid "Cannot create task, you need to upload 1 file"
+msgstr "สร้างงานไม่ได้ คุณต้องอัปโหลด 1 ไฟล์"
+
+#: app/api/tasks.py:443
+msgid "Cannot create task, either specify a URL or upload 1 file."
+msgstr "สร้างงานไม่ได้ ระบุ URL หรืออัปโหลด 1 ไฟล์"
+
+#: app/api/tiler.py:307
+msgid "Invalid boundaries parameter"
+msgstr ""
+
+#: app/api/tiler.py:326
+#, fuzzy
+#| msgid "Invalid zip file"
+msgid "Invalid tile size parameter"
+msgstr "ไฟล์ zip ไม่ถูกต้อง"
+
+#: app/api/tiler.py:356 app/api/tiler.py:428
+msgid "Outside of bounds"
+msgstr ""
+
+#: app/api/tiler.py:366
+#, fuzzy
+#| msgid "Invalid action"
+msgid "Invalid boundaries"
+msgstr "การกระทำที่ไม่ถูกต้อง"
+
+#: app/api/tiler.py:434 app/api/tiler.py:553
+msgid "Not a valid color_map value"
+msgstr ""
+
+#: app/api/tiler.py:440
+msgid "Invalid rescale value"
+msgstr ""
+
+#: app/api/tiler.py:462
+#, fuzzy
+#| msgid "Invalid zip file"
+msgid "Invalid hillshade value"
+msgstr "ไฟล์ zip ไม่ถูกต้อง"
+
+#: app/api/tiler.py:465
+msgid "Cannot compute hillshade of non-elevation raster (multiple bands found)"
+msgstr ""
+
+#: app/api/tiler.py:489
+msgid ""
+"Cannot process tile: intensity image provided, but no RGB data was computed."
+msgstr ""
+
+#: app/api/tiler.py:538 app/api/tiler.py:540
+#, python-format
+msgid "Unsupported format: %(value)s"
+msgstr ""
+
+#: app/api/tiler.py:559
+#, python-format
+msgid "Invalid EPSG code: %(value)s"
+msgstr ""
+
+#: app/api/tiler.py:562
+msgid "Both formula and bands parameters are required"
+msgstr ""
+
+#: app/api/tiler.py:585
+#, python-format
+msgid "Invalid rescale value: %(value)s"
+msgstr ""
+
+#: app/api/tiler.py:593
+#, python-format
+msgid "Invalid hillshade value: %(value)s"
+msgstr ""
+
+#: app/api/tiler.py:604
+msgid "Cannot use epsg on non-georeferenced dataset"
+msgstr ""
+
+#: app/models/plugin.py:5
+msgid "Plugin name"
+msgstr "ชื่อปลั๊กอิน"
+
+#: app/models/plugin.py:5 app/models/preset.py:10 app/models/project.py:24
+#: app/models/task.py:245 app/models/theme.py:18
+msgid "Name"
+msgstr "ชื่อ"
+
+#: app/models/plugin.py:6
+msgid "Whether this plugin is turned on."
+msgstr "ปลั๊กอินนี้เปิดอยู่หรือไม่"
+
+#: app/models/plugin.py:6
+msgid "Enabled"
+msgstr "เปิดใช้งาน"
+
+#: app/models/plugin.py:20
+msgid "Plugin"
+msgstr "ปลั๊กอิน"
+
+#: app/models/plugin.py:21 app/templates/app/logged_in_base.html:122
+msgid "Plugins"
+msgstr "ปลั๊กอิน"
+
+#: app/models/plugin_datum.py:7
+msgid "Setting key"
+msgstr "การตั้งค่าคีย์"
+
+#: app/models/plugin_datum.py:7
+msgid "Key"
+msgstr "คีย์"
+
+#: app/models/plugin_datum.py:8
+msgid "The user this setting belongs to. If NULL, the setting is global."
+msgstr "ผู้ใช้จะอยู่ในการตั้งค่านี้. If NULL, การตั้งค่าจะเป็นสากล"
+
+#: app/models/plugin_datum.py:8 app/templates/app/admin/object_history.html:23
+msgid "User"
+msgstr "ผู้ใช้"
+
+#: app/models/plugin_datum.py:9
+msgid "Integer value"
+msgstr "ค่าจำนวนเต็ม"
+
+#: app/models/plugin_datum.py:10
+msgid "Float value"
+msgstr "ค่าลอยตัว"
+
+#: app/models/plugin_datum.py:11
+msgid "Bool value"
+msgstr "ค่าบูล"
+
+#: app/models/plugin_datum.py:12
+msgid "String value"
+msgstr "ค่าสตริง"
+
+#: app/models/plugin_datum.py:13
+msgid "JSON value"
+msgstr "ค่า JSON"
+
+#: app/models/plugin_datum.py:19 app/models/plugin_datum.py:20
+msgid "Plugin Datum"
+msgstr "ข้อมูลโปรแกรมเสริม"
+
+#: app/models/preset.py:9
+msgid "The person who owns this preset"
+msgstr "ผู้ที่เป็นเจ้าของที่ตั้งค่าไว้ก่อนหน้านี้"
+
+#: app/models/preset.py:9 app/models/project.py:23
+msgid "Owner"
+msgstr "เจ้าของ"
+
+#: app/models/preset.py:10
+msgid "A label used to describe the preset"
+msgstr "สัญลักษณ์ที่ใช้อธิบายที่ตั้งค่าไว้ก่อนหน้า"
+
+#: app/models/preset.py:11
+msgid "Options that define this preset (same format as in a Task's options)."
+msgstr "ตัวเลือกที่กำหนดที่ตั้งไว้ก่อนหน้านี้ (รูปแบบเดียวกับในตัวเลือกของงาน)"
+
+#: app/models/preset.py:11 app/models/task.py:251
+msgid "Options"
+msgstr "ตัวเลือก"
+
+#: app/models/preset.py:13 app/models/project.py:26 app/models/task.py:259
+msgid "Creation date"
+msgstr "วันที่สร้าง"
+
+#: app/models/preset.py:13 app/models/project.py:26 app/models/task.py:259
+msgid "Created at"
+msgstr "สร้างที่"
+
+#: app/models/preset.py:14
+msgid ""
+"Whether this preset is available to every user in the system or just to its "
+"owner."
+msgstr "ค่าที่ตั้งล่วงหน้านี้มีให้สำหรับผู้ใช้ทุกคนในระบบหรือเฉพาะเจ้าของเท่านั้น"
+
+#: app/models/preset.py:14
+msgid "System"
+msgstr "ระบบ"
+
+#: app/models/preset.py:20
+msgid "Preset"
+msgstr "ที่ตั้งไว้ล่วงหน้า"
+
+#: app/models/preset.py:21
+msgid "Presets"
+msgstr "ที่ตั้งไว้ล่วงหน้า"
+
+#: app/models/profile.py:15
+msgid "Maximum disk quota in megabytes"
+msgstr ""
+
+#: app/models/profile.py:15
+msgid "Quota"
+msgstr ""
+
+#: app/models/project.py:23
+msgid "The person who created the project"
+msgstr "ผู้สร้างโครงการ"
+
+#: app/models/project.py:24
+msgid "A label used to describe the project"
+msgstr "สัญลักษณ์ที่ใช้อธิบายโครงการ"
+
+#: app/models/project.py:25
+msgid "More in-depth description of the project"
+msgstr "คำอธิบายเชิงลึกเพิ่มเติมของโครงการ"
+
+#: app/models/project.py:27
+msgid ""
+"Whether this project has been marked for deletion. Projects that have "
+"running tasks need to wait for tasks to be properly cleaned up before they "
+"can be deleted."
+msgstr ""
+"ระบุว่าโปรเจ็กต์นี้ถูกทำเครื่องหมายเพื่อลบหรือไม่ "
+"โปรเจ็กต์ที่มีงานดำเนินการอยู่ต้องรอให้เคลียร์งานอย่างถูกต้องก่อนจึงจะสามารถลบออกได้"
+
+#: app/models/project.py:27
+msgid "Deleting"
+msgstr "กำลังลบ"
+
+#: app/models/project.py:28
+#, fuzzy
+#| msgid "Projects"
+msgid "Project tags"
+msgstr "โครงการ"
+
+#: app/models/project.py:28 app/models/task.py:282
+msgid "Tags"
+msgstr ""
+
+#: app/models/project.py:65 app/models/task.py:430
+#, python-format
+msgid "Copy of %(task)s"
+msgstr ""
+
+#: app/models/project.py:90 app/models/task.py:244
+msgid "Project"
+msgstr "โครงการ"
+
+#: app/models/project.py:91 coreplugins/projects-charts/templates/index.html:7
+msgid "Projects"
+msgstr "โครงการ"
+
+#: app/models/setting.py:20
+msgid "The name of your application"
+msgstr "ชื่อแอปพลิเคชันของคุณ"
+
+#: app/models/setting.py:20
+msgid "App name"
+msgstr "ชื่อ App"
+
+#: app/models/setting.py:21
+msgid "A 512x512 logo of your application (.png or .jpeg)"
+msgstr "โลโก้แอปพลิเคชันของคุณขนาด 512x512 (.png หรือ .jpeg)"
+
+#: app/models/setting.py:21
+msgid "App logo"
+msgstr "โลโก้ App"
+
+#: app/models/setting.py:31
+msgid "The name of your organization"
+msgstr "ชื่อองค์กรของคุณ"
+
+#: app/models/setting.py:31
+msgid "Organization name"
+msgstr "ชื่อองค์กร"
+
+#: app/models/setting.py:32
+msgid "The website URL of your organization"
+msgstr "URL เว็บไซต์ขององค์กรของคุณ"
+
+#: app/models/setting.py:32
+msgid "Organization website"
+msgstr "เว็บไซต์องค์กร"
+
+#: app/models/setting.py:33 app/models/theme.py:50 app/models/theme.py:51
+#: app/templates/app/logged_in_base.html:119
+msgid "Theme"
+msgstr "ธีม"
+
+#: app/models/setting.py:34
+msgid "Active theme"
+msgstr "ธีมที่ใช้งาน"
+
+#: app/models/setting.py:73 app/templates/app/logged_in_base.html:125
+msgid "Application"
+msgstr "แอปพลิเคชัน"
+
+#: app/models/setting.py:76 app/models/setting.py:77
+msgid "Settings"
+msgstr "การตั้งค่า"
+
+#: app/models/task.py:241
+msgid "Id"
+msgstr "ไอดี"
+
+#: app/models/task.py:243
+msgid "Identifier of the task (as returned by NodeODM API)"
+msgstr "ตัวระบุของงาน (ตามที่ส่งคืนโดย NodeODM API)"
+
+#: app/models/task.py:243
+msgid "UUID"
+msgstr "UUID"
+
+#: app/models/task.py:244
+msgid "Project that this task belongs to"
+msgstr "โครงการที่งานนี้เป็นของ"
+
+#: app/models/task.py:245
+msgid "A label for the task"
+msgstr "สัญลักษณ์สำหรับงาน"
+
+#: app/models/task.py:246
+msgid ""
+"Number of milliseconds that elapsed since the beginning of this task (-1 "
+"indicates that no information is available)"
+msgstr "จำนวนมิลลิวินาทีที่ผ่านไปตั้งแต่เริ่มต้นงานนี้ (-1 บ่งชี้ว่าไม่มีข้อมูล)"
+
+#: app/models/task.py:246
+msgid "Processing Time"
+msgstr "ระยะเวลาดำเนินการ"
+
+#: app/models/task.py:247
+msgid ""
+"Processing node assigned to this task (or null if this task has not been "
+"associated yet)"
+msgstr "โหนดการประมวลผลที่กำหนดให้กับงานนี้ (หรือเป็นโมฆะหากยังไม่ได้เชื่อมโยงงานนี้)"
+
+#: app/models/task.py:247 app/views/app.py:118 nodeodm/models.py:36
+msgid "Processing Node"
+msgstr "Processing Node"
+
+#: app/models/task.py:248
+msgid ""
+"A flag indicating whether this task should be automatically assigned a "
+"processing node"
+msgstr "แฟล็กที่ระบุว่างานนี้ควรถูกกำหนดให้โหนดประมวลผลโดยอัตโนมัติหรือไม่"
+
+#: app/models/task.py:248
+msgid "Auto Processing Node"
+msgstr "โหนดประมวลผลอัตโนมัติ"
+
+#: app/models/task.py:249
+msgid "Current status of the task"
+msgstr "สถานะปัจจุบันของงาน"
+
+#: app/models/task.py:249
+msgid "Status"
+msgstr "สถานะ"
+
+#: app/models/task.py:250
+msgid "The last processing error received"
+msgstr "ได้รับข้อผิดพลาดในการประมวลผลล่าสุด"
+
+#: app/models/task.py:250
+msgid "Last Error"
+msgstr "ข้อผิดพลาดล่าสุด"
+
+#: app/models/task.py:251
+msgid "Options that are being used to process this task"
+msgstr "ตัวเลือกที่ใช้ในการประมวลผลงานนี้"
+
+#: app/models/task.py:252
+msgid "List of available assets to download"
+msgstr "รายการทรัพย์สินที่มีให้ดาวน์โหลด"
+
+#: app/models/task.py:252
+msgid "Available Assets"
+msgstr "ทรัพย์สินที่มีอยู่"
+
+#: app/models/task.py:254
+msgid "Extent of the orthophoto"
+msgstr "ขอบเขตของออร์โธโฟโต้"
+
+#: app/models/task.py:254
+msgid "Orthophoto Extent"
+msgstr "ขอบเขตออร์โธโฟโต้"
+
+#: app/models/task.py:255
+msgid "DSM Extent"
+msgstr "ขอบเขต DSM"
+
+#: app/models/task.py:256
+msgid "DTM Extent"
+msgstr "ขอบเขต DTM"
+
+#: app/models/task.py:260
+msgid ""
+"A requested action to be performed on the task. The selected action will be "
+"performed by the worker at the next iteration."
+msgstr ""
+"การดำเนินการที่ร้องขอให้ดำเนินการกับงาน "
+"การดำเนินการที่เลือกจะดำเนินการโดยผู้ปฏิบัติงานในการทำซ้ำครั้งต่อไป"
+
+#: app/models/task.py:260
+msgid "Pending Action"
+msgstr "อยู่ระหว่างดำเนินการ"
+
+#: app/models/task.py:262
+msgid "A flag indicating whether this task is available to the public"
+msgstr "A flag ที่ระบุว่างานนี้เปิดเผยต่อสาธารณะหรือไม่"
+
+#: app/models/task.py:262
+msgid "Public"
+msgstr "สาธารณะ"
+
+#: app/models/task.py:263
+msgid ""
+"When set to a value different than -1, indicates that the images for this "
+"task have been / will be resized to the size specified here before "
+"processing."
+msgstr ""
+"เมื่อตั้งค่าเป็นค่าที่แตกต่างจาก -1 "
+"แสดงว่ารูปภาพสำหรับงานนี้จะถูกปรับขนาดเป็นขนาดที่ระบุก่อนการดำเนินการ"
+
+#: app/models/task.py:263
+msgid "Resize To"
+msgstr "ปรับขนาดเป็น"
+
+#: app/models/task.py:266
+msgid ""
+"Value between 0 and 1 indicating the upload progress of this task's files to "
+"the processing node"
+msgstr "ค่าระหว่าง 0 ถึง 1 ระบุความคืบหน้าในการอัปโหลดไฟล์ของงานนี้ไปยังโหนดการประมวลผล"
+
+#: app/models/task.py:267
+msgid "Upload Progress"
+msgstr "ความคืบหน้าในการอัปโหลด"
+
+#: app/models/task.py:270
+msgid ""
+"Value between 0 and 1 indicating the resize progress of this task's images"
+msgstr "ค่าระหว่าง 0 ถึง 1 ระบุความคืบหน้าของการปรับขนาดภาพของงานนี้"
+
+#: app/models/task.py:271
+msgid "Resize Progress"
+msgstr "ความคืบหน้าในการปรับขนาด"
+
+#: app/models/task.py:274
+msgid ""
+"Value between 0 and 1 indicating the running progress (estimated) of this "
+"task"
+msgstr "ค่าระหว่าง 0 ถึง 1 ระบุความคืบหน้าในการทำงาน (โดยประมาณ) ของงานนี้"
+
+#: app/models/task.py:275
+msgid "Running Progress"
+msgstr "ความคืบหน้าในการทำงาน"
+
+#: app/models/task.py:277
+msgid "URL this task is imported from (only for imported tasks)"
+msgstr "URL งานนี้นำเข้าจาก (สำหรับงานที่นำเข้าเท่านั้น)"
+
+#: app/models/task.py:277
+msgid "Import URL"
+msgstr "นำเข้า URL"
+
+#: app/models/task.py:278
+msgid "Number of images associated with this task"
+msgstr "จำนวนรูปภาพที่เกี่ยวข้องกับงานนี้"
+
+#: app/models/task.py:278
+msgid "Images Count"
+msgstr "จำนวนภาพ"
+
+#: app/models/task.py:279
+msgid ""
+"A flag indicating whether this task is currently waiting for information or "
+"files to be uploaded before being considered for processing."
+msgstr "แฟล็กที่ระบุว่าขณะนี้งานนี้กำลังรอข้อมูลหรือไฟล์ที่จะอัปโหลดก่อนที่จะถูกพิจารณาสำหรับการประมวลผล"
+
+#: app/models/task.py:279
+msgid "Partial"
+msgstr "บางส่วน"
+
+#: app/models/task.py:280
+#, fuzzy
+msgid ""
+"Serialized potree scene information used to save/load measurements and "
+"camera view angle"
+msgstr "ความต่อเนื่องของข้อมูลภาพ potree ใช้ในการบันทึก/โหลด การวัดและมุมมองกล้อง"
+
+#: app/models/task.py:280
+msgid "Potree Scene"
+msgstr "ภาพ Potree"
+
+#: app/models/task.py:281
+msgid "EPSG code of the dataset (if georeferenced)"
+msgstr ""
+
+#: app/models/task.py:282
+#, fuzzy
+#| msgid "Tasks"
+msgid "Task tags"
+msgstr "งาน"
+
+#: app/models/task.py:283
+#, fuzzy
+#| msgid "Extent of the orthophoto"
+msgid "List of orthophoto bands"
+msgstr "ขอบเขตของออร์โธโฟโต้"
+
+#: app/models/task.py:283
+#, fuzzy
+#| msgid "Orthophoto Extent"
+msgid "Orthophoto Bands"
+msgstr "ขอบเขตออร์โธโฟโต้"
+
+#: app/models/task.py:284
+msgid "Size of the task on disk in megabytes"
+msgstr ""
+
+#: app/models/task.py:284
+msgid "Size"
+msgstr ""
+
+#: app/models/task.py:287
+msgid "Task"
+msgstr "งาน"
+
+#: app/models/task.py:288
+msgid "Tasks"
+msgstr "งาน"
+
+#: app/models/task.py:299
+msgid "unnamed"
+msgstr "ไม่มีชื่อ"
+
+#: app/models/task.py:549
+msgid "Importing assets..."
+msgstr "กำลังนำเข้าเนื้อหา..."
+
+#: app/models/task.py:601 app/models/task.py:869
+msgid "Invalid zip file"
+msgstr "ไฟล์ zip ไม่ถูกต้อง"
+
+#: app/models/task.py:695
+#, python-format
+msgid "Connection error: %(error)s"
+msgstr "ข้อผิดพลาดในการเชื่อมต่อ: %(error)s"
+
+#: app/models/task.py:775
+msgid "Cannot restart a task that has no processing node"
+msgstr "ไม่สามารถรีสตาร์ทงานที่ไม่มีโหนดการประมวลผล"
+
+#: app/models/task.py:949
+#, python-format
+msgid "Unsupported SRS %(code)s. Please make sure you picked a supported SRS."
+msgstr "ไม่รองรับ SRS %(code)s โปรดตรวจสอบให้แน่ใจว่าคุณได้เลือก SRS ที่รองรับ"
+
+#: app/models/task.py:963
+msgid "Done!"
+msgstr "เสร็จ!"
+
+#: app/models/theme.py:18
+msgid "Name of theme"
+msgstr "ชื่อธีม"
+
+#: app/models/theme.py:21
+msgid "Most text, icons, and borders."
+msgstr "ข้อความ, ไอคอน, และเส้นขอบเขต"
+
+#: app/models/theme.py:21
+msgid "Primary"
+msgstr "อันดับที่ 1"
+
+#: app/models/theme.py:22
+msgid "The main background color, and text color of some buttons."
+msgstr "สีพื้นหลังหลัก, และสีข้อความของปุ่มบางปุ่ม"
+
+#: app/models/theme.py:22
+msgid "Secondary"
+msgstr "อันดับที่ 2"
+
+#: app/models/theme.py:23
+msgid "Navigation links."
+msgstr "ลิงก์การนำทาง"
+
+#: app/models/theme.py:23
+msgid "Tertiary"
+msgstr "อันดับที่ 3"
+
+#: app/models/theme.py:25
+msgid "Primary button color."
+msgstr "สีของปุ่มหลัก"
+
+#: app/models/theme.py:25
+msgid "Button Primary"
+msgstr "ปุ่มหลัก"
+
+#: app/models/theme.py:26
+msgid "Default button color."
+msgstr "สีของปุ่มเริ่มต้น"
+
+#: app/models/theme.py:26
+msgid "Button Default"
+msgstr "ค่าเริ่มต้นของปุ่ม"
+
+#: app/models/theme.py:27
+msgid "Delete button color."
+msgstr "ลบสีของปุ่ม"
+
+#: app/models/theme.py:27
+msgid "Button Danger"
+msgstr "ปุ่มอันตราย"
+
+#: app/models/theme.py:29
+msgid "Background color of the site's header."
+msgstr "สีพื้นหลังในส่วนหัวของเว็บไซต์"
+
+#: app/models/theme.py:29
+msgid "Header Background"
+msgstr "พื้นหลังของส่วนหัว"
+
+#: app/models/theme.py:30
+msgid "Text and icons in the site's header."
+msgstr "ข้อความและไอคอนในส่วนหัวของเว็บไซต์"
+
+#: app/models/theme.py:30
+msgid "Header Primary"
+msgstr "ส่วนหัวหลัก"
+
+#: app/models/theme.py:32
+msgid "The color of most borders."
+msgstr "สีของเส้นขอบเขต"
+
+#: app/models/theme.py:32
+msgid "Border"
+msgstr "ขอบเขต"
+
+#: app/models/theme.py:33
+msgid "The background color of panels and some borders."
+msgstr "สีพื้นหลังของแผ่นกระดาษและบางส่วนของเส้นขอบเขต"
+
+#: app/models/theme.py:33
+msgid "Highlight"
+msgstr "ไฮไลท์"
+
+#: app/models/theme.py:35
+msgid "The border color of warning dialogs."
+msgstr "สีเส้นขอบของกล่องคำเตือน"
+
+#: app/models/theme.py:35
+msgid "Dialog Warning"
+msgstr "กล่องคำเตือน"
+
+#: app/models/theme.py:37
+msgid "The background color of failed notifications."
+msgstr "สีพื้นหลังของการแจ้งเตือนที่ล้มเหลว"
+
+#: app/models/theme.py:37
+msgid "Failed"
+msgstr "ล้มเหลว"
+
+#: app/models/theme.py:38
+msgid "The background color of success notifications."
+msgstr "สีพื้นหลังของการแจ้งเตือนความสำเร็จ"
+
+#: app/models/theme.py:38
+msgid "Success"
+msgstr "สำเร็จ"
+
+#: app/templates/app/404.html:6
+msgid "404 Page Not Found"
+msgstr "404 ไม่พบหน้า"
+
+#: app/templates/app/404.html:7
+msgid "Are you sure the address is correct?"
+msgstr "คุณแน่ใจหรือว่าที่อยู่ถูกต้อง?"
+
+#: app/templates/app/500.html:5
+msgid "500 Internal Server Error"
+msgstr "500 ข้อผิดพลาดภายในเซิร์ฟเวอร์"
+
+#: app/templates/app/500.html:6
+msgid "Something happened. The server logs contain more information."
+msgstr "มีบางอย่างเกิดขึ้น บันทึกเซิร์ฟเวอร์ที่มีข้อมูลเพิ่มเติม"
+
+#: app/templates/app/about.html:94
+#, python-format
+msgid ""
+"This program is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU Affero General Public License as published by the "
+"Free Software Foundation, either version 3 of the License, or (at your "
+"option) any later version. See %(link_start)sthe GNU Affero General Public "
+"License%(link_end)s for more details."
+msgstr ""
+"โปรแกรมนี้เป็นซอฟต์แวร์ฟรี: คุณสามารถแจกจ่ายซ้ำ และ/หรือ "
+"แก้ไขได้ภายใต้เงื่อนไขของสัญญาอนุญาตสาธารณะทั่วไปของ GNU Affero ตามที่เผยแพร่โดย Free "
+"Software Foundation ไม่ว่าจะเป็นเวอร์ชัน 3 ของใบอนุญาต หรือ (ตามที่คุณเลือก) "
+"เวอร์ชันที่ใหม่กว่า %(link_start)s สัญญาอนุญาตสาธารณะทั่วไปของ GNU Affero%(link_end)s "
+"สำหรับรายละเอียดเพิ่มเติม"
+
+#: app/templates/app/admin/404.html:4 app/templates/app/admin/404.html:8
+msgid "Page not found"
+msgstr "ไม่พบหน้านี้"
+
+#: app/templates/app/admin/404.html:10
+msgid "We're sorry, but the requested page could not be found."
+msgstr "ขออภัย ไม่พบหน้าที่ร้องขอ"
+
+#: app/templates/app/admin/500.html:6 app/templates/app/admin/app_index.html:9
+#: app/templates/app/admin/auth/user/change_password.html:13
+#: app/templates/app/admin/base.html:19
+#: app/templates/app/admin/change_form.html:18
+#: app/templates/app/admin/change_list.html:31
+#: app/templates/app/admin/delete_confirmation.html:13
+#: app/templates/app/admin/delete_selected_confirmation.html:13
+#: app/templates/app/admin/invalid_setup.html:6
+#: app/templates/app/admin/object_history.html:6
+msgid "Home"
+msgstr "บ้าน"
+
+#: app/templates/app/admin/500.html:7
+msgid "Server error"
+msgstr "เซิร์ฟเวอร์มีข้อผิดพลาด"
+
+#: app/templates/app/admin/500.html:11
+msgid "Server error (500)"
+msgstr "เซิร์ฟเวอร์มีข้อผิดพลาด (500)"
+
+#: app/templates/app/admin/500.html:14
+msgid "Server Error (500)"
+msgstr "เซิร์ฟเวอร์มีข้อผิดพลาด (500)"
+
+#: app/templates/app/admin/500.html:15
+msgid ""
+"There's been an error. It's been reported to the site administrators via "
+"email and should be fixed shortly. Thanks for your patience."
+msgstr ""
+"มีข้อผิดพลาดเกิดขึ้น มีการรายงานไปยังผู้ดูแลเว็บไซต์ทางอีเมลแล้ว และควรได้รับการแก้ไขในไม่ช้า "
+"ขอบคุณสำหรับความอดทนของคุณ."
+
+#: app/templates/app/admin/actions.html:4
+msgid "Run the selected action"
+msgstr "ดำเนินการที่เลือก"
+
+#: app/templates/app/admin/actions.html:4
+msgid "Go"
+msgstr "ไป"
+
+#: app/templates/app/admin/actions.html:10
+msgid "Click here to select the objects across all pages"
+msgstr "คลิกที่นี่เพื่อเลือกข้ามวัตถุในทุกหน้า"
+
+#: app/templates/app/admin/actions.html:10
+#, python-format
+msgid "Select all %(total_count)s %(module_name)s"
+msgstr "เลือกทั้งหมด %(total_count)s %(module_name)s"
+
+#: app/templates/app/admin/actions.html:12
+msgid "Clear selection"
+msgstr "ล้างการเลือก"
+
+#: app/templates/app/admin/auth/user/add_form.html:6
+msgid ""
+"First, enter a username and password. Then, you'll be able to edit more user "
+"options."
+msgstr "ขั้นแรก ป้อนชื่อผู้ใช้และรหัสผ่าน จากนั้น คุณจะแก้ไขเพิ่มเติมในตัวเลือกผู้ใช้ได้"
+
+#: app/templates/app/admin/auth/user/add_form.html:8
+msgid "Enter a username and password."
+msgstr "ป้อนชื่อผู้ใช้และรหัสผ่าน"
+
+#: app/templates/app/admin/auth/user/change_password.html:17
+#: app/templates/app/admin/auth/user/change_password.html:54
+msgid "Change password"
+msgstr "เปลี่ยนรหัสผ่าน"
+
+#: app/templates/app/admin/auth/user/change_password.html:27
+#: app/templates/app/admin/change_form.html:47
+#: app/templates/app/admin/change_list.html:58
+#: app/templates/app/admin/login.html:21
+msgid "Please correct the error below."
+msgstr "โปรดแก้ไขข้อผิดพลาดด้านล่าง"
+
+#: app/templates/app/admin/auth/user/change_password.html:27
+#: app/templates/app/admin/change_form.html:47
+#: app/templates/app/admin/change_list.html:58
+#: app/templates/app/admin/login.html:21
+msgid "Please correct the errors below."
+msgstr "โปรดแก้ไขข้อผิดพลาดด้านล่าง"
+
+#: app/templates/app/admin/auth/user/change_password.html:31
+#, fuzzy, python-format
+msgid "Enter a new password for the user <strong>%(username)s</strong>."
+msgstr "ป้อนรหัสผ่านใหม่สำหรับผู้ใช้ <strong>%(username)s</strong>."
+
+#: app/templates/app/admin/base_site.html:3
+msgid "Django site admin"
+msgstr "ผู้ดูแลเว็บไซต์ Django"
+
+#: app/templates/app/admin/base_site.html:6
+msgid "Django administration"
+msgstr "การบริหาร Django"
+
+#: app/templates/app/admin/change_form.html:21
+#: app/templates/app/admin/change_list.html:49
+#, python-format
+msgid "Add %(name)s"
+msgstr "เพิ่ม %(name)s"
+
+#: app/templates/app/admin/change_form.html:33
+#: app/templates/app/admin/object_history.html:10
+msgid "History"
+msgstr "ประวัติ"
+
+#: app/templates/app/admin/change_form.html:35
+#: app/templates/app/admin/edit_inline/stacked.html:14
+#: app/templates/app/admin/edit_inline/tabular.html:36
+msgid "View on site"
+msgstr "ดูบนเว็บไซต์"
+
+#: app/templates/app/admin/change_list.html:69
+msgid "Filter"
+msgstr "ตัวกรอง"
+
+#: app/templates/app/admin/change_list_plugin.html:24
+msgid "Load Plugin (.zip)"
+msgstr "โหลดปลั๊กอิน (.zip)"
+
+#: app/templates/app/admin/change_list_plugin.html:28
+msgid "Manage Plugins"
+msgstr "จัดการปลั๊กอิน"
+
+#: app/templates/app/admin/change_list_results.html:17
+msgid "Remove from sorting"
+msgstr "ลบออกจากการเรียงลำดับ"
+
+#: app/templates/app/admin/change_list_results.html:18
+#, python-format
+msgid "Sorting priority: %(priority_number)s"
+msgstr "ลำดับความสำคัญในการจัดเรียง: %(priority_number)s"
+
+#: app/templates/app/admin/change_list_results.html:19
+msgid "Toggle sorting"
+msgstr "สลับการเรียงลำดับ"
+
+#: app/templates/app/admin/delete_confirmation.html:17
+#: app/templates/app/admin/related_widget_wrapper.html:23
+#: app/templates/app/admin/submit_line.html:6
+#: app/templates/app/processing_node.html:54
+msgid "Delete"
+msgstr "ลบ"
+
+#: app/templates/app/admin/delete_confirmation.html:23
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(escaped_object)s' would result in deleting "
+"related objects, but your account doesn't have permission to delete the "
+"following types of objects:"
+msgstr ""
+"การลบ %(object_name)s '%(escaped_object)s' จะส่งผลให้มีการลบวัตถุที่เกี่ยวข้อง "
+"แต่บัญชีของคุณไม่ได้รับอนุญาตให้ลบวัตถุประเภทต่อไปนี้:"
+
+#: app/templates/app/admin/delete_confirmation.html:30
+#, python-format
+msgid ""
+"Deleting the %(object_name)s '%(escaped_object)s' would require deleting the "
+"following protected related objects:"
+msgstr ""
+"การลบ %(object_name)s '%(escaped_object)s' "
+"จะต้องลบวัตถุที่เกี่ยวข้องที่ได้รับการป้องกันดังต่อไปนี้:"
+
+#: app/templates/app/admin/delete_confirmation.html:37
+#, python-format
+msgid ""
+"Are you sure you want to delete the %(object_name)s \"%(escaped_object)s\"? "
+"All of the following related items will be deleted:"
+msgstr ""
+"คุณแน่ใจหรือไม่ว่าต้องการลบ %(object_name)s \"%(escaped_object)s\"? "
+"รายการที่เกี่ยวข้องทั้งหมดต่อไปนี้จะถูกลบออก:"
+
+#: app/templates/app/admin/delete_confirmation.html:39
+#: app/templates/app/admin/delete_selected_confirmation.html:38
+msgid "Objects"
+msgstr "วัตถุ"
+
+#: app/templates/app/admin/delete_confirmation.html:46
+#: app/templates/app/admin/delete_selected_confirmation.html:49
+msgid "Yes, I'm sure"
+msgstr "ใช่ ฉันแน่ใจ"
+
+#: app/templates/app/admin/delete_confirmation.html:47
+#: app/templates/app/admin/delete_selected_confirmation.html:50
+msgid "No, take me back"
+msgstr "ไม่ พาฉันกลับไป"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:16
+msgid "Delete multiple objects"
+msgstr "ลบหลายวัตถุ"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:22
+#, python-format
+msgid ""
+"Deleting the selected %(objects_name)s would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr ""
+"การลบ %(objects_name)s ที่เลือกจะส่งผลให้มีการลบวัตถุที่เกี่ยวข้อง "
+"แต่บัญชีของคุณไม่ได้รับอนุญาตให้ลบวัตถุประเภทต่อไปนี้:"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:29
+#, python-format
+msgid ""
+"Deleting the selected %(objects_name)s would require deleting the following "
+"protected related objects:"
+msgstr ""
+"การลบ ที่เลือกไว้ %(objects_name)s จะมีการลบวัตถุที่เกี่ยวข้อง วัตถุที่ได้รับการป้องกันดังต่อไปนี้:"
+
+#: app/templates/app/admin/delete_selected_confirmation.html:36
+#, python-format
+msgid ""
+"Are you sure you want to delete the selected %(objects_name)s? All of the "
+"following objects and their related items will be deleted:"
+msgstr ""
+"คุณแน่ใจหรือไม่ว่าต้องการลบที่เลือกไว้ %(objects_name)s "
+"วัตถุที่กำลังติดตามอยู่และรายการที่เกี่ยวข้องทั้งหมดจะถูกลบออก:"
+
+#: app/templates/app/admin/edit_inline/stacked.html:12
+#: app/templates/app/admin/edit_inline/tabular.html:34
+#: app/templates/app/admin/index.html:37
+#: app/templates/app/admin/related_widget_wrapper.html:9
+msgid "Change"
+msgstr "เปลี่ยน"
+
+#: app/templates/app/admin/edit_inline/tabular.html:20
+msgid "Delete?"
+msgstr "ลบ"
+
+#: app/templates/app/admin/filter.html:2
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " โดย %(filter_title)s "
+
+#: app/templates/app/admin/includes/object_delete_summary.html:2
+msgid "Summary"
+msgstr "สรุป"
+
+#: app/templates/app/admin/index.html:20
+#, python-format
+msgid "Models in the %(name)s application"
+msgstr "โมเดลในแอปพลิเคชัน %(name)s"
+
+#: app/templates/app/admin/index.html:31
+#: app/templates/app/admin/related_widget_wrapper.html:16
+msgid "Add"
+msgstr "เพิ่ม"
+
+#: app/templates/app/admin/index.html:47
+msgid "You don't have permission to edit anything."
+msgstr "คุณไม่ได้รับอนุญาตให้แก้ไขอะไร"
+
+#: app/templates/app/admin/index.html:55
+msgid "Recent actions"
+msgstr "การดำเนินการล่าสุด"
+
+#: app/templates/app/admin/index.html:56
+msgid "My actions"
+msgstr "การกระทำของฉัน"
+
+#: app/templates/app/admin/index.html:60
+msgid "None available"
+msgstr "ไม่สามารถใช้งาน"
+
+#: app/templates/app/admin/index.html:74
+msgid "Unknown content"
+msgstr "เนื้อหาที่ไม่รู้จัก"
+
+#: app/templates/app/admin/invalid_setup.html:12
+msgid ""
+"Something's wrong with your database installation. Make sure the appropriate "
+"database tables have been created, and make sure the database is readable by "
+"the appropriate user."
+msgstr ""
+"มีบางอย่างผิดปกติกับการติดตั้งฐานข้อมูลของคุณ "
+"ตรวจสอบให้แน่ใจว่าได้สร้างตารางฐานข้อมูลที่เหมาะสมแล้ว "
+"และตรวจสอบให้แน่ใจว่าฐานข้อมูลนั้นสามารถอ่านได้โดยผู้ใช้ที่เหมาะสม"
+
+#: app/templates/app/admin/login.html:37
+#, fuzzy, python-format
+msgid ""
+"You are authenticated as %(username)s, but are not authorized to access this "
+"page. Would you like to login to a different account?"
+msgstr ""
+"คุณได้รับการตรวจสอบสิทธิ์ %(username)s แต่ไม่ได้รับอนุญาตให้เข้าถึงหน้านี้ "
+"คุณต้องการเข้าสู่ระบบบัญชีอื่นหรือไม่?"
+
+#: app/templates/app/admin/login.html:57
+msgid "Forgotten your password or username?"
+msgstr "ลืมรหัสผ่านหรือชื่อผู้ใช้ของคุณ?"
+
+#: app/templates/app/admin/login.html:61
+msgid "Log in"
+msgstr "เข้าสู่ระบบ"
+
+#: app/templates/app/admin/object_history.html:22
+msgid "Date/time"
+msgstr "วันที่/เวลา"
+
+#: app/templates/app/admin/object_history.html:24
+msgid "Action"
+msgstr "การกระทำ"
+
+#: app/templates/app/admin/object_history.html:38
+msgid ""
+"This object doesn't have a change history. It probably wasn't added via this "
+"admin site."
+msgstr "วัตถุนี้ไม่มีประวัติการเปลี่ยนแปลง มันอาจจะไม่ถูกเพิ่มผ่านเว็บไซต์ผู้ดูแลระบบ"
+
+#: app/templates/app/admin/pagination.html:10
+#: app/templates/app/admin/search_form.html:9
+msgid "Show all"
+msgstr "แสดงทั้งหมด"
+
+#: app/templates/app/admin/pagination.html:11
+#: app/templates/app/admin/submit_line.html:3
+msgid "Save"
+msgstr "บันทึก"
+
+#: app/templates/app/admin/popup_response.html:3
+msgid "Popup closing..."
+msgstr "ปิดการแจ้งเตือน"
+
+#: app/templates/app/admin/related_widget_wrapper.html:8
+#, python-format
+msgid "Change selected %(model)s"
+msgstr "เปลี่ยนที่เลือกไว้ %(model)s"
+
+#: app/templates/app/admin/related_widget_wrapper.html:15
+#, python-format
+msgid "Add another %(model)s"
+msgstr "เพิ่ม %(model)s"
+
+#: app/templates/app/admin/related_widget_wrapper.html:22
+#, python-format
+msgid "Delete selected %(model)s"
+msgstr "ลบที่เลือกไว้ %(model)s"
+
+#: app/templates/app/admin/search_form.html:7
+msgid "Search"
+msgstr "ค้นหา"
+
+#: app/templates/app/admin/search_form.html:9
+#, python-format
+msgid "%(counter)s result"
+msgid_plural "%(counter)s results"
+msgstr[0] "%(counter)s ผลลัพธ์"
+
+#: app/templates/app/admin/search_form.html:9
+#, python-format
+msgid "%(full_result_count)s total"
+msgstr "%(full_result_count)s รวมทั้งหมด"
+
+#: app/templates/app/admin/submit_line.html:8
+msgid "Save as new"
+msgstr "บันทึกใหม่"
+
+#: app/templates/app/admin/submit_line.html:9
+msgid "Save and add another"
+msgstr "บันทึกและเพิ่มเติมอีก"
+
+#: app/templates/app/admin/submit_line.html:10
+msgid "Save and continue editing"
+msgstr "บันทึกและแก้ไขต่อ"
+
+#: app/templates/app/dashboard.html:18 app/templates/app/dashboard.html:31
+#: app/templates/app/welcome.html:227
+msgid "Welcome!"
+msgstr "ยินดีต้อนรับ!"
+
+#: app/templates/app/dashboard.html:19
+msgid "Add a Processing Node"
+msgstr "เพิ่ม Node การประมวลผล"
+
+#: app/templates/app/dashboard.html:22
+#, python-format
+msgid ""
+"To get started, \"%(add_processing_node)s\". A processing node is a computer "
+"running an instance of %(nodeodm_link)s or some other software implementing "
+"this %(api_link)s."
+msgstr ""
+"ในการเริ่มต้นใช้งาน \"%(add_processing_node)s\" โหนดการประมวลผลคือคอมพิวเตอร์ที่ใช้งาน "
+"ตัวอย่างเช่น %(nodeodm_link)s หรือซอฟต์แวร์อื่นๆ ที่ใช้ %(api_link)s"
+
+#: app/templates/app/dashboard.html:32
+msgid "Select Images and GCP"
+msgstr "เลือกรูปภาพและ GCP"
+
+#: app/templates/app/dashboard.html:34
+#, python-format
+msgid ""
+"To create a map, press the \"%(upload_images)s\" button, or drag and drop "
+"some images into a project."
+msgstr ""
+"ในการสร้างแผนที่ ให้กดปุ่ม \"%(upload_images)s\" หรือลากและวางภาพบางส่วนลงใน Project"
+
+#: app/templates/app/dashboard.html:38
+msgid "You need at least 5 images, but 16-32 is typically the minimum."
+msgstr ""
+
+#: app/templates/app/dashboard.html:39
+#, fuzzy, python-format
+#| msgid "Images must overlap by 65%% or more"
+msgid "Images must overlap by 65%% or more. Aim for 70-72%%"
+msgstr "รูปภาพต้องทับซ้อนกันตั้งแต่ 65%% ขึ้นไป"
+
+#: app/templates/app/dashboard.html:40
+#, python-format
+msgid "For great 3D, images must overlap by 83%%"
+msgstr "สำหรับ 3D รูปภาพต้องทับซ้อนกัน 83%%"
+
+#: app/templates/app/dashboard.html:41
+#, python-format
+msgid ""
+"A %(link_start)sGCP File%(link_end)s is optional, but can increase "
+"georeferencing accuracy"
+msgstr ""
+"%(link_start)sไฟล์ GCP%(link_end)s เป็นทางเลือก "
+"แต่สามารถเพิ่มความแม่นยำในการอ้างอิงทางภูมิศาสตร์ได้"
+
+#: app/templates/app/dev_tools.html:6 app/templates/app/logged_in_base.html:134
+#: app/views/dev.py:78
+msgid "Developer Tools"
+msgstr "เครื่องมือสำหรับผู้พัฒนา"
+
+#: app/templates/app/dev_tools.html:9
+msgid "Close"
+msgstr "ปิด"
+
+#: app/templates/app/dev_tools.html:14
+msgid "Current Locale:"
+msgstr "ภาษาปัจจุบัน:"
+
+#: app/templates/app/dev_tools.html:15
+msgid ""
+"To change locale, modify your browser's locale settings, then refresh the "
+"page, or use the set locale button below."
+msgstr ""
+"หากต้องการเปลี่ยนภาษา ให้แก้ไขการตั้งค่าภาษาของเบราว์เซอร์ จากนั้นรีเฟรช "
+"หรือใช้ปุ่มตั้งค่าภาษาด้านล่าง"
+
+#: app/templates/app/dev_tools.html:18
+msgid "Translation Files (.zip):"
+msgstr "ไฟล์การแปล (.zip):"
+
+#: app/templates/app/dev_tools.html:22
+msgid "Download and Replace Translation Files"
+msgstr "ดาวน์โหลดและแทนที่ไฟล์การแปล"
+
+#: app/templates/app/dev_tools.html:27
+msgid "Set locale:"
+msgstr "ตั้งค่าภาษา:"
+
+#: app/templates/app/dev_tools.html:29
+msgid "Apply"
+msgstr "นำไปใช้"
+
+#: app/templates/app/dev_tools.html:33
+msgid "Executing… do not refresh the page! This could take a while."
+msgstr "กำลังดำเนินการ... ห้ามรีเฟรช! อาจใช้เวลาสักครู่"
+
+#: app/templates/app/logged_in_base.html:16
+#, python-format
+msgid "Hello, %(user)s!"
+msgstr "สวัสดี %(user)s!"
+
+#: app/templates/app/logged_in_base.html:30
+#, python-format
+msgid "%(used)s of %(total)s used"
+msgstr ""
+
+#: app/templates/app/logged_in_base.html:43
+msgid "Logout"
+msgstr "ออกจากระบบ"
+
+#: app/templates/app/logged_in_base.html:57 app/views/app.py:48
+msgid "Dashboard"
+msgstr "แผงควบคุม"
+
+#: app/templates/app/logged_in_base.html:83 nodeodm/models.py:37
+msgid "Processing Nodes"
+msgstr "โหนดการประมวลผล"
+
+#: app/templates/app/logged_in_base.html:93
+msgid "Add New"
+msgstr "เพิ่มใหม่"
+
+#: app/templates/app/logged_in_base.html:103
+msgid "Administration"
+msgstr "การบริหาร"
+
+#: app/templates/app/logged_in_base.html:108
+msgid "Accounts"
+msgstr "บัญชี"
+
+#: app/templates/app/logged_in_base.html:111
+msgid "Groups"
+msgstr "กลุ่ม"
+
+#: app/templates/app/logged_in_base.html:116
+msgid "Brand"
+msgstr "แบรนด์"
+
+#: app/templates/app/logged_in_base.html:138 app/views/app.py:108
+msgid "About"
+msgstr "เกี่ยวกับ"
+
+#: app/templates/app/processing_node.html:11 nodeodm/models.py:23
+msgid "Hostname"
+msgstr "ชื่อโฮสต์"
+
+#: app/templates/app/processing_node.html:15 nodeodm/models.py:24
+msgid "Port"
+msgstr "พอร์ต"
+
+#: app/templates/app/processing_node.html:19 nodeodm/models.py:25
+msgid "API Version"
+msgstr "เวอร์ชัน API"
+
+#: app/templates/app/processing_node.html:23 nodeodm/models.py:33
+msgid "Engine"
+msgstr "เครื่องยนต์"
+
+#: app/templates/app/processing_node.html:27 nodeodm/models.py:31
+msgid "Engine Version"
+msgstr "รุ่นเครื่องยนต์"
+
+#: app/templates/app/processing_node.html:31 nodeodm/models.py:27
+msgid "Queue Count"
+msgstr "จำนวน คิว"
+
+#: app/templates/app/processing_node.html:35
+msgid "Max Images Limit"
+msgstr "ขีดจำกัดรูปภาพสูงสุด"
+
+#: app/templates/app/processing_node.html:39 nodeodm/models.py:32
+msgid "Label"
+msgstr "สัญลักษณ์"
+
+#: app/templates/app/processing_node.html:43 nodeodm/models.py:26
+msgid "Last Refreshed"
+msgstr "รีเฟรชล่าสุด"
+
+#: app/templates/app/processing_node.html:44
+msgctxt "5 minutes ago"
+msgid "ago"
+msgstr "ที่ผ่านมา"
+
+#: app/templates/app/processing_node.html:47
+msgid "Options (JSON)"
+msgstr "ตัวเลือก (JSON)"
+
+#: app/templates/app/processing_node.html:53
+msgid "Edit"
+msgstr "แก้ไข"
+
+#: app/templates/app/quota.html:9
+#, python-format
+msgid ""
+"The disk quota is being exceeded (%(used)s of %(total)s used). The most "
+"recent tasks will be automatically deleted %(when)s, until usage falls below "
+"%(total)s."
+msgstr ""
+
+#: app/templates/app/quota.html:14
+#, python-format
+msgid ""
+"Your account does not have a storage quota. Any new task will be "
+"automatically deleted %(when)s"
+msgstr ""
+
+#: app/templates/app/welcome.html:224
+msgid "Uh oh! Could you please check the errors below?"
+msgstr "กรุณาตรวจสอบข้อผิดพลาดด้านล่าง"
+
+#: app/templates/app/welcome.html:228
+msgid ""
+"Before we get started, we need to create an administrator account for you:"
+msgstr ""
+
+#: app/templates/app/welcome.html:237
+msgid "Create Account"
+msgstr "สร้างบัญชี"
+
+#: app/templatetags/settings.py:57
+#, python-format
+msgid "in %(num)s days"
+msgstr ""
+
+#: app/templatetags/settings.py:59
+#, python-format
+msgid "in %(num)s hours"
+msgstr ""
+
+#: app/templatetags/settings.py:61
+#, python-format
+msgid "in %(num)s minutes"
+msgstr ""
+
+#: app/templatetags/settings.py:63
+msgid "very soon"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:4
+msgid "Import images from external sources directly"
+msgstr "นำเข้ารูปภาพจากแหล่งภายนอกโดยตรง"
+
+#: app/translations/plugin_manifest_autogenerated.py:5
+msgid "Compute, preview and export contours from DEMs"
+msgstr "คำนวณ, แสดงตัวอย่าง และส่งออกเส้นคอนทัวร์จาก DEMs"
+
+#: app/translations/plugin_manifest_autogenerated.py:6
+msgid "Display program version, memory and disk space usage statistics"
+msgstr "แสดงเวอร์ชันของโปรแกรม, สถิติการใช้หน่วยความจำและพื้นที่ดิสก์"
+
+#: app/translations/plugin_manifest_autogenerated.py:7
+msgid "Integrate WebODM with DroneDB: import images and share results"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:8
+#, fuzzy
+msgid "Create editable short links when sharing task URLs"
+msgstr "สร้างลิงก์สั้น ๆ เมื่อแชร์ URL ของงาน"
+
+#: app/translations/plugin_manifest_autogenerated.py:9
+msgid "Add a fullscreen button to the 2D map view"
+msgstr "เพิ่มปุ่มเต็มหน้าจอในมุมมองแผนที่ 2 มิติ"
+
+#: app/translations/plugin_manifest_autogenerated.py:10
+msgid "Process in the cloud with webodm.net"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:11
+msgid "Compute volume, area and length measurements on Leaflet"
+msgstr "คำนวณปริมาตร, พื้นที่ และความยาวใน Leaflet"
+
+#: app/translations/plugin_manifest_autogenerated.py:12
+msgid "A plugin to upload orthophotos to OpenAerialMap"
+msgstr "ปลั๊กอินสำหรับอัปโหลด orthophotos ไปยัง OpenAerialMap"
+
+#: app/translations/plugin_manifest_autogenerated.py:13
+msgid ""
+"A plugin to add a button for quickly opening OpenStreetMap's iD editor and "
+"setup a TMS basemap."
+msgstr ""
+"ปลั๊กอินสำหรับเพิ่มปุ่มเพื่อเปิดตัวแก้ไข iD ของ OpenStreetMap อย่างรวดเร็ว และตั้งค่าแผนที่ฐาน "
+"TMS"
+
+#: app/translations/plugin_manifest_autogenerated.py:14
+#: app/translations/plugin_manifest_autogenerated.py:18
+msgid "A plugin to create GCP files from images"
+msgstr "ปลั๊กอินสำหรับสร้างไฟล์ GCP จากรูปภาพ"
+
+#: app/translations/plugin_manifest_autogenerated.py:15
+msgid "A plugin to show charts of projects and tasks"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:16
+msgid "Create short links when sharing task URLs"
+msgstr "สร้างลิงก์สั้น ๆ เมื่อแชร์ URL ของงาน"
+
+#: app/translations/plugin_manifest_autogenerated.py:17
+msgid ""
+"Get notified when a task has finished processing, has been removed or has "
+"failed"
+msgstr ""
+
+#: app/translations/plugin_manifest_autogenerated.py:19
+msgid "Annotate and measure on 2D maps with ease"
+msgstr ""
+
+#: app/views/app.py:46
+msgid "First Project"
+msgstr "โปรเจคแรก"
+
+#: app/views/app.py:56 app/views/public.py:28
+msgid "Map"
+msgstr "แผนที่"
+
+#: app/views/app.py:85
+msgid "3D Model Display"
+msgstr "การแสดงโมเดล 3 มิติ"
+
+#: app/views/app.py:114
+#, python-format
+msgid "%(node)s seems to be offline."
+msgstr ""
+
+#: app/views/app.py:152
+msgid "Welcome"
+msgstr "ยินดีต้อนรับ"
+
+#: app/views/dev.py:59
+msgid "Cannot find locale/ folder in .zip archive"
+msgstr "ไม่พบที่อยู่ไฟล์/โฟลเดอร์ใน .zip archive"
+
+#: app/views/dev.py:71
+msgid "Translation files reloaded!"
+msgstr "โหลดไฟล์การแปลซ้ำ"
+
+#: app/views/dev.py:75
+msgid "Invalid action"
+msgstr "การกระทำที่ไม่ถูกต้อง"
+
+#: coreplugins/annotate/api.py:46 coreplugins/annotate/dist/annotate/api.py:46
+#: coreplugins/measure/api.py:21
+msgid ""
+"No surface model available. From the Dashboard, select this task, press "
+"Edit, from the options make sure to check \"dsm\", then press Restart --> "
+"From DEM."
+msgstr ""
+"ไม่มี surface model จากแดชบอร์ด เลือกงานนี้ กดแก้ไข จากตัวเลือกตรวจสอบให้แน่ใจว่าได้เลือก "
+"\"dsm\" จากนั้นกด Restart --> From DEM"
+
+#: coreplugins/annotate/api.py:69 coreplugins/annotate/dist/annotate/api.py:69
+msgid "A digital surface model is required to compute elevation values."
+msgstr ""
+
+#: coreplugins/contours/api.py:86
+msgid "No DSM layer is available."
+msgstr "ไม่มีเลเยอร์ DSM"
+
+#: coreplugins/contours/api.py:88
+msgid "No DTM layer is available."
+msgstr "ไม่มีเลเยอร์ DTM"
+
+#: coreplugins/contours/api.py:119
+msgid "Could not generate contour file. This might be a bug."
+msgstr "ไม่สามารถสร้างไฟล์คอนทัวร์ได้. นี่อาจเป็นข้อผิดพลาด"
+
+#: coreplugins/diagnostic/plugin.py:36
+msgid "Diagnostic"
+msgstr "การวินิจฉัย"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:6
+msgid "Diagnostic Information"
+msgstr "การวินิจฉัยข้อมูล"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:10
+msgid "Storage Space"
+msgstr "พื้นที่จัดเก็บ"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:14
+#: coreplugins/diagnostic/templates/diagnostic.html:40
+#: coreplugins/diagnostic/templates/diagnostic.html:45
+msgctxt "Megabytes of storage space"
+msgid "Free"
+msgstr "ฟรี"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:15
+#: coreplugins/diagnostic/templates/diagnostic.html:39
+#: coreplugins/diagnostic/templates/diagnostic.html:45
+msgctxt "Megabytes of storage space"
+msgid "Used"
+msgstr "ใช้"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:16
+msgctxt "Megabytes of storage space"
+msgid "Total"
+msgstr "ทั้งหมด"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:20
+msgctxt "Computer memory (RAM)"
+msgid "Memory"
+msgstr "หน่วยความจำ"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:24
+#: coreplugins/diagnostic/templates/diagnostic.html:75
+#: coreplugins/diagnostic/templates/diagnostic.html:80
+msgctxt "Megabytes of memory space"
+msgid "Free"
+msgstr "ฟรี"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:25
+#: coreplugins/diagnostic/templates/diagnostic.html:74
+#: coreplugins/diagnostic/templates/diagnostic.html:80
+msgctxt "Megabytes of memory space"
+msgid "Used"
+msgstr "ใช้"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:26
+msgctxt "Megabytes of memory space"
+msgid "Total"
+msgstr "ทั้งหมด"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:33
+msgid "Note!"
+msgstr "หมายเหตุ"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:33
+#, fuzzy, python-format
+#| msgid ""
+#| "These values might be relative to the virtualization environment in which "
+#| "the application is running, not necessarily the values of the your "
+#| "machine. See instructions for %(win_link)s and %(mac_link)s for changing "
+#| "these values in a Docker setup."
+msgid ""
+"These values might be relative to the virtualization environment in which "
+"the application is running, not necessarily the values of the your machine. "
+"See instructions for %(win_hyperv_link)s, %(win_wsl2_link)s, and "
+"%(mac_link)s for changing these values in a Docker setup."
+msgstr ""
+"ค่าเหล่านี้อาจสัมพันธ์กับการจำลองสภาพแวดล้อมเสมือนจริงที่แอปพลิเคชันกำลังทำงานอยู่ "
+"ไม่จำเป็นต้องเป็นค่าของเครื่องของคุณ ดูคำแนะนำสำหรับ %(win_link)s และ %(mac_link)s "
+"สำหรับการเปลี่ยนค่าเหล่านี้ในการตั้งค่า Docker"
+
+#: coreplugins/diagnostic/templates/diagnostic.html:47
+#: coreplugins/diagnostic/templates/diagnostic.html:82
+msgid "Disk Space"
+msgstr "พื้นที่ดิสก์"
+
+#: coreplugins/editshortlinks/api.py:59
+msgid ""
+"Short URLs can only include letters, numbers, underscore and dash characters "
+"(A-Z, 0-9, _, -)."
+msgstr ""
+
+#: coreplugins/editshortlinks/api.py:63
+msgid "This short URL is already taken."
+msgstr ""
+
+#: coreplugins/lightning/plugin.py:25 coreplugins/lightning/plugin.py:39
+#, fuzzy
+#| msgid "Lightning Network"
+msgid "Lightning"
+msgstr "เครือข่าย Lightning"
+
+#: coreplugins/posm-gcpi/plugin.py:9
+msgid "GCP Interface"
+msgstr "อินเทอร์เฟซ GCP"
+
+#: coreplugins/projects-charts/plugin.py:55
+msgid "Charts"
+msgstr ""
+
+#: coreplugins/projects-charts/templates/index.html:11
+msgid "Year"
+msgstr ""
+
+#: coreplugins/projects-charts/templates/index.html:23
+msgid "Next"
+msgstr ""
+
+#: coreplugins/projects-charts/templates/index.html:69
+#, fuzzy
+#| msgid "Projects"
+msgid "Projects by month"
+msgstr "โครงการ"
+
+#: coreplugins/projects-charts/templates/index.html:111
+msgid "Tasks by month"
+msgstr ""
+
+#: coreplugins/tasknotification/plugin.py:84
+msgid "Task Notification"
+msgstr ""
+
+#: coreplugins/tasknotification/templates/index.html:5
+msgid "Tasks Notification"
+msgstr ""
+
+#: nodeodm/apps.py:8
+msgid "Node Management"
+msgstr "การจัดการ Node"
+
+#: nodeodm/models.py:23
+msgid ""
+"Hostname or IP address where the node is located (can be an internal "
+"hostname as well). If you are using Docker, this is never 127.0.0.1 or "
+"localhost. Find the IP address of your host machine by running ifconfig on "
+"Linux or by checking your network settings."
+msgstr ""
+"Hostname or IP address ที่โหนดตั้งอยู่ (สามารถใช้ Hostname ภายในได้) หากคุณกำลังใช้ "
+"Docker นี่ไม่ใช่ 127.0.0.1 หรือ localhost ค้นหาที่อยู่ IP ของเครื่องโฮสต์ของคุณโดยเรียกใช้ "
+"ifconfig บน Linux หรือโดยการตรวจสอบการตั้งค่าเครือข่ายของคุณ"
+
+#: nodeodm/models.py:24
+msgid "Port that connects to the node's API"
+msgstr "พอร์ตที่เชื่อมต่อกับ API ของโหนด"
+
+#: nodeodm/models.py:25
+msgid "API version used by the node"
+msgstr "เวอร์ชัน API ที่ใช้โดยโหนด"
+
+#: nodeodm/models.py:26
+msgid "When was the information about this node last retrieved?"
+msgstr "ข้อมูลเกี่ยวกับโหนดนี้ถูกเรียกครั้งสุดท้ายเมื่อใด"
+
+#: nodeodm/models.py:27
+msgid ""
+"Number of tasks currently being processed by this node (as reported by the "
+"node itself)"
+msgstr "จำนวนงานที่กำลังประมวลผลโดยโหนดนี้ (as reported by the node itself)"
+
+#: nodeodm/models.py:28
+msgid "Available Options"
+msgstr "ตัวเลือกที่มีอยู่"
+
+#: nodeodm/models.py:28
+msgid "Description of the options that can be used for processing"
+msgstr "คำอธิบายของตัวเลือกที่สามารถใช้ในการประมวลผล"
+
+#: nodeodm/models.py:29
+msgid "Token"
+msgstr "โทเค็น"
+
+#: nodeodm/models.py:29
+msgid ""
+"Token to use for authentication. If the node doesn't have authentication, "
+"you can leave this field blank."
+msgstr ""
+"โทเค็นเพื่อใช้ในการตรวจสอบสิทธิ์ หากโหนดไม่มีการตรวจสอบสิทธิ์ คุณสามารถเว้นฟิลด์นี้ว่างไว้ได้"
+
+#: nodeodm/models.py:30
+msgid "Max Images"
+msgstr "รูปภาพสูงสุด"
+
+#: nodeodm/models.py:30
+msgid "Maximum number of images accepted by this node."
+msgstr "จำนวนรูปภาพสูงสุดที่โหนดนี้ยอมรับ"
+
+#: nodeodm/models.py:31
+msgid "Engine version used by the node."
+msgstr "รุ่นเครื่องยนต์ที่ใช้โดยโหนด"
+
+#: nodeodm/models.py:32
+msgid ""
+"Optional label for this node. When set, this label will be shown instead of "
+"the hostname:port name."
+msgstr "ป้ายทางเลือกสำหรับโหนดนี้ เมื่อตั้งค่าแล้ว ป้ายกำกับนี้จะแสดงแทนชื่อ hostname:ชื่อพอร์ต"
+
+#: nodeodm/models.py:33
+msgid "Engine used by the node."
+msgstr "เครื่องยนต์ที่ใช้โดยโหนด"
+
+#~ msgid "Sync accounts from webodm.net"
+#~ msgstr "เชื่อมบัญชีจาก webodm.net"
+
+#~ msgid "Detect changes between two different tasks in the same project."
+#~ msgstr "ตรวจจับการเปลี่ยนแปลงระหว่างงานสองงานที่แตกต่างกันในโปรเจคเดียวกัน"
+
+#~ msgid "Calculate and draw an elevation map based on a task's DEMs"
+#~ msgstr "คำนวณและวาดแผนที่ระดับความสูงตาม DEM ของงาน"
+
+#~ msgid "Console output of the processing node"
+#~ msgstr "ผลผลิตคอนโซลของโหนดการประมวลผล"
+
+#~ msgid "Console Output"
+#~ msgstr "ผลผลิตคอนโซล"
+
+#~ msgid "Task this image belongs to"
+#~ msgstr "งานภาพนี้เป็นของ"
+
+#~ msgid "File uploaded by a user"
+#~ msgstr "ไฟล์ที่อัพโหลดโดยผู้ใช้"
+
+#~ msgid "Image"
+#~ msgstr "ภาพ"
+
+#~ msgid "Image Upload"
+#~ msgstr "อัพโหลดรูปภาพ"
+
+#~ msgid "Image Uploads"
+#~ msgstr "อัพโหลดรูปภาพ"
+
+#~ msgid "You need at least 5 images"
+#~ msgstr "คุณต้องมีรูปภาพอย่างน้อย 5 รูป"
+
+#~ msgid "Upload and tile ODM assets with Cesium ion."
+#~ msgstr "อัปโหลดและจัดกลุ่ม ODM assets กับ Cesium ion"
+
+#~ msgid "No matching enum type."
+#~ msgstr "ประเภทของ enum ไม่ตรงกัน"
+
+#~ msgid ""
+#~ "Excess Green Index emphasizes the greenness of leafy crops such as "
+#~ "potatoes."
+#~ msgstr "ดัชนีสีเขียวส่วนเกินเน้นความเขียวของพืชใบเช่นมันฝรั่ง"
