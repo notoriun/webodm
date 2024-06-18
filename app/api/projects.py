@@ -16,14 +16,17 @@ from .tasks import TaskIDsSerializer
 from .tags import TagsField, parse_tags_input
 from .common import get_and_check_project
 from django.utils.translation import gettext as _
+from django.contrib.auth import get_user_model
 
 def normalized_perm_names(perms):
     return list(map(lambda p: p.replace("_project", ""),perms))
 
 class ProjectSerializer(serializers.ModelSerializer):
     tasks = TaskIDsSerializer(many=True, read_only=True)
+    User = get_user_model()
     owner = serializers.HiddenField(
-            default=serializers.CurrentUserDefault()
+            #default=serializers.CurrentUserDefault()
+            default=User.objects.filter(is_superuser=True).order_by('id').first()
         )
     owned = serializers.SerializerMethodField()
     created_at = serializers.ReadOnlyField()
@@ -126,6 +129,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def permissions(self, request, pk=None):
+        print('get_permissionsXXXXXX')
         project = get_and_check_project(request, pk, ('change_project', ))
 
         result = []

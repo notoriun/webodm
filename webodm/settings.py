@@ -315,8 +315,8 @@ REST_FRAMEWORK = {
     'rest_framework.permissions.AllowAny',
   ],
   'DEFAULT_FILTER_BACKENDS': [
-    'rest_framework_guardian.filters.ObjectPermissionsFilter',
-    'django_filters.rest_framework.DjangoFilterBackend',
+    #'rest_framework_guardian.filters.ObjectPermissionsFilter',
+    #'django_filters.rest_framework.DjangoFilterBackend',
     'rest_framework.filters.OrderingFilter',
   ],
   'DEFAULT_AUTHENTICATION_CLASSES': (

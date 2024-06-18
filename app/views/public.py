@@ -16,11 +16,11 @@ def get_public_task(task_pk):
     Get a task and raise a 404 if it's not public
     """
     task = get_object_or_404(Task, pk=task_pk)
-    if not task.public:
-       raise Http404()
+    #if not task.public:
+    #  raise Http404()
     return task
 
-@ensure_csrf_cookie
+#@ensure_csrf_cookie
 def handle_map(request, template, task_pk=None, hide_title=False):
     task = get_public_task(task_pk)
 
@@ -42,7 +42,7 @@ def map(request, task_pk=None):
 def map_iframe(request, task_pk=None):
     return handle_map(request, 'app/public/map_iframe.html', task_pk, True)
 
-@ensure_csrf_cookie
+#@ensure_csrf_cookie
 def handle_model_display(request, template, task_pk=None):
     task = get_public_task(task_pk)
 

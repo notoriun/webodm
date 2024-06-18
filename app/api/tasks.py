@@ -26,6 +26,7 @@ from .tags import TagsField
 from app.security import path_traversal_check
 from django.utils.translation import gettext_lazy as _
 from webodm import settings
+from rest_framework.permissions import AllowAny
 
 def flatten_files(request_files):
     # MultiValueDict in, flat array of files out
@@ -35,10 +36,14 @@ def flatten_files(request_files):
      for file in filesList]
 
 class TaskIDsSerializer(serializers.BaseSerializer):
+    permission_classes = [AllowAny]
+    authentication_classes = []
     def to_representation(self, obj):
         return obj.id
 
 class TaskSerializer(serializers.ModelSerializer):
+    permission_classes = [AllowAny]
+    authentication_classes = []
     project = serializers.PrimaryKeyRelatedField(queryset=models.Project.objects.all())
     processing_node = serializers.PrimaryKeyRelatedField(queryset=ProcessingNode.objects.all()) 
     processing_node_name = serializers.SerializerMethodField()
@@ -97,10 +102,11 @@ class TaskViewSet(viewsets.ViewSet):
         project's object permissions instead (but standard model permissions still apply)
         and with the exception of 'retrieve' (task GET) for public tasks access
         """
-        if self.action == 'retrieve':
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [permissions.DjangoModelPermissions, ]
+        permission_classes = [permissions.AllowAny]
+        #if self.action == 'retrieve':
+        #    permission_classes = [permissions.AllowAny]
+        #else:
+        #    permission_classes = [permissions.DjangoModelPermissions, ]
 
         return [permission() for permission in permission_classes]
 
