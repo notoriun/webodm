@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 from wsgiref.util import FileWrapper
+import piexif
 
 import mimetypes
 
@@ -34,6 +35,22 @@ def flatten_files(request_files):
         lambda key: request_files.getlist(key),
         [keys for keys in request_files])
      for file in filesList]
+
+def is_360_photo(image_path):
+    """
+    Verifica se a imagem possui os metadados indicando que é uma foto 360 graus.
+    """
+    try:
+        exif_dict = piexif.load(image_path)
+        # Verifique os campos específicos que indicam uma foto 360
+        if "Exif" in exif_dict and piexif.ExifIFD.UserComment in exif_dict["Exif"]:
+            user_comment = exif_dict["Exif"][piexif.ExifIFD.UserComment]
+            if b"360" in user_comment or b"Photo Sphere" in user_comment:
+                return True
+        return False
+    except Exception as e:
+        logger.warning(f"Erro ao verificar metadados da imagem: {str(e)}")
+        return False
 
 class TaskIDsSerializer(serializers.BaseSerializer):
     permission_classes = [AllowAny]
@@ -221,6 +238,100 @@ class TaskViewSet(viewsets.ViewSet):
         serializer.save()
         
         return Response({'success': True, 'uploaded': uploaded}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def upload_fotos(self, request, pk=None, project_pk=None):
+        """
+        Adiciona um conjunto de fotos a uma tarefa, armazenando-os na pasta assets/fotos e nomeando-os sequencialmente.
+        """
+        get_and_check_project(request, project_pk, ('change_project', ))
+        try:
+            task = self.queryset.get(pk=pk, project=project_pk)
+        except (ObjectDoesNotExist, ValidationError):
+            raise exceptions.NotFound()
+
+        files = flatten_files(request.FILES)
+        if len(files) == 0:
+            raise exceptions.ValidationError(detail=_("No files uploaded"))
+
+        # Garantir que o diretório assets/fotos existe
+        fotos_dir = task.assets_path("fotos")
+        if not os.path.exists(fotos_dir):
+            os.makedirs(fotos_dir, exist_ok=True)
+
+        # Salvar os arquivos na pasta assets/fotos com nomes sequenciais
+        for idx, file in enumerate(files):
+            filename = f"foto_{idx + 1}.jpg"
+            dst_path = os.path.join(fotos_dir, filename)
+            with open(dst_path, 'wb+') as fd:
+                if isinstance(file, InMemoryUploadedFile):
+                    for chunk in file.chunks():
+                        fd.write(chunk)
+                else:
+                    with open(file.temporary_file_path(), 'rb') as f:
+                        shutil.copyfileobj(f, fd)
+
+            # Adicionar a informação em available_assets
+            asset_info = f"fotos/{filename}"
+            if asset_info not in task.available_assets:
+                task.available_assets.append(asset_info)
+
+        task.images_count = len(task.scan_images())
+        # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
+        serializer = TaskSerializer(task, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({'success': True, 'uploaded': [f.name for f in files]}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def upload360(self, request, pk=None, project_pk=None):
+        """
+        Adiciona imagens a uma tarefa, verificando se são fotos 360.
+        """
+        get_and_check_project(request, project_pk, ('change_project', ))
+        try:
+            task = self.queryset.get(pk=pk, project=project_pk)
+        except (ObjectDoesNotExist, ValidationError):
+            raise exceptions.NotFound()
+
+        files = flatten_files(request.FILES)
+        if len(files) == 0:
+            raise exceptions.ValidationError(detail=_("No files uploaded"))
+
+        # Verificar se o arquivo é uma foto 360
+        for file in files:
+            with open(file.temporary_file_path(), 'rb') as f:
+                if not is_360_photo(f.name):
+                    #raise exceptions.ValidationError(detail=_("O arquivo não é uma foto 360"))
+                    print("O arquivo não é uma foto 360")
+
+        # Garantir que o diretório assets existe
+        assets_dir = task.assets_path("")
+        if not os.path.exists(assets_dir):
+            os.makedirs(assets_dir, exist_ok=True)
+
+        # Salvar o arquivo na pasta assets com o nome foto360.jpg
+        dst_path = task.assets_path("foto360.jpg")
+        with open(dst_path, 'wb+') as fd:
+            if isinstance(files[0], InMemoryUploadedFile):
+                for chunk in files[0].chunks():
+                    fd.write(chunk)
+            else:
+                with open(files[0].temporary_file_path(), 'rb') as f:
+                    shutil.copyfileobj(f, fd)
+
+        # Adicionar "foto360.jpg" ao campo available_assets
+        if "foto360.jpg" not in task.available_assets:
+            task.available_assets.append("foto360.jpg")
+        task.images_count = len(task.scan_images())
+        # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
+        serializer = TaskSerializer(task, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}, status=status.HTTP_200_OK)
+
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None, project_pk=None):
