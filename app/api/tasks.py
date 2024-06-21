@@ -2,7 +2,6 @@ import os
 import re
 import shutil
 from wsgiref.util import FileWrapper
-import piexif
 
 import mimetypes
 
@@ -28,6 +27,70 @@ from app.security import path_traversal_check
 from django.utils.translation import gettext_lazy as _
 from webodm import settings
 from rest_framework.permissions import AllowAny
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
+import json
+
+def convert_to_degrees(value, ref):
+    def to_degrees(val):
+        d = float(val[0])
+        m = float(val[1])
+        s = float(val[2])
+        return d + (m / 60.0) + (s / 3600.0)
+
+    degrees = to_degrees(value)
+    if ref in ['S', 'W']:
+        degrees = -degrees
+    return degrees
+
+
+
+def get_lat_lon_alt(exif_data):
+    gps_info = exif_data.get('GPSInfo')
+    if not gps_info:
+        return None
+
+    def get_if_exist(data, key):
+        return data[key] if key in data else None
+
+    lat = get_if_exist(gps_info, GPSTAGS.get(2))  # GPSLatitude
+    lat_ref = get_if_exist(gps_info, GPSTAGS.get(1))  # GPSLatitudeRef
+    lon = get_if_exist(gps_info, GPSTAGS.get(4))  # GPSLongitude
+    lon_ref = get_if_exist(gps_info, GPSTAGS.get(3))  # GPSLongitudeRef
+    alt = get_if_exist(gps_info, GPSTAGS.get(6))  # GPSAltitude
+    alt_ref = get_if_exist(gps_info, GPSTAGS.get(5))  # GPSAltitudeRef
+
+    if lat and lon and lat_ref and lon_ref:
+        lat = convert_to_degrees(lat, lat_ref)
+        lon = convert_to_degrees(lon, lon_ref)
+
+        if alt:
+            alt = float(alt)
+            if alt_ref and alt_ref != 0:
+                alt = -alt
+
+        return lat, lon, alt
+    return None
+
+
+
+def get_exif_data(image):
+    exif_data = {}
+    info = image._getexif()
+    if info:
+        for tag, value in info.items():
+            decoded = TAGS.get(tag, tag)
+            if decoded == "GPSInfo":
+                gps_data = {}
+                for t in value:
+                    sub_decoded = GPSTAGS.get(t, t)
+                    gps_data[sub_decoded] = value[t]
+                exif_data[decoded] = gps_data
+            else:
+                exif_data[decoded] = value
+
+    return exif_data
+
 
 def flatten_files(request_files):
     # MultiValueDict in, flat array of files out
@@ -49,7 +112,7 @@ def is_360_photo(image_path):
                 return True
         return False
     except Exception as e:
-        logger.warning(f"Erro ao verificar metadados da imagem: {str(e)}")
+        print(f"Erro ao verificar metadados da imagem: {str(e)}")
         return False
 
 class TaskIDsSerializer(serializers.BaseSerializer):
@@ -214,91 +277,109 @@ class TaskViewSet(viewsets.ViewSet):
 
         serializer = TaskSerializer(task)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    def upload_images(self, task, files):
+        if len(files) <= 1:
+            raise exceptions.ValidationError(detail=_("Cannot create task, you need at least 2 images"))
 
-    @action(detail=True, methods=['post'])
-    def upload(self, request, pk=None, project_pk=None):
-        """
-        Add images to a task
-        """
-        get_and_check_project(request, project_pk, ('change_project', ))
-        try:
-            task = self.queryset.get(pk=pk, project=project_pk)
-        except (ObjectDoesNotExist, ValidationError):
-            raise exceptions.NotFound()
+        with transaction.atomic():
+            task.handle_images_upload(files)
+            task.images_count = len(task.scan_images())
+            task.update_size()
+            task.save()
+            worker_tasks.process_task.delay(task.id)
+        return {'success': True, 'uploaded': [file.name for file in files]}
 
-        files = flatten_files(request.FILES)
-        if len(files) == 0:
-            raise exceptions.ValidationError(detail=_("No files uploaded"))
-
-        uploaded = task.handle_images_upload(files)
-        task.images_count = len(task.scan_images())
-        # Update other parameters such as processing node, task name, etc.
-        serializer = TaskSerializer(task, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        
-        return Response({'success': True, 'uploaded': uploaded}, status=status.HTTP_200_OK)
-    
-    @action(detail=True, methods=['post'])
-    def upload_fotos(self, request, pk=None, project_pk=None):
-        """
-        Adiciona um conjunto de fotos a uma tarefa, armazenando-os na pasta assets/fotos e nomeando-os sequencialmente.
-        """
-        get_and_check_project(request, project_pk, ('change_project', ))
-        try:
-            task = self.queryset.get(pk=pk, project=project_pk)
-        except (ObjectDoesNotExist, ValidationError):
-            raise exceptions.NotFound()
-
-        files = flatten_files(request.FILES)
-        if len(files) == 0:
-            raise exceptions.ValidationError(detail=_("No files uploaded"))
-
+    def upload_fotos(self, task, files):
         # Garantir que o diretório assets/fotos existe
         fotos_dir = task.assets_path("fotos")
         if not os.path.exists(fotos_dir):
             os.makedirs(fotos_dir, exist_ok=True)
 
-        # Salvar os arquivos na pasta assets/fotos com nomes sequenciais
-        for idx, file in enumerate(files):
-            filename = f"foto_{idx + 1}.jpg"
-            dst_path = os.path.join(fotos_dir, filename)
-            with open(dst_path, 'wb+') as fd:
-                if isinstance(file, InMemoryUploadedFile):
-                    for chunk in file.chunks():
-                        fd.write(chunk)
-                else:
-                    with open(file.temporary_file_path(), 'rb') as f:
-                        shutil.copyfileobj(f, fd)
+        # Carregar o metadata.json existente, se existir
+        metadata_path = os.path.join(fotos_dir, 'metadata.json')
+        if os.path.exists(metadata_path):
+            with open(metadata_path, 'r') as metadata_file:
+                metadata = json.load(metadata_file)
+        else:
+            metadata = {}
 
-            # Adicionar a informação em available_assets
-            asset_info = f"fotos/{filename}"
-            if asset_info not in task.available_assets:
-                task.available_assets.append(asset_info)
+        uploaded_files = []
+
+        # Identificar o índice inicial para novos arquivos
+        existing_files = os.listdir(fotos_dir)
+        max_index = 0
+        for file in existing_files:
+            if file.startswith("foto_") and file.endswith(".jpg"):
+                index = int(file.split('_')[1].split('.')[0])
+                if index > max_index:
+                    max_index = index
+
+        # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
+        for idx, file in enumerate(files):
+            try:
+                # Manter o arquivo aberto e acessar diretamente os dados de memória
+                if isinstance(file, InMemoryUploadedFile):
+                    image = Image.open(file)
+                    exif_data = get_exif_data(image)
+                    lat_lon_alt = get_lat_lon_alt(exif_data)
+                    image.close()
+
+                    if not lat_lon_alt:
+                        continue
+
+                    filename = f"foto_{max_index + idx + 1}.jpg"
+                    dst_path = os.path.join(fotos_dir, filename)
+                    
+                    # Gravar o arquivo no diretório de destino
+                    with open(dst_path, 'wb+') as fd:
+                        for chunk in file.chunks():
+                            fd.write(chunk)
+                else:
+                    # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
+                    with open(file.temporary_file_path(), 'rb') as f:
+                        image = Image.open(f)
+                        exif_data = get_exif_data(image)
+                        lat_lon_alt = get_lat_lon_alt(exif_data)
+                        
+
+                        if not lat_lon_alt:
+                            continue
+
+                        filename = f"foto_{max_index + idx + 1}.jpg"
+                        dst_path = os.path.join(fotos_dir, filename)
+                        
+                        # Gravar o arquivo no diretório de destino
+                        with open(dst_path, 'wb+') as fd:
+                            f.seek(0)
+                            shutil.copyfileobj(f, fd)
+
+                # Adicionar a informação em available_assets
+                asset_info = f"fotos/{filename}"
+                if asset_info not in task.available_assets:
+                    task.available_assets.append(asset_info)
+
+                # Adicionar informações de metadados
+                metadata[filename] = {'latitude': lat_lon_alt[0], 'longitude': lat_lon_alt[1], 'altitude': lat_lon_alt[2]}
+                uploaded_files.append(file.name)
+
+            except Exception as e:
+                print(e)
+                continue
+
+        # Atualizar o arquivo metadata.json
+        with open(metadata_path, 'w') as metadata_file:
+            json.dump(metadata, metadata_file)
+
+        # Adicionar metadata.json em available_assets
+        metadata_asset = 'fotos/metadata.json'
+        if metadata_asset not in task.available_assets:
+            task.available_assets.append(metadata_asset)
 
         task.images_count = len(task.scan_images())
-        # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
-        serializer = TaskSerializer(task, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        task.save()
+        return {'success': True, 'uploaded': uploaded_files}
 
-        return Response({'success': True, 'uploaded': [f.name for f in files]}, status=status.HTTP_200_OK)
-    
-    @action(detail=True, methods=['post'])
-    def upload360(self, request, pk=None, project_pk=None):
-        """
-        Adiciona imagens a uma tarefa, verificando se são fotos 360.
-        """
-        get_and_check_project(request, project_pk, ('change_project', ))
-        try:
-            task = self.queryset.get(pk=pk, project=project_pk)
-        except (ObjectDoesNotExist, ValidationError):
-            raise exceptions.NotFound()
-
-        files = flatten_files(request.FILES)
-        if len(files) == 0:
-            raise exceptions.ValidationError(detail=_("No files uploaded"))
-
+    def upload_foto360(self, task, files):
         # Verificar se o arquivo é uma foto 360
         for file in files:
             with open(file.temporary_file_path(), 'rb') as f:
@@ -324,14 +405,39 @@ class TaskViewSet(viewsets.ViewSet):
         # Adicionar "foto360.jpg" ao campo available_assets
         if "foto360.jpg" not in task.available_assets:
             task.available_assets.append("foto360.jpg")
+
         task.images_count = len(task.scan_images())
+        task.save()
+        return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
+
+    @action(detail=True, methods=['post'])
+    def upload(self, request, pk=None, project_pk=None, type=""):
+        project = get_and_check_project(request, project_pk, ('change_project', ))
+        files = flatten_files(request.FILES)
+        if len(files) == 0:
+            raise exceptions.ValidationError(detail=_("No files uploaded"))
+
+        try:
+            task = self.queryset.get(pk=pk, project=project_pk)
+        except (ObjectDoesNotExist, ValidationError):
+            raise exceptions.NotFound()
+
+        upload_type = request.data.get('type', 'orthophoto')
+
+        if upload_type == 'foto':
+            response = self.upload_fotos(task, files)
+        elif upload_type == 'foto360':
+            response = self.upload_foto360(task, files)
+        else:  # Default to 'orthophoto'
+            response = self.upload_images(task, files)
+
         # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
         serializer = TaskSerializer(task, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response({'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}, status=status.HTTP_200_OK)
-
+        return Response(response, status=status.HTTP_200_OK)
+    
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None, project_pk=None):
