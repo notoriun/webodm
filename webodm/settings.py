@@ -62,7 +62,7 @@ INTERNAL_IPS = ['127.0.0.1']
 ALLOWED_HOSTS = ['*']
 
 # Branding
-APP_NAME = "WebODM"
+APP_NAME = "PGI"
 APP_DEFAULT_LOGO = os.path.join('app', 'static', 'app', 'img', 'logo512.png')
 
 # In single user mode, a default admin account is created and automatically
@@ -75,7 +75,7 @@ PROCESSING_NODES_ONBOARDING = None
 # Enable the /api/users endpoint which is used for autocompleting
 # usernames when handling project permissions. This can be disabled
 # for security reasons if you don't want to let authenticated users
-# retrieve the user list. 
+# retrieve the user list.
 ENABLE_USERS_API = True
 
 # Enable desktop mode. In desktop mode some styling changes
@@ -122,7 +122,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',    
+    'django.contrib.sessions.middleware.SessionMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -360,7 +360,7 @@ if DEBUG and not TESTING:
         }
     }
 
-# Number of minutes a processing node hasn't been seen 
+# Number of minutes a processing node hasn't been seen
 # before it should be considered offline
 NODE_OFFLINE_MINUTES = 5
 

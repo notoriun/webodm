@@ -28,7 +28,7 @@ class Setting(models.Model):
                                       format='PNG',
                                       options={'quality': 90})
 
-    organization_name = models.CharField(default='WebODM', max_length=255, blank=True, null=True, help_text=_("The name of your organization"), verbose_name=_("Organization name"))
+    organization_name = models.CharField(default='PGI', max_length=255, blank=True, null=True, help_text=_("The name of your organization"), verbose_name=_("Organization name"))
     organization_website = models.URLField(default='https://github.com/OpenDroneMap/WebODM/', max_length=255, blank=True, null=True, help_text=_("The website URL of your organization"), verbose_name=_("Organization website"))
     theme = models.ForeignKey(Theme, blank=False, null=False, on_delete=models.DO_NOTHING, verbose_name=_("Theme"),
                               help_text=_("Active theme"))
@@ -71,7 +71,7 @@ class Setting(models.Model):
 
     def __str__(self):
         return str(_("Application"))
-    
+
     class Meta:
         verbose_name = _("Settings")
         verbose_name_plural = _("Settings")
