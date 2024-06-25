@@ -349,7 +349,6 @@ class TaskViewSet(viewsets.ViewSet):
                     image = Image.open(file)
                     exif_data = get_exif_data(image)
                     lat_lon_alt = get_lat_lon_alt(exif_data)
-                    image.close()
 
                     if not lat_lon_alt:
                         continue
