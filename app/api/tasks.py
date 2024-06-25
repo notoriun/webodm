@@ -30,6 +30,8 @@ from rest_framework.permissions import AllowAny
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import json
+import ffmpeg
+import re
 
 def convert_to_degrees(value, ref):
     def to_degrees(val):
@@ -72,7 +74,32 @@ def get_lat_lon_alt(exif_data):
         return lat, lon, alt
     return None
 
+def get_video_gps(file_path):
+    try:
+        probe = ffmpeg.probe(file_path)
+        tags = probe.get('format', {}).get('tags', {})
+        location = tags.get('location')
+        print('location', location)
+        if location:
+            # Remove a barra no final da string, se houver
+            location = location.rstrip('/')
 
+            # Definir a expressão regular para capturar latitude e longitude
+            match = re.match(r'([+-]\d+\.\d+)([+-]\d+\.\d+)', location)
+            if not match:
+                raise ValueError("Formato inválido para a string de localização")
+
+            # Extrair latitude e longitude da correspondência
+            lat_str, lon_str = match.groups()
+
+            # Converter para float
+            latitude = float(lat_str)
+            longitude = float(lon_str)
+            return latitude, longitude
+    except ffmpeg.Error as e:
+        print(e)
+        return None
+    return None
 
 def get_exif_data(image):
     exif_data = {}
@@ -378,6 +405,77 @@ class TaskViewSet(viewsets.ViewSet):
         task.images_count = len(task.scan_images())
         task.save()
         return {'success': True, 'uploaded': uploaded_files}
+    
+    def upload_videos(self, task, files):                
+        # Garantir que o diretório assets/videos existe
+        videos_dir = task.assets_path("videos")
+        if not os.path.exists(videos_dir):
+            os.makedirs(videos_dir, exist_ok=True)
+            
+        print("videos_dir XXXX: ", videos_dir)    
+        # Carregar o metadata.json existente, se existir
+        metadata_path = os.path.join(videos_dir, 'metadata.json')
+        if os.path.exists(metadata_path):
+            with open(metadata_path, 'r') as metadata_file:
+                metadata = json.load(metadata_file)
+        else:
+            metadata = {}
+
+        uploaded_files = []
+        print("load metadata")
+
+        # Identificar o índice inicial para novos arquivos
+        existing_files = os.listdir(videos_dir)
+        max_index = 0
+        for file in existing_files:
+            if file.startswith("video_") and file.endswith(".mp4"):
+                index = int(file.split('_')[1].split('.')[0])
+                if index > max_index:
+                    max_index = index
+
+        # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
+        for idx, file in enumerate(files):
+            try:
+                filename = f"video_{max_index + idx + 1}.mp4"
+                dst_path = os.path.join(videos_dir, filename)
+
+                # Gravar o arquivo no diretório de destino
+                with open(dst_path, 'wb+') as fd:
+                    if isinstance(file, InMemoryUploadedFile):
+                        for chunk in file.chunks():
+                            fd.write(chunk)
+                    else:
+                        with open(file.temporary_file_path(), 'rb') as f:
+                            shutil.copyfileobj(f, fd)
+
+                # Extrair metadados GPS do vídeo
+                lat_lon = get_video_gps(dst_path)
+                print(lat_lon)
+                if lat_lon:
+                    metadata[filename] = {'latitude': lat_lon[0], 'longitude': lat_lon[1]}
+                    # Adicionar a informação em available_assets
+                    asset_info = f"videos/{filename}"
+                    if asset_info not in task.available_assets:
+                        task.available_assets.append(asset_info)
+                    uploaded_files.append(file.name)
+                else:
+                    os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
+
+            except Exception as e:
+                continue
+
+        # Atualizar o arquivo metadata.json
+        with open(metadata_path, 'w') as metadata_file:
+            json.dump(metadata, metadata_file)
+
+        # Adicionar metadata.json em available_assets
+        metadata_asset = 'videos/metadata.json'
+        if metadata_asset not in task.available_assets:
+            task.available_assets.append(metadata_asset)
+
+        task.images_count = len(task.scan_images())
+        task.save()
+        return {'success': True, 'uploaded': uploaded_files}    
 
     def upload_foto360(self, task, files):
         # Verificar se o arquivo é uma foto 360
@@ -422,19 +520,26 @@ class TaskViewSet(viewsets.ViewSet):
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
-        upload_type = request.data.get('type', 'orthophoto')
+        try:
 
-        if upload_type == 'foto':
-            response = self.upload_fotos(task, files)
-        elif upload_type == 'foto360':
-            response = self.upload_foto360(task, files)
-        else:  # Default to 'orthophoto'
-            response = self.upload_images(task, files)
+            upload_type = request.data.get('type', 'orthophoto')
 
-        # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
-        serializer = TaskSerializer(task, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+            if upload_type == 'foto':
+                response = self.upload_fotos(task, files)                        
+            elif upload_type == 'video':    
+                response = self.upload_videos(task, files)            
+            elif upload_type == 'foto360':
+                response = self.upload_foto360(task, files)
+            else:  # Default to 'orthophoto'
+                response = self.upload_images(task, files)
+
+            # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
+            serializer = TaskSerializer(task, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        except Exception as e:
+            print(e)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)    
 
         return Response(response, status=status.HTTP_200_OK)
     

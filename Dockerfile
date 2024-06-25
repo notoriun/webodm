@@ -34,6 +34,8 @@ RUN apt-get -o Acquire::Retries=3 -qq update && apt-get -o Acquire::Retries=3 -q
 #RUN pip install -U pip
 
 RUN pip install -r requirements.txt "boto3==1.14.14"
+
+RUN apt-get install -y ffmpeg
     # Setup cron
 RUN ln -s /webodm/nginx/crontab /var/spool/cron/crontabs/root
 
