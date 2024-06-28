@@ -79,7 +79,6 @@ def get_video_gps(file_path):
         probe = ffmpeg.probe(file_path)
         tags = probe.get('format', {}).get('tags', {})
         location = tags.get('location')
-        print('location', location)
         if location:
             # Remove a barra no final da string, se houver
             location = location.rstrip('/')
@@ -316,7 +315,7 @@ class TaskViewSet(viewsets.ViewSet):
             worker_tasks.process_task.delay(task.id)
         return {'success': True, 'uploaded': [file.name for file in files]}
 
-    def upload_fotos(self, task, files):
+    def upload_fotos(self, task, files):       
         # Garantir que o diretório assets/fotos existe
         fotos_dir = task.assets_path("fotos")
         if not os.path.exists(fotos_dir):
@@ -324,11 +323,15 @@ class TaskViewSet(viewsets.ViewSet):
 
         # Carregar o metadata.json existente, se existir
         metadata_path = os.path.join(fotos_dir, 'metadata.json')
-        if os.path.exists(metadata_path):
-            with open(metadata_path, 'r') as metadata_file:
-                metadata = json.load(metadata_file)
-        else:
-            metadata = {}
+        try:
+            if os.path.exists(metadata_path):
+                with open(metadata_path, 'r') as metadata_file:
+                    metadata = json.load(metadata_file)
+            else:
+                metadata = {}
+        except Exception as e:
+            print(e)
+            metadata = {}           
 
         uploaded_files = []
 
@@ -342,6 +345,7 @@ class TaskViewSet(viewsets.ViewSet):
                     max_index = index
 
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
+        
         for idx, file in enumerate(files):
             try:
                 # Manter o arquivo aberto e acessar diretamente os dados de memória
@@ -385,7 +389,7 @@ class TaskViewSet(viewsets.ViewSet):
                     task.available_assets.append(asset_info)
 
                 # Adicionar informações de metadados
-                metadata[filename] = {'latitude': lat_lon_alt[0], 'longitude': lat_lon_alt[1], 'altitude': lat_lon_alt[2]}
+                metadata[filename] = {'latitude': lat_lon_alt[0], 'longitude': lat_lon_alt[1], 'altitude': lat_lon_alt[2] or 0}
                 uploaded_files.append(file.name)
 
             except Exception as e:
@@ -410,8 +414,7 @@ class TaskViewSet(viewsets.ViewSet):
         videos_dir = task.assets_path("videos")
         if not os.path.exists(videos_dir):
             os.makedirs(videos_dir, exist_ok=True)
-            
-        print("videos_dir XXXX: ", videos_dir)    
+
         # Carregar o metadata.json existente, se existir
         metadata_path = os.path.join(videos_dir, 'metadata.json')
         if os.path.exists(metadata_path):
@@ -449,7 +452,6 @@ class TaskViewSet(viewsets.ViewSet):
 
                 # Extrair metadados GPS do vídeo
                 lat_lon = get_video_gps(dst_path)
-                print(lat_lon)
                 if lat_lon:
                     metadata[filename] = {'latitude': lat_lon[0], 'longitude': lat_lon[1]}
                     # Adicionar a informação em available_assets
