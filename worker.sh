@@ -52,6 +52,12 @@ start(){
 	action=$1
 
 	echo "Starting worker using broker at $WO_BROKER"
+	# Check ffmpeg version
+	python -c "import sys;import re;import subprocess;version = subprocess.Popen([\"ffmpeg\", \"--version\"], stdout=subprocess.PIPE).communicate()[0].decode().rstrip();ret = 0 if re.compile('^GDAL [2-9]\.[0-9]+').match(version) else 1; print('Checking GDAL version... ' + ('{}, excellent!'.format(version) if ret == 0 else version));sys.exit(ret);"
+	if [ $? -ne 0 ]; then
+		apt-get update;
+		apt-get install -y ffmpeg;
+	fi
 	celery -A worker worker --autoscale $(grep -c '^processor' /proc/cpuinfo),2 --max-tasks-per-child 1000 --loglevel=warn > /dev/null
 }
 
