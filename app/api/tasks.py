@@ -4,6 +4,7 @@ import shutil
 from wsgiref.util import FileWrapper
 
 import mimetypes
+import gc
 
 from shutil import copyfileobj, move
 from django.core.exceptions import ObjectDoesNotExist, SuspiciousFileOperation, ValidationError
@@ -32,6 +33,58 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import json
 import ffmpeg
 import re
+import xml.etree.ElementTree as ET
+
+Image.MAX_IMAGE_PIXELS = None
+
+def create_dzi(image_path, output_dir):
+    """
+    Converte uma imagem para o formato DZI e salva no diretório especificado.
+    """
+    image = Image.open(image_path)
+    img_width, img_height = image.size
+
+    max_level = int(image.size[0].bit_length())
+
+    dzi_dir = os.path.join(output_dir)
+    files_dir = os.path.join(dzi_dir, "metadata_files")
+    tile_size=512
+    overlap = 1
+
+
+    for level in range(max_level + 1):
+        level_dir = os.path.join(files_dir, str(level))
+        if not os.path.exists(level_dir):
+            os.makedirs(level_dir, exist_ok=True)
+
+        scale = 2 ** (max_level - level)
+        new_width = max(img_width // scale, 1)
+        new_height = max(img_height // scale, 1)
+        resized_image = image.resize((new_width, new_height), Image.LANCZOS)
+
+        for x in range(0, resized_image.width, tile_size):
+            for y in range(0, resized_image.height, tile_size):
+                box = (x, y, x + tile_size + overlap, y + tile_size + overlap)
+                tile = resized_image.crop(box)
+                tile.save(os.path.join(level_dir, f"{x // tile_size}_{y // tile_size}.jpg"))
+                tile.close()
+                gc.collect()
+
+        resized_image.close()
+        gc.collect()
+
+    # Criar arquivo XML DZI
+    root = ET.Element("Image", TileSize=str(tile_size), Overlap=str(overlap), Format="jpg", xmlns="http://schemas.microsoft.com/deepzoom/2008")
+    ET.SubElement(root, "Size", Width=str(img_width), Height=str(img_height))
+    tree = ET.ElementTree(root)
+    path_metadata = os.path.join(dzi_dir, "metadata.dzi")
+    with open(path_metadata, 'wb') as f:
+            f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
+            tree.write(f, encoding='utf-8', xml_declaration=False)
+    image.close()
+    gc.collect()
+
+    return os.path.join(dzi_dir, "metadata.dzi")
 
 def convert_to_degrees(value, ref):
     def to_degrees(val):
@@ -151,7 +204,7 @@ class TaskSerializer(serializers.ModelSerializer):
     permission_classes = [AllowAny]
     authentication_classes = []
     project = serializers.PrimaryKeyRelatedField(queryset=models.Project.objects.all())
-    processing_node = serializers.PrimaryKeyRelatedField(queryset=ProcessingNode.objects.all()) 
+    processing_node = serializers.PrimaryKeyRelatedField(queryset=ProcessingNode.objects.all())
     processing_node_name = serializers.SerializerMethodField()
     can_rerun_from = serializers.SerializerMethodField()
     statistics = serializers.SerializerMethodField()
@@ -197,7 +250,7 @@ class TaskViewSet(viewsets.ViewSet):
     Once a processing node completes processing, results are stored in the task.
     """
     queryset = models.Task.objects.all().defer('orthophoto_extent', 'dsm_extent', 'dtm_extent', )
-    
+
     parser_classes = (parsers.MultiPartParser, parsers.JSONParser, parsers.FormParser, )
     ordering_fields = '__all__'
 
@@ -315,7 +368,7 @@ class TaskViewSet(viewsets.ViewSet):
             worker_tasks.process_task.delay(task.id)
         return {'success': True, 'uploaded': [file.name for file in files]}
 
-    def upload_fotos(self, task, files):       
+    def upload_fotos(self, task, files):
         # Garantir que o diretório assets/fotos existe
         fotos_dir = task.assets_path("fotos")
         if not os.path.exists(fotos_dir):
@@ -331,7 +384,7 @@ class TaskViewSet(viewsets.ViewSet):
                 metadata = {}
         except Exception as e:
             print(e)
-            metadata = {}           
+            metadata = {}
 
         uploaded_files = []
 
@@ -345,7 +398,7 @@ class TaskViewSet(viewsets.ViewSet):
                     max_index = index
 
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
-        
+
         for idx, file in enumerate(files):
             try:
                 # Manter o arquivo aberto e acessar diretamente os dados de memória
@@ -359,7 +412,7 @@ class TaskViewSet(viewsets.ViewSet):
 
                     filename = f"foto_{max_index + idx + 1}.jpg"
                     dst_path = os.path.join(fotos_dir, filename)
-                    
+
                     # Gravar o arquivo no diretório de destino
                     with open(dst_path, 'wb+') as fd:
                         for chunk in file.chunks():
@@ -370,14 +423,14 @@ class TaskViewSet(viewsets.ViewSet):
                         image = Image.open(f)
                         exif_data = get_exif_data(image)
                         lat_lon_alt = get_lat_lon_alt(exif_data)
-                        
+
 
                         if not lat_lon_alt:
                             continue
 
                         filename = f"foto_{max_index + idx + 1}.jpg"
                         dst_path = os.path.join(fotos_dir, filename)
-                        
+
                         # Gravar o arquivo no diretório de destino
                         with open(dst_path, 'wb+') as fd:
                             f.seek(0)
@@ -408,8 +461,8 @@ class TaskViewSet(viewsets.ViewSet):
         task.images_count = len(task.scan_images())
         task.save()
         return {'success': True, 'uploaded': uploaded_files}
-    
-    def upload_videos(self, task, files):                
+
+    def upload_videos(self, task, files):
         # Garantir que o diretório assets/videos existe
         videos_dir = task.assets_path("videos")
         if not os.path.exists(videos_dir):
@@ -424,7 +477,6 @@ class TaskViewSet(viewsets.ViewSet):
             metadata = {}
 
         uploaded_files = []
-        print("load metadata")
 
         # Identificar o índice inicial para novos arquivos
         existing_files = os.listdir(videos_dir)
@@ -476,7 +528,7 @@ class TaskViewSet(viewsets.ViewSet):
 
         task.images_count = len(task.scan_images())
         task.save()
-        return {'success': True, 'uploaded': uploaded_files}    
+        return {'success': True, 'uploaded': uploaded_files}
 
     def upload_foto360(self, task, files):
         # Verificar se o arquivo é uma foto 360
@@ -509,10 +561,68 @@ class TaskViewSet(viewsets.ViewSet):
         task.save()
         return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
 
+    def upload_foto_giga(self, task, files):
+
+
+        uploaded_files = []
+
+        # Salvar os novos arquivos na pasta assets/foto_giga com nomes sequenciais
+        for idx, file in enumerate(files):
+            try:
+                filename = f"foto_giga_{idx + 1}.jpg"
+                # Garantir que o diretório assets/foto_giga existe
+                foto_giga_dir = os.path.join(task.assets_path("foto_giga"))
+                if os.path.exists(foto_giga_dir):
+                    shutil.rmtree(foto_giga_dir)
+                if not os.path.exists(foto_giga_dir):
+                    os.makedirs(foto_giga_dir, exist_ok=True)
+                dst_path = os.path.join(foto_giga_dir, filename)
+
+                 # Manter o arquivo aberto e acessar diretamente os dados de memória
+                #if isinstance(file, InMemoryUploadedFile):
+                #    image = Image.open(file)
+                #    # Converter para JPG e salvar
+                #    image = image.convert("RGB")
+                #    image.save(dst_path, "JPEG")
+                #else:
+                #    # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
+                #    with open(file.temporary_file_path(), 'rb') as f:
+                #        image = Image.open(f)
+                #        # Converter para JPG e salvar
+                #        image = image.convert("RGB")
+                #        image.save(dst_path, "JPEG")
+                # Gravar o arquivo no diretório de destino
+                with open(dst_path, 'wb+') as fd:
+                    if isinstance(file, InMemoryUploadedFile):
+                        for chunk in file.chunks():
+                            fd.write(chunk)
+                    else:
+                        with open(file.temporary_file_path(), 'rb') as f:
+                            shutil.copyfileobj(f, fd)
+
+                # Criar arquivos DZI
+                create_dzi(dst_path, foto_giga_dir)
+
+                # Adicionar a informação em available_assets
+                asset_info = f"foto_giga/metadata.dzi"
+                task.available_assets = [asset for asset in task.available_assets if not ("foto_giga" in asset or "metadata.dzi" in asset)]
+                task.save()
+                if asset_info not in task.available_assets:
+                    task.available_assets.append(asset_info)
+
+                uploaded_files.append(file.name)
+
+            except Exception as e:
+                continue
+        task.images_count = len(task.scan_images())
+        task.save()
+        return {'success': True, 'uploaded': uploaded_files}
+
     @action(detail=True, methods=['post'])
     def upload(self, request, pk=None, project_pk=None, type=""):
         project = get_and_check_project(request, project_pk, ('change_project', ))
         files = flatten_files(request.FILES)
+        print("files", files)
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
@@ -526,11 +636,13 @@ class TaskViewSet(viewsets.ViewSet):
             upload_type = request.data.get('type', 'orthophoto')
 
             if upload_type == 'foto':
-                response = self.upload_fotos(task, files)                        
-            elif upload_type == 'video':    
-                response = self.upload_videos(task, files)            
+                response = self.upload_fotos(task, files)
+            elif upload_type == 'video':
+                response = self.upload_videos(task, files)
             elif upload_type == 'foto360':
                 response = self.upload_foto360(task, files)
+            elif upload_type == 'foto_giga':
+                response = self.upload_foto_giga(task, files)
             else:  # Default to 'orthophoto'
                 response = self.upload_images(task, files)
 
@@ -540,10 +652,10 @@ class TaskViewSet(viewsets.ViewSet):
             serializer.save()
         except Exception as e:
             print(e)
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)    
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_200_OK)
-    
+
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None, project_pk=None):
@@ -643,7 +755,7 @@ class TaskNestedView(APIView):
 
 def download_file_response(request, filePath, content_disposition, download_filename=None):
     filename = os.path.basename(filePath)
-    if download_filename is None: 
+    if download_filename is None:
         download_filename = filename
     filesize = os.stat(filePath).st_size
     file = open(filePath, "rb")
@@ -677,7 +789,7 @@ def download_file_stream(request, stream, content_disposition, download_filename
 
     # For testing
     response['_stream'] = 'yes'
-    
+
     return response
 
 
@@ -692,16 +804,24 @@ class TaskDownloads(TaskNestedView):
         """
         task = self.get_and_check_task(request, pk)
 
+        # Verificar se é um pedido para DZI
+        if asset.startswith("foto_giga") and asset.endswith(".dzi"):
+            dzi_file_path = task.assets_path(asset)
+            if not os.path.exists(dzi_file_path):
+                raise exceptions.NotFound(_("Asset does not exist"))
+
+            return download_file_response(request, dzi_file_path, 'inline')
+
         # Check and download
         try:
             asset_fs = task.get_asset_file_or_stream(asset)
         except FileNotFoundError:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        is_stream = not isinstance(asset_fs, str) 
+        is_stream = not isinstance(asset_fs, str)
         if not is_stream and not os.path.isfile(asset_fs):
             raise exceptions.NotFound(_("Asset does not exist"))
-        
+
         download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
 
         if is_stream:
@@ -772,13 +892,13 @@ class TaskAssetsImport(APIView):
             raise exceptions.ValidationError(detail=_("Cannot create task, either specify a URL or upload 1 file."))
 
         chunk_index = request.data.get('dzchunkindex')
-        uuid = request.data.get('dzuuid') 
+        uuid = request.data.get('dzuuid')
         total_chunk_count = request.data.get('dztotalchunkcount', None)
 
         # Chunked upload?
         tmp_upload_file = None
         if len(files) > 0 and chunk_index is not None and uuid is not None and total_chunk_count is not None:
-            byte_offset = request.data.get('dzchunkbyteoffset', 0) 
+            byte_offset = request.data.get('dzchunkbyteoffset', 0)
 
             try:
                 chunk_index = int(chunk_index)
@@ -791,7 +911,7 @@ class TaskAssetsImport(APIView):
             tmp_upload_file = os.path.join(settings.FILE_UPLOAD_TEMP_DIR, f"{uuid}.upload")
             if os.path.isfile(tmp_upload_file) and chunk_index == 0:
                 os.unlink(tmp_upload_file)
-            
+
             with open(tmp_upload_file, 'ab') as fd:
                 fd.seek(byte_offset)
                 if isinstance(files[0], InMemoryUploadedFile):
@@ -800,7 +920,7 @@ class TaskAssetsImport(APIView):
                 else:
                     with open(files[0].temporary_file_path(), 'rb') as file:
                         fd.write(file.read())
-            
+
             if chunk_index + 1 < total_chunk_count:
                 return Response({'uploaded': True}, status=status.HTTP_200_OK)
 
