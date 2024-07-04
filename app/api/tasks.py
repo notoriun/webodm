@@ -34,6 +34,7 @@ import json
 import ffmpeg
 import re
 import xml.etree.ElementTree as ET
+import piexif
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -531,35 +532,45 @@ class TaskViewSet(viewsets.ViewSet):
         return {'success': True, 'uploaded': uploaded_files}
 
     def upload_foto360(self, task, files):
-        # Verificar se o arquivo é uma foto 360
+        print("upload_foto360")
+    
         for file in files:
-            with open(file.temporary_file_path(), 'rb') as f:
-                if not is_360_photo(f.name):
-                    #raise exceptions.ValidationError(detail=_("O arquivo não é uma foto 360"))
-                    print("O arquivo não é uma foto 360")
+            print("file", file)
+            
+            # Salvar o arquivo temporariamente para verificar os metadados
+            temp_path = os.path.join('/tmp', file.name)
+            with open(temp_path, 'wb+') as temp_file:
+                for chunk in file.chunks():
+                    temp_file.write(chunk)
+            
+            #if not is_360_photo(temp_path):
+            #    os.remove(temp_path)
+            #    raise ValidationError("O arquivo não é uma foto 360")
+            
+            # Garantir que o diretório assets existe
+            assets_dir = task.assets_path("")
+            if not os.path.exists(assets_dir):
+                os.makedirs(assets_dir, exist_ok=True)
 
-        # Garantir que o diretório assets existe
-        assets_dir = task.assets_path("")
-        if not os.path.exists(assets_dir):
-            os.makedirs(assets_dir, exist_ok=True)
-
-        # Salvar o arquivo na pasta assets com o nome foto360.jpg
-        dst_path = task.assets_path("foto360.jpg")
-        with open(dst_path, 'wb+') as fd:
-            if isinstance(files[0], InMemoryUploadedFile):
-                for chunk in files[0].chunks():
+            # Salvar o arquivo na pasta assets com o nome foto360.jpg
+            dst_path = task.assets_path("foto360.jpg")
+            print("dst_path", dst_path)
+            with open(dst_path, 'wb+') as fd:
+                for chunk in file.chunks():
+                    print("chunk")
                     fd.write(chunk)
-            else:
-                with open(files[0].temporary_file_path(), 'rb') as f:
-                    shutil.copyfileobj(f, fd)
 
-        # Adicionar "foto360.jpg" ao campo available_assets
-        if "foto360.jpg" not in task.available_assets:
-            task.available_assets.append("foto360.jpg")
+            # Remover o arquivo temporário
+            os.remove(temp_path)
 
-        task.images_count = len(task.scan_images())
-        task.save()
-        return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
+            # Adicionar "foto360.jpg" ao campo available_assets
+            if "foto360.jpg" not in task.available_assets:
+                task.available_assets.append("foto360.jpg")
+
+            task.images_count = len(task.scan_images())
+            task.save()
+            
+            return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
 
     def upload_foto_giga(self, task, files):
 
