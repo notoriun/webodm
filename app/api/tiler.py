@@ -1,52 +1,59 @@
+import os
 import json
-import rio_tiler.utils
+import rasterio
+import boto3
+from rasterio.session import AWSSession
+from rasterio.env import Env
+from contextlib import contextmanager
+from rasterio.errors import RasterioIOError, NotGeoreferencedWarning
 from rasterio.enums import ColorInterp
 from rasterio.crs import CRS
 from rasterio.features import bounds as featureBounds
-from rasterio.errors import NotGeoreferencedWarning
-import urllib
-import os
-from .common import get_asset_download_filename
-from django.http import HttpResponse
-from rio_tiler.errors import TileOutsideBounds
-from rio_tiler.utils import has_alpha_band, \
-    non_alpha_indexes, render, create_cutline
-from rio_tiler.utils import _stats as raster_stats
-from rio_tiler.models import ImageStatistics, ImageData
+from rio_tiler.errors import TileOutsideBounds, InvalidColorMapName, AlphaBandWarning
+from rio_tiler.utils import (
+    has_alpha_band,
+    non_alpha_indexes,
+    render,
+    create_cutline,
+    apply_cmap,
+)
+from rio_tiler.models import ImageStatistics
 from rio_tiler.models import Metadata as RioMetadata
 from rio_tiler.profiles import img_profiles
-from rio_tiler.colormap import cmap as colormap, apply_cmap
+from rio_tiler.colormap import cmap as colormap
 from rio_tiler.io import COGReader
-from rio_tiler.errors import InvalidColorMapName, AlphaBandWarning
 import numpy as np
+from django.http import HttpResponse
+from django.utils.translation import gettext as _
+from rest_framework import exceptions
+from rest_framework.response import Response
+import urllib
+import warnings
+from .common import get_asset_download_filename
 from .custom_colormaps_helper import custom_colormaps
 from app.raster_utils import extension_for_export_format, ZOOM_EXTRA_LEVELS
 from .hsvblend import hsv_blend
 from .hillshade import LightSource
 from .formulas import lookup_formula, get_algorithm_list, get_auto_bands
 from .tasks import TaskNestedView
-from rest_framework import exceptions
-from rest_framework.response import Response
 from worker.tasks import export_raster, export_pointcloud
-from django.utils.translation import gettext as _
-import warnings
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
 
-# Disable: NotGeoreferencedWarning: Dataset has no geotransform, gcps, or rpcs. The identity matrix be returned.
+
+# Disable specific warnings
 warnings.filterwarnings("ignore", category=NotGeoreferencedWarning)
-
-# Disable: Alpha band was removed from the output data array
 warnings.filterwarnings("ignore", category=AlphaBandWarning)
 
+# Register custom colormaps
 for custom_colormap in custom_colormaps:
     colormap = colormap.register(custom_colormap)
-
 
 def get_zoom_safe(src_dst):
     minzoom, maxzoom = src_dst.spatial_info["minzoom"], src_dst.spatial_info["maxzoom"]
     if maxzoom < minzoom:
         maxzoom = minzoom
     return minzoom, maxzoom
-
 
 def get_tile_url(task, tile_type, query_params):
     url = '/api/projects/{}/tasks/{}/{}/tiles/{{z}}/{{x}}/{{y}}'.format(task.project.id, task.id, tile_type)
@@ -55,12 +62,11 @@ def get_tile_url(task, tile_type, query_params):
     for k in ['formula', 'bands', 'rescale', 'color_map', 'hillshade']:
         if query_params.get(k):
             params[k] = query_params.get(k)
-    
+
     if len(params) > 0:
         url = url + '?' + urllib.parse.urlencode(params)
 
     return url
-
 
 def get_extent(task, tile_type):
     extent_map = {
@@ -68,7 +74,7 @@ def get_extent(task, tile_type):
         'dsm': task.dsm_extent,
         'dtm': task.dtm_extent,
     }
-    if not tile_type in extent_map:
+    if tile_type not in extent_map:
         raise exceptions.NotFound()
 
     extent = extent_map[tile_type]
@@ -78,26 +84,63 @@ def get_extent(task, tile_type):
 
     return extent
 
-
 def get_raster_path(task, tile_type):
     return task.get_asset_download_path(tile_type + ".tif")
 
 def get_pointcloud_path(task):
     return task.get_asset_download_path("georeferenced_model.laz")
 
+def get_url(task, file_type):
+    return f's3://odm/{get_raster_path(task, file_type)}'
+
+
+# Function to open COGReader with S3 connection
+from contextlib import contextmanager
+
+@contextmanager
+def open_cog_reader(url):
+
+    # Set AWS credentials
+    boto3_session = boto3.Session(
+        aws_access_key_id='ygor',
+        aws_secret_access_key='gvJL3Fuv0cAgUkEHyQAfCUzOIfKhAeHqQk9IjQpC',
+    )
+
+    # Create a rasterio AWSSession with the boto3 session and your MinIO endpoint
+    aws_session = AWSSession(
+        boto3_session,
+        endpoint_url='s3.notoriun.com.br',
+        region_name='us-east-1',  # Adjust if needed
+        profile_name=None
+    )
+
+    with rasterio.Env(
+        session=aws_session,
+        AWS_VIRTUAL_HOSTING=False,  # Important for MinIO
+        AWS_S3_ENDPOINT='s3.notoriun.com.br',
+        SSL=False,
+    ):
+        try:
+            with COGReader(url) as src:
+                yield src
+        except RasterioIOError:
+            raise exceptions.NotFound(_("Unable to read the data from S3"))
+
 
 class TileJson(TaskNestedView):
     def get(self, request, pk=None, project_pk=None, tile_type=""):
         """
-        Get tile.json for this tasks's asset type
+        Get tile.json for this task's asset type
         """
         task = self.get_and_check_task(request, pk)
 
-        raster_path = get_raster_path(task, tile_type)
-        if not os.path.isfile(raster_path):
-            raise exceptions.NotFound()
+        url = get_url(task, tile_type)
 
-        with COGReader(raster_path) as src:
+        # Remove the local file check
+        # if not os.path.isfile(raster_path):
+        #     raise exceptions.NotFound()
+
+        with open_cog_reader(url) as src:
             minzoom, maxzoom = get_zoom_safe(src)
 
         return Response({
@@ -111,11 +154,10 @@ class TileJson(TaskNestedView):
             'bounds': get_extent(task, tile_type).extent
         })
 
-
 class Bounds(TaskNestedView):
     def get(self, request, pk=None, project_pk=None, tile_type=""):
         """
-        Get the bounds for this tasks's asset type
+        Get the bounds for this task's asset type
         """
         task = self.get_and_check_task(request, pk)
 
@@ -124,11 +166,10 @@ class Bounds(TaskNestedView):
             'bounds': get_extent(task, tile_type).extent
         })
 
-
 class Metadata(TaskNestedView):
     def get(self, request, pk=None, project_pk=None, tile_type=""):
         """
-        Get the metadata for this tasks's asset type
+        Get the metadata for this task's asset type
         """
         task = self.get_and_check_task(request, pk)
         formula = self.request.query_params.get('formula')
@@ -141,7 +182,7 @@ class Metadata(TaskNestedView):
         if boundaries_feature == '': boundaries_feature = None
         if boundaries_feature is not None:
             boundaries_feature = json.loads(boundaries_feature)
-        
+
         is_auto_bands_match = False
         is_auto_bands = False
         if bands == 'auto' and formula:
@@ -151,7 +192,7 @@ class Metadata(TaskNestedView):
             expr, hrange = lookup_formula(formula, bands)
             if defined_range is not None:
                 new_range = tuple(map(float, defined_range.split(",")[:2]))
-                #Validate rescaling range
+                # Validate rescaling range
                 if hrange is not None and (new_range[0] < hrange[0] or new_range[1] > hrange[1]):
                     pass
                 else:
@@ -160,11 +201,17 @@ class Metadata(TaskNestedView):
         except ValueError as e:
             raise exceptions.ValidationError(str(e))
         pmin, pmax = 2.0, 98.0
-        raster_path = get_raster_path(task, tile_type)
-        if not os.path.isfile(raster_path):
-            raise exceptions.NotFound()
+
+        url = get_url(task, tile_type)
+        print(url)
+
+
+        # Remove the local file check
+        # if not os.path.isfile(raster_path):
+        #     raise exceptions.NotFound()
         try:
-            with COGReader(raster_path) as src:
+            with open_cog_reader(url) as src:
+                print('passou')
                 band_count = src.dataset.meta['count']
                 if boundaries_feature is not None:
                     boundaries_cutline = create_cutline(src.dataset, boundaries_feature, CRS.from_string('EPSG:4326'))
@@ -187,20 +234,19 @@ class Metadata(TaskNestedView):
                     data = np.ma.array(data)
                     data.mask = mask == 0
                     stats = {
-                        str(b + 1): raster_stats(data[b], percentiles=(pmin, pmax), bins=255, range=hrange)
+                        str(b + 1): ImageStatistics(**rasterio.features.dataset_statistics(data[b], percentiles=(pmin, pmax), bins=255, range=hrange))
                         for b in range(data.shape[0])
                     }
-                    stats = {b: ImageStatistics(**s) for b, s in stats.items()}
                     metadata = RioMetadata(statistics=stats, **src.info().dict())
                 else:
                     if (boundaries_cutline is not None) and (boundaries_bbox is not None):
-                        metadata = src.metadata(pmin=pmin, pmax=pmax, hist_options=histogram_options, nodata=nodata
-                                                , bounds=boundaries_bbox, vrt_options={'cutline': boundaries_cutline})
+                        metadata = src.metadata(pmin=pmin, pmax=pmax, hist_options=histogram_options, nodata=nodata,
+                                                bounds=boundaries_bbox, vrt_options={'cutline': boundaries_cutline})
                     else:
                         metadata = src.metadata(pmin=pmin, pmax=pmax, hist_options=histogram_options, nodata=nodata)
                 info = json.loads(metadata.json())
         except IndexError as e:
-            # Caught when trying to get an invalid raster metadata
+            # Caught when trying to get invalid raster metadata
             raise exceptions.ValidationError("Cannot retrieve raster metadata: %s" % str(e))
         # Override min/max
         if hrange:
@@ -238,9 +284,8 @@ class Metadata(TaskNestedView):
             colormaps = ['viridis', 'jet', 'terrain', 'gist_earth', 'pastel1']
         elif formula and bands:
             colormaps = ['rdylgn', 'spectral', 'rdylgn_r', 'spectral_r', 'rplumbo', 'discrete_ndvi',
-                         'better_discrete_ndvi',
-                         'viridis', 'plasma', 'inferno', 'magma', 'cividis', 'jet', 'jet_r']
-            algorithms = *get_algorithm_list(band_count),
+                         'better_discrete_ndvi', 'viridis', 'plasma', 'inferno', 'magma', 'cividis', 'jet', 'jet_r']
+            algorithms = get_algorithm_list(band_count)
             if is_auto_bands:
                 auto_bands['filter'] = bands
                 auto_bands['match'] = is_auto_bands_match
@@ -248,17 +293,17 @@ class Metadata(TaskNestedView):
         info['color_maps'] = []
         info['algorithms'] = algorithms
         info['auto_bands'] = auto_bands
-        
+
         if colormaps:
-            for cmap in colormaps:
+            for cmap_name in colormaps:
                 try:
                     info['color_maps'].append({
-                        'key': cmap,
-                        'color_map': colormap.get(cmap).values(),
-                        'label': cmap_labels.get(cmap, cmap)
+                        'key': cmap_name,
+                        'color_map': colormap.get(cmap_name).values(),
+                        'label': cmap_labels.get(cmap_name, cmap_name)
                     })
                 except FileNotFoundError:
-                    raise exceptions.ValidationError("Not a valid color_map value: %s" % cmap)
+                    raise exceptions.ValidationError("Not a valid color_map value: %s" % cmap_name)
 
         info['name'] = task.name
         info['scheme'] = 'xyz'
@@ -272,14 +317,13 @@ class Metadata(TaskNestedView):
 
         return Response(info)
 
-
 class Tiles(TaskNestedView):
     def get(self, request, pk=None, project_pk=None, tile_type="", z="", x="", y="", scale=1, ext=None):
         """
         Get a tile image
         """
         task = self.get_and_check_task(request, pk)
-        
+
         z = int(z)
         x = int(x)
         y = int(y)
@@ -347,11 +391,14 @@ class Tiles(TaskNestedView):
         if nodata is not None:
             nodata = np.nan if nodata == "nan" else float(nodata)
         tilesize = scale * tilesize
-        url = get_raster_path(task, tile_type)
-        if not os.path.isfile(url):
-            raise exceptions.NotFound()
+        url = get_url(task, tile_type)
+        #url = get_raster_path(task, tile_type)
 
-        with COGReader(url) as src:
+        # Remove the local file check
+        # if not os.path.isfile(url):
+        #     raise exceptions.NotFound()
+
+        with open_cog_reader(url) as src:
             if not src.tile_exists(z, x, y):
                 raise exceptions.NotFound(_("Outside of bounds"))
 
@@ -421,18 +468,18 @@ class Tiles(TaskNestedView):
                                         resampling_method=resampling, vrt_options={'cutline': boundaries_cutline})
                     else:
                         tile = src.tile(x, y, z, indexes=indexes, tilesize=tilesize, nodata=nodata,
-                                        padding=padding, 
+                                        padding=padding,
                                         tile_buffer=tile_buffer,
                                         resampling_method=resampling)
             except TileOutsideBounds:
                 raise exceptions.NotFound(_("Outside of bounds"))
-            
+
             if color_map:
                 try:
                     colormap.get(color_map)
                 except InvalidColorMapName:
                     raise exceptions.ValidationError(_("Not a valid color_map value"))
-            
+
             intensity = None
             try:
                 rescale_arr = list(map(float, rescale.split(",")))
@@ -467,7 +514,7 @@ class Tiles(TaskNestedView):
                 dx = src.dataset.meta["transform"][0] * delta_scale
                 dy = -src.dataset.meta["transform"][4] * delta_scale
                 ls = LightSource(azdeg=315, altdeg=45)
-                
+
                 # Remove elevation data from edge buffer tiles
                 # (to keep intensity uniform across tiles)
                 elevation = tile.data[0]
@@ -482,7 +529,7 @@ class Tiles(TaskNestedView):
             if intensity is not None:
                 rgb = tile.post_process(in_range=(rescale_arr,))
                 rgb_data = rgb.data[:,tile_buffer:tilesize+tile_buffer, tile_buffer:tilesize+tile_buffer]
-                if colormap:
+                if color_map:
                     rgb, _discard_ = apply_cmap(rgb_data, colormap.get(color_map))
                 if rgb.data.shape[0] != 3:
                     raise exceptions.ValidationError(
@@ -507,7 +554,6 @@ class Tiles(TaskNestedView):
                 tile.post_process(in_range=(rescale_arr,)).render(img_format=driver, **options),
                 content_type="image/{}".format(ext)
             )
-
 
 class Export(TaskNestedView):
     def post(self, request, pk=None, project_pk=None, asset_type=None):
@@ -538,14 +584,14 @@ class Export(TaskNestedView):
             raise exceptions.ValidationError(_("Unsupported format: %(value)s") % {'value': export_format})
         if asset_type == 'georeferenced_model' and not export_format in ['laz', 'las', 'ply', 'csv']:
             raise exceptions.ValidationError(_("Unsupported format: %(value)s") % {'value': export_format})
-        
+
         # Default color map, hillshade
         if asset_type in ['dsm', 'dtm'] and export_format != 'gtiff':
             if color_map is None:
                 color_map = 'viridis'
             if hillshade is None:
                 hillshade = 6
-        
+
         if color_map is not None:
             try:
                 colormap.get(color_map)
@@ -557,7 +603,7 @@ class Export(TaskNestedView):
                 epsg = int(epsg)
             except ValueError:
                 raise exceptions.ValidationError(_("Invalid EPSG code: %(value)s") % {'value': epsg})
-        
+
         if (formula and not bands) or (not formula and bands):
             raise exceptions.ValidationError(_("Both formula and bands parameters are required"))
 
@@ -569,21 +615,21 @@ class Export(TaskNestedView):
                 expr, _discard_ = lookup_formula(formula, bands)
             except ValueError as e:
                 raise exceptions.ValidationError(str(e))
-        
+
         if export_format in ['gtiff-rgb', 'jpg', 'png']:
             if formula is not None and rescale is None:
                 rescale = "-1,1"
-        
+
         if export_format == 'gtiff':
             rescale = None
-        
+
         if rescale is not None:
             rescale = rescale.replace("%2C", ",")
             try:
                 rescale = list(map(float, rescale.split(",")))
             except ValueError:
                 raise exceptions.ValidationError(_("Invalid rescale value: %(value)s") % {'value': rescale})
-        
+
         if hillshade is not None:
             try:
                 hillshade = float(hillshade)
@@ -591,18 +637,18 @@ class Export(TaskNestedView):
                     raise Exception("Hillshade must be > 0")
             except:
                 raise exceptions.ValidationError(_("Invalid hillshade value: %(value)s") % {'value': hillshade})
-        
+
         if asset_type == 'georeferenced_model':
             url = get_pointcloud_path(task)
         else:
-            url = get_raster_path(task, asset_type)
+            url = get_url(task, asset_type)
 
         if not os.path.isfile(url):
             raise exceptions.NotFound()
 
         if epsg is not None and task.epsg is None:
             raise exceptions.ValidationError(_("Cannot use epsg on non-georeferenced dataset"))
-        
+
         # Strip unsafe chars, append suffix
         extension = extension_for_export_format(export_format)
         filename = "{}{}.{}".format(
@@ -616,10 +662,10 @@ class Export(TaskNestedView):
             if export_format == 'gtiff' and (epsg == task.epsg or epsg is None) and expr is None:
                 return Response({'url': '/api/projects/{}/tasks/{}/download/{}.tif'.format(task.project.id, task.id, asset_type), 'filename': filename})
             else:
-                celery_task_id = export_raster.delay(url, epsg=epsg, 
-                                                        expression=expr, 
-                                                        format=export_format, 
-                                                        rescale=rescale, 
+                celery_task_id = export_raster.delay(url, epsg=epsg,
+                                                        expression=expr,
+                                                        format=export_format,
+                                                        rescale=rescale,
                                                         color_map=color_map,
                                                         hillshade=hillshade,
                                                         asset_type=asset_type,
@@ -630,6 +676,6 @@ class Export(TaskNestedView):
             if export_format == 'laz' and (epsg == task.epsg or epsg is None):
                 return Response({'url': '/api/projects/{}/tasks/{}/download/{}.laz'.format(task.project.id, task.id, asset_type), 'filename': filename})
             else:
-                celery_task_id = export_pointcloud.delay(url, epsg=epsg, 
+                celery_task_id = export_pointcloud.delay(url, epsg=epsg,
                                                             format=export_format).task_id
                 return Response({'celery_task_id': celery_task_id, 'filename': filename})

@@ -56,11 +56,13 @@ class TaskInterruptedException(Exception):
     pass
 
 def task_directory_path(taskId, projectId):
-    return 'project/{0}/task/{1}/'.format(projectId, taskId)
+    #return 'project/{0}/task/{1}/'.format(projectId, taskId)
+    return '{0}/{1}/'.format(projectId, taskId)
 
 
 def full_task_directory_path(taskId, projectId, *args):
-    return os.path.join(settings.MEDIA_ROOT, task_directory_path(taskId, projectId), *args)
+    #return os.path.join(settings.MEDIA_ROOT, task_directory_path(taskId, projectId), *args)
+    return os.path.join(task_directory_path(taskId, projectId), *args)
 
 
 def assets_directory_path(taskId, projectId, filename):
@@ -368,8 +370,8 @@ class Task(models.Model):
         """
         Get path relative to the root task directory
         """
-        return os.path.join(settings.MEDIA_ROOT,
-                            assets_directory_path(self.id, self.project.id, ""),
+        #return os.path.join(settings.MEDIA_ROOT,
+        return os.path.join(assets_directory_path(self.id, self.project.id, ""),
                             *args)
 
     def is_asset_available_slow(self, asset):
