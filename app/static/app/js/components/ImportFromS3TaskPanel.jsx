@@ -6,12 +6,10 @@ import csrf from "../django/csrf";
 import ErrorMessage from "./ErrorMessage";
 import UploadProgressBar from "./UploadProgressBar";
 import { _, interpolate } from "../classes/gettext";
-import Trans from "./Trans";
 import "../css/NewTaskPanel.scss";
 import EditTaskForm from "./EditTaskForm";
 import Storage from "../classes/Storage";
 import ResizeModes from "../classes/ResizeModes";
-import MapPreview from "./MapPreview";
 import update from "immutability-helper";
 import PluginsAPI from "../classes/plugins/API";
 
@@ -366,15 +364,13 @@ class ImportFromS3TaskPanel extends React.Component {
         url: this.state.importS3Url,
         accessKey: this.state.importS3Key,
         secret: this.state.importS3Secret,
-        bucket: this.state.importS3Bucket,
+        images: this.state.importS3Bucket,
       }
     )
-      .done((json) => {
+      .done(() => {
         this.setState({ loading: false, importingFromS3Url: false });
-        console.log("salvou a task ", task.name, task.id);
 
-        // if (json.id) {
-        // this.props.onImported();
+        this.props.onImported();
         // } else {
         //   this.setState({
         //     error:
@@ -757,8 +753,6 @@ class NewTaskPanel extends React.Component {
 
   constructor(props) {
     super(props);
-
-    this.state = {};
   }
 
   render() {
@@ -802,25 +796,12 @@ class NewTaskPanel extends React.Component {
               ""
             )}
 
-            {this.state.showMapPreview ? (
-              <MapPreview
-                getFiles={this.props.getFiles}
-                onPolygonChange={this.handlePolygonChange}
-                ref={(domNode) => {
-                  this.mapPreview = domNode;
-                }}
-              />
-            ) : (
-              ""
-            )}
-
             <EditTaskForm
               selectedNode={Storage.getItem("last_processing_node") || "auto"}
               onFormLoaded={this.handleFormTaskLoaded}
               onFormChanged={this.handleFormChanged}
               inReview={this.state.inReview}
-              suggestedTaskName={this.handleSuggestedTaskName}
-              getCropPolygon={this.getCropPolygon}
+              suggestedTaskName={this.props.suggestedTaskName}
               ref={(domNode) => {
                 if (domNode) this.taskForm = domNode;
               }}
