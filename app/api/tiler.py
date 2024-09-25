@@ -2,6 +2,8 @@ import os
 import json
 import rasterio
 import boto3
+import re
+from botocore.client import Config
 from rasterio.session import AWSSession
 from rasterio.env import Env
 from contextlib import contextmanager
@@ -37,6 +39,7 @@ from .hillshade import LightSource
 from .formulas import lookup_formula, get_algorithm_list, get_auto_bands
 from .tasks import TaskNestedView
 from worker.tasks import export_raster, export_pointcloud
+from webodm import settings
 #import logging
 #logging.basicConfig(level=logging.DEBUG)
 
@@ -91,7 +94,12 @@ def get_pointcloud_path(task):
     return task.get_asset_download_path("georeferenced_model.laz")
 
 def get_url(task, file_type):
-    return f's3://odm/{get_raster_path(task, file_type)}'
+    raster_path = get_raster_path(task, file_type)
+
+    if len(task.s3_images) > 0:
+        return raster_path
+
+    return f's3://odm/{raster_path}'
 
 
 # Function to open COGReader with S3 connection
@@ -99,33 +107,42 @@ from contextlib import contextmanager
 
 @contextmanager
 def open_cog_reader(url):
+    endpoint_url = sanitize_s3_endpoint(settings.S3_DOWNLOAD_ENDPOINT)
+    access_key = settings.S3_DOWNLOAD_ACCESS_KEY
+    secret_key = settings.S3_dOWNLOAD_SECRET_KEY
 
-    # Set AWS credentials
-    boto3_session = boto3.Session(
-        aws_access_key_id='ygor',
-        aws_secret_access_key='gvJL3Fuv0cAgUkEHyQAfCUzOIfKhAeHqQk9IjQpC',
-    )
+    try:
+        # Set AWS credentials
+        boto3_session = boto3.Session(
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+        )
 
-    # Create a rasterio AWSSession with the boto3 session and your MinIO endpoint
-    aws_session = AWSSession(
-        boto3_session,
-        endpoint_url='s3.notoriun.com.br',
-        region_name='us-east-1',  # Adjust if needed
-        profile_name=None
-    )
+        # Create a rasterio AWSSession with the boto3 session and your MinIO endpoint
+        aws_session = AWSSession(
+            boto3_session,
+            endpoint_url=endpoint_url,
+            region_name='us-east-1',  # Adjust if needed
+            profile_name=None
+        )
 
-    with rasterio.Env(
-        session=aws_session,
-        AWS_VIRTUAL_HOSTING=False,  # Important for MinIO
-        AWS_S3_ENDPOINT='s3.notoriun.com.br',
-        SSL=False,
-    ):
-        try:
+        with rasterio.Env(
+            session=aws_session,
+            AWS_VIRTUAL_HOSTING=False,  # Important for MinIO
+            AWS_S3_ENDPOINT=endpoint_url,
+            SSL=False,
+        ):
             with COGReader(url) as src:
                 yield src
-        except RasterioIOError:
-            raise exceptions.NotFound(_("Unable to read the data from S3"))
+    except RasterioIOError:
+        raise exceptions.NotFound(_("Unable to read the data from S3"))
+    except Exception as e:
+        print(e)
+        raise e
 
+def sanitize_s3_endpoint(s3_endpoint: str):
+    without_last_slash = s3_endpoint[0:-1] if s3_endpoint[-1] == '/' else s3_endpoint
+    return re.sub(r'(http|https)://', '', without_last_slash)
 
 class TileJson(TaskNestedView):
     def get(self, request, pk=None, project_pk=None, tile_type=""):
@@ -203,7 +220,6 @@ class Metadata(TaskNestedView):
         pmin, pmax = 2.0, 98.0
 
         url = get_url(task, tile_type)
-        print(url)
 
 
         # Remove the local file check
@@ -211,7 +227,6 @@ class Metadata(TaskNestedView):
         #     raise exceptions.NotFound()
         try:
             with open_cog_reader(url) as src:
-                print('passou')
                 band_count = src.dataset.meta['count']
                 if boundaries_feature is not None:
                     boundaries_cutline = create_cutline(src.dataset, boundaries_feature, CRS.from_string('EPSG:4326'))
