@@ -6,6 +6,8 @@ import struct
 from datetime import datetime
 import uuid as uuid_module
 from app.vendor import zipfly
+import boto3
+from botocore.client import Config
 
 import json
 from shlex import quote
@@ -236,6 +238,8 @@ class Task(models.Model):
         (pending_actions.RESTART, 'RESTART'),
         (pending_actions.RESIZE, 'RESIZE'),
         (pending_actions.IMPORT, 'IMPORT'),
+        (pending_actions.IMPORT_FROM_S3, 'IMPORT_FROM_S3'),
+        (pending_actions.IMPORT_FROM_S3_WITH_RESIZE, 'IMPORT_FROM_S3_WITH_RESIZE'),
     )
 
     TASK_PROGRESS_LAST_VALUE = 0.85
@@ -284,6 +288,7 @@ class Task(models.Model):
     tags = models.TextField(db_index=True, default="", blank=True, help_text=_("Task tags"), verbose_name=_("Tags"))
     orthophoto_bands = fields.JSONField(default=list, blank=True, help_text=_("List of orthophoto bands"), verbose_name=_("Orthophoto Bands"))
     size = models.FloatField(default=0.0, blank=True, help_text=_("Size of the task on disk in megabytes"), verbose_name=_("Size"))
+    s3_images = fields.JSONField(default=list, blank=True, help_text=_("List s3 buckets with images"), verbose_name=_("S3 buckets images"))
     
     class Meta:
         verbose_name = _("Task")
@@ -615,6 +620,38 @@ class Task(models.Model):
         self.pending_action = None
         self.save()
 
+    def handle_s3_import(self):
+        endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
+        access_key = settings.S3_DOWNLOAD_ACCESS_KEY
+        secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+
+        try:
+            # Criar o cliente S3 utilizando boto3
+            s3_client = boto3.client('s3',
+                                endpoint_url=endpoint_url,
+                                aws_access_key_id=access_key,
+                                aws_secret_access_key=secret_key,
+                                config=Config(signature_version='s3v4'))
+            
+            fotos_s3_dir = self._create_task_s3_download_dir()
+            downloaded_images = []
+
+            for image in self.s3_images:
+                bucket, image_path = image.replace('s3://', '').split('/', 1)
+                image_index = self.s3_images.index(image)
+                original_image_filename = image_path.rsplit('/')[-1]
+                destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
+                s3_client.download_file(bucket, image_path, destiny_image_filename)
+                downloaded_images.append(destiny_image_filename)
+        
+        except Exception as e:
+            raise NodeServerError(e)
+
+        self.images_count = len(downloaded_images)
+        self.pending_action = pending_actions.RESIZE if self.pending_action == pending_actions.IMPORT_FROM_S3_WITH_RESIZE else None
+        self.update_size()
+        self.save()
+
     def process(self):
         """
         This method contains the logic for processing tasks asynchronously
@@ -624,6 +661,9 @@ class Task(models.Model):
         """
 
         try:
+            if self.pending_action in [pending_actions.IMPORT_FROM_S3, pending_actions.IMPORT_FROM_S3_WITH_RESIZE]:
+                self.handle_s3_import()
+
             if self.pending_action == pending_actions.IMPORT:
                 self.handle_import()
 
@@ -1271,3 +1311,9 @@ class Task(models.Model):
             self.project.owner.profile.clear_used_quota_cache()
         except Exception as e:
             logger.warn("Cannot update size for task {}: {}".format(self, str(e)))
+
+    def _create_task_s3_download_dir(self):
+        fotos_s3_dir = self.task_path()
+        if not os.path.exists(fotos_s3_dir):
+            os.makedirs(fotos_s3_dir, exist_ok=True)
+        return fotos_s3_dir

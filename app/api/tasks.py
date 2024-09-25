@@ -357,6 +357,7 @@ class TaskViewSet(viewsets.ViewSet):
 
         serializer = TaskSerializer(task)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def upload_images(self, task, files):
         if len(files) <= 1:
             raise exceptions.ValidationError(detail=_("Cannot create task, you need at least 2 images"))
@@ -667,6 +668,25 @@ class TaskViewSet(viewsets.ViewSet):
 
         return Response(response, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path="start-download-from-s3")
+    def start_download_from_s3(self, request, pk=None, project_pk=None):
+        """
+        Download images from s3 to task
+        """
+        get_and_check_project(request, project_pk, ('change_project', ))
+        try:
+            task = self.queryset.get(pk=pk, project=project_pk)
+        except (ObjectDoesNotExist, ValidationError):
+            raise exceptions.NotFound()
+
+        imagesParam = request.data.get('images', '')
+        images = imagesParam.split(',')
+        task.s3_images = images
+        task.pending_action = pending_actions.IMPORT_FROM_S3_WITH_RESIZE if task.pending_action == pending_actions.RESIZE else pending_actions.IMPORT_FROM_S3
+        task.partial = False
+        task.save()
+        worker_tasks.process_task.delay(task.id)
+        return Response({'success': True, 'uploaded': images}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None, project_pk=None):

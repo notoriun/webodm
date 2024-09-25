@@ -398,6 +398,10 @@ if TESTING or FLUSHING:
     CELERY_TASK_ALWAYS_EAGER = True
     EXTERNAL_AUTH_ENDPOINT = 'http://0.0.0.0:5555/auth'
 
+S3_DOWNLOAD_ENDPOINT = "https://s3.notoriun.com.br/"
+S3_DOWNLOAD_ACCESS_KEY = 'ygor'
+S3_dOWNLOAD_SECRET_KEY = 'gvJL3Fuv0cAgUkEHyQAfCUzOIfKhAeHqQk9IjQpC'
+
 try:
     from .local_settings import *
 except ImportError:
