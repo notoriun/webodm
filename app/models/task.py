@@ -34,6 +34,7 @@ from django.utils import timezone
 from urllib3.exceptions import ReadTimeoutError
 
 from app import pending_actions
+from app import image_origins
 from django.contrib.gis.db.models.fields import GeometryField
 
 from app.cogeo import assure_cogeo
@@ -242,6 +243,11 @@ class Task(models.Model):
         (pending_actions.IMPORT_FROM_S3_WITH_RESIZE, 'IMPORT_FROM_S3_WITH_RESIZE'),
     )
 
+    IMAGE_ORIGINS = (
+        (image_origins.USER_UPLOAD, 'USER_UPLOAD'),
+        (image_origins.S3, 'S3'),
+    )
+
     TASK_PROGRESS_LAST_VALUE = 0.85
 
     id = models.UUIDField(primary_key=True, default=uuid_module.uuid4, unique=True, serialize=False, editable=False, verbose_name=_("Id"))
@@ -289,6 +295,7 @@ class Task(models.Model):
     orthophoto_bands = fields.JSONField(default=list, blank=True, help_text=_("List of orthophoto bands"), verbose_name=_("Orthophoto Bands"))
     size = models.FloatField(default=0.0, blank=True, help_text=_("Size of the task on disk in megabytes"), verbose_name=_("Size"))
     s3_images = fields.JSONField(default=list, blank=True, help_text=_("List s3 buckets with images"), verbose_name=_("S3 buckets images"))
+    image_origin = models.IntegerField(choices=IMAGE_ORIGINS, default=image_origins.USER_UPLOAD, null=False, blank=False, help_text=_("From where the image come."), verbose_name=_("Image Origin"))
     
     class Meta:
         verbose_name = _("Task")
@@ -784,6 +791,9 @@ class Task(models.Model):
 
                         if uuid_still_exists:
                             # Good to go
+                            if self.image_origin == image_origins.S3:
+                                self.handle_s3_import()
+
                             try:
                                 self.processing_node.restart_task(self.uuid, self.options)
                             except (NodeServerError, NodeResponseError) as e:
@@ -810,7 +820,7 @@ class Task(models.Model):
                         self.processing_time = -1
                         self.status = None
                         self.last_error = None
-                        self.pending_action = None
+                        self.pending_action = pending_actions.IMPORT_FROM_S3 if self.image_origin == image_origins.S3 else None
                         self.running_progress = 0
                         self.save()
                     else:

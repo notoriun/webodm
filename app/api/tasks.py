@@ -18,7 +18,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app import models, pending_actions
+from app import models, pending_actions, image_origins
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
@@ -679,11 +679,12 @@ class TaskViewSet(viewsets.ViewSet):
         except (ObjectDoesNotExist, ValidationError):
             raise exceptions.NotFound()
 
-        imagesParam = request.data.get('images', '')
+        imagesParam: str = request.data.get('images', '')
         images = imagesParam.split(',')
-        task.s3_images = images
+        task.s3_images = [image.strip() for image in images if len(image.strip()) > 0]
         task.pending_action = pending_actions.IMPORT_FROM_S3_WITH_RESIZE if task.pending_action == pending_actions.RESIZE else pending_actions.IMPORT_FROM_S3
         task.partial = False
+        task.image_origin = image_origins.S3
         task.save()
         worker_tasks.process_task.delay(task.id)
         return Response({'success': True, 'uploaded': images}, status=status.HTTP_200_OK)
