@@ -15,14 +15,12 @@ import PluginsAPI from "../classes/plugins/API";
 
 class ImportFromS3TaskPanel extends React.Component {
   static defaultProps = {
-    filesCount: 0,
     showResize: false,
   };
 
   static propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func,
-    filesCount: PropTypes.number,
     showResize: PropTypes.bool,
     getFiles: PropTypes.func,
     suggestedTaskName: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
@@ -49,14 +47,10 @@ class ImportFromS3TaskPanel extends React.Component {
       showMapPreview: false,
 
       error: "",
-      typeS3Url: false,
       importingFromS3Url: false,
       progress: 0,
       bytesSent: 0,
-      importS3Url: "",
-      importS3Key: "",
-      importS3Secret: "",
-      importS3Bucket: "",
+      s3Images: [""],
 
       taskId: null,
     };
@@ -67,6 +61,8 @@ class ImportFromS3TaskPanel extends React.Component {
     this.setResizeMode = this.setResizeMode.bind(this);
     this.handleResizeSizeChange = this.handleResizeSizeChange.bind(this);
     this.handleFormChanged = this.handleFormChanged.bind(this);
+    this.getHandleChangeS3Image = this.getHandleChangeS3Image.bind(this);
+    this.handleAddS3Image = this.handleAddS3Image.bind(this);
   }
 
   defaultTaskName = () => {
@@ -119,7 +115,6 @@ class ImportFromS3TaskPanel extends React.Component {
         })
         .on("sending", () => {
           this.setState({
-            typeS3Url: false,
             typeUrl: false,
             uploading: true,
             totalCount: 1,
@@ -177,12 +172,6 @@ class ImportFromS3TaskPanel extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.filesCount !== prevProps.filesCount && this.mapPreview) {
-      this.mapPreview.loadNewFiles();
-    }
-  }
-
   cancel = (e) => {
     this.cancelUpload();
 
@@ -204,64 +193,24 @@ class ImportFromS3TaskPanel extends React.Component {
     }, 0);
   };
 
-  handleImportFromS3 = () => {
-    this.setState({ typeS3Url: !this.state.typeS3Url, typeUrl: false });
+  getHandleChangeS3Image = (index) => (e) => {
+    this.setState({
+      s3Images: this.state.s3Images.map((image, i) =>
+        i === index ? e.target.value : image
+      ),
+    });
   };
 
-  handleCancelImportFromS3URL = () => {
-    this.setState({ typeS3Url: false });
+  getHandleRemoveS3Image = (index) => () => {
+    this.setState({
+      s3Images: this.state.s3Images.filter((_, i) => i !== index),
+    });
   };
 
-  handleChangeImportS3Url = (e) => {
-    this.setState({ importS3Url: e.target.value });
-  };
-
-  handleChangeImportS3Key = (e) => {
-    this.setState({ importS3Key: e.target.value });
-  };
-
-  handleChangeImportS3Secret = (e) => {
-    this.setState({ importS3Secret: e.target.value });
-  };
-
-  handleChangeImportS3Bucket = (e) => {
-    this.setState({ importS3Bucket: e.target.value });
-  };
-
-  handleConfirmImportS3Url = () => {
-    this.setState({ importingFromS3Url: true, importingFromUrl: false });
-
-    `/api/projects/${this.state.data.id}/tasks/${task.id}/upload/`;
-    $.post(`/api/projects/${this.props.projectId}/tasks/s3-import`, {
-      url: this.state.importS3Url,
-      accessKey: this.state.importS3Key,
-      secret: this.state.importS3Secret,
-      bucket: this.state.importS3Bucket,
-      name: this.defaultTaskName(),
-    })
-      .done((json) => {
-        this.setState({ importingFromS3Url: false });
-
-        // if (json.id) {
-        // this.props.onImported();
-        // } else {
-        //   this.setState({
-        //     error:
-        //       json.error ||
-        //       interpolate(_("Invalid JSON response: %(error)s"), {
-        //         error: JSON.stringify(json),
-        //       }),
-        //   });
-        // }
-      })
-      .fail(() => {
-        this.setState({
-          importingFromS3Url: false,
-          error: _(
-            "Cannot import from this S3 URL. Check your internet connection."
-          ),
-        });
-      });
+  handleAddS3Image = () => {
+    this.setState({
+      s3Images: [...this.state.s3Images, ""],
+    });
   };
 
   setRef = (prop) => {
@@ -361,10 +310,7 @@ class ImportFromS3TaskPanel extends React.Component {
     $.post(
       `/api/projects/${this.props.projectId}/tasks/${this.state.taskId}/start-download-from-s3/`,
       {
-        url: this.state.importS3Url,
-        accessKey: this.state.importS3Key,
-        secret: this.state.importS3Secret,
-        images: this.state.importS3Bucket,
+        images: this.state.s3Images.join(","),
       }
     )
       .done(() => {
@@ -392,46 +338,10 @@ class ImportFromS3TaskPanel extends React.Component {
   }
 
   render() {
-    let filesCountOk = true;
-    if (this.taskForm && !this.taskForm.checkFilesCount(this.props.filesCount))
-      filesCountOk = false;
-
     return (
       <div className="new-task-panel theme-background-highlight">
         <div className="form-horizontal">
           <div className={this.state.inReview ? "disabled" : ""}>
-            <p>
-              {interpolate(
-                _(
-                  "%(count)s files selected. Please check these additional options:"
-                ),
-                { count: this.props.filesCount }
-              )}
-            </p>
-
-            {!filesCountOk ? (
-              <div className="alert alert-warning">
-                {interpolate(
-                  _(
-                    "Number of files selected exceeds the maximum of %(count)s allowed on this processing node."
-                  ),
-                  { count: this.taskForm.selectedNodeMaxImages() }
-                )}
-                <button
-                  onClick={this.props.onCancel}
-                  type="button"
-                  className="btn btn-xs btn-primary redo"
-                >
-                  <span>
-                    <i className="glyphicon glyphicon-remove-circle"></i>{" "}
-                    {_("Cancel")}
-                  </span>
-                </button>
-              </div>
-            ) : (
-              ""
-            )}
-
             {this.state.showMapPreview ? (
               <MapPreview
                 getFiles={this.props.getFiles}
@@ -514,7 +424,7 @@ class ImportFromS3TaskPanel extends React.Component {
                     <Item
                       taskInfo={this.state.taskInfo}
                       getFiles={this.props.getFiles}
-                      filesCount={this.props.filesCount}
+                      filesCount={0}
                     />
                   </div>
                 ))}
@@ -526,79 +436,51 @@ class ImportFromS3TaskPanel extends React.Component {
 
           {this.state.editTaskFormLoaded ? (
             <React.Fragment>
-              <div className="form-group">
-                <label className="col-sm-2 control-label">
-                  {_("S3 Endpoint")}
-                </label>
-                <div className="col-sm-10">
-                  <input
-                    disabled={
+              {this.state.s3Images.map((image, imageIndex) => (
+                <div className="form-group">
+                  <label className="col-sm-2 control-label">
+                    {_("S3 Bucket URL") + ` #${imageIndex}`}
+                  </label>
+                  <div
+                    className={
                       this.state.inReview || this.state.importingFromS3Url
+                        ? "col-sm-10"
+                        : "col-sm-8"
                     }
-                    onChange={this.handleChangeImportS3Url}
-                    size="45"
-                    type="text"
-                    className="form-control"
-                    placeholder="http://"
-                    value={this.state.importS3Url}
-                  />
+                  >
+                    <input
+                      disabled={
+                        this.state.inReview || this.state.importingFromS3Url
+                      }
+                      onChange={this.getHandleChangeS3Image(imageIndex)}
+                      size="45"
+                      type="text"
+                      className="form-control"
+                      placeholder="s3://"
+                      value={image}
+                    />
+                  </div>
+                  {this.state.inReview || this.state.importingFromS3Url ? (
+                    ""
+                  ) : imageIndex < this.state.s3Images.length - 1 ? (
+                    <button
+                      type="submit"
+                      className="btn btn-danger col-sm-2"
+                      onClick={this.getHandleRemoveS3Image(imageIndex)}
+                    >
+                      <i className="glyphicon glyphicon-minus"></i>
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="btn btn-info col-sm-2"
+                      onClick={this.handleAddS3Image}
+                    >
+                      <i className="glyphicon glyphicon-plus"></i>
+                    </button>
+                  )}
                 </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-2 control-label">
-                  {_("S3 Access Key")}
-                </label>
-                <div className="col-sm-10">
-                  <input
-                    disabled={
-                      this.state.inReview || this.state.importingFromS3Url
-                    }
-                    onChange={this.handleChangeImportS3Key}
-                    size="45"
-                    type="text"
-                    className="form-control"
-                    placeholder="Access Key"
-                    value={this.state.importS3Key}
-                    id="s3-access-key-input"
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-2 control-label">
-                  {_("S3 Secret Key")}
-                </label>
-                <div className="col-sm-10">
-                  <input
-                    disabled={
-                      this.state.inReview || this.state.importingFromS3Url
-                    }
-                    onChange={this.handleChangeImportS3Secret}
-                    size="45"
-                    type="text"
-                    className="form-control"
-                    placeholder="Secret Key"
-                    value={this.state.importS3Secret}
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-2 control-label">
-                  {_("S3 Bucket URL")}
-                </label>
-                <div className="col-sm-10">
-                  <input
-                    disabled={
-                      this.state.inReview || this.state.importingFromS3Url
-                    }
-                    onChange={this.handleChangeImportS3Bucket}
-                    size="45"
-                    type="text"
-                    className="form-control"
-                    placeholder="s3://"
-                    value={this.state.importS3Bucket}
-                  />
-                </div>
-              </div>
+              ))}
               <div className="form-group">
                 <div className="col-sm-offset-2 col-sm-10 text-right">
                   {this.props.onCancel !== undefined && (
@@ -653,35 +535,6 @@ class ImportFromS3TaskPanel extends React.Component {
             <span aria-hidden="true">&times;</span>
           </button>
 
-          <button
-            disabled={this.state.uploading}
-            type="button"
-            className="btn btn-primary"
-            onClick={this.handleImportFromS3}
-            ref={this.setRef("importFromS3Button")}
-          >
-            <i className="glyphicon glyphicon-cloud-download"></i>
-            {_("Import From S3")}
-          </button>
-
-          {this.state.typeS3Url ? (
-            <div className="form-group">
-              <button
-                onClick={this.handleConfirmImportS3Url}
-                disabled={
-                  this.state.importS3Url.length < 4 ||
-                  this.state.importingFromS3Url
-                }
-                className="btn-import btn btn-primary"
-              >
-                <i className="glyphicon glyphicon-cloud-download"></i>{" "}
-                {_("Import")}
-              </button>
-            </div>
-          ) : (
-            ""
-          )}
-
           {this.state.uploading ? (
             <div>
               <UploadProgressBar {...this.state} />
@@ -693,223 +546,6 @@ class ImportFromS3TaskPanel extends React.Component {
                 <i className="glyphicon glyphicon-remove-circle"></i>
                 {_("Cancel Upload")}
               </button>
-            </div>
-          ) : (
-            ""
-          )}
-        </div>
-      </div>
-    );
-  }
-}
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
-
-class NewTaskPanel extends React.Component {
-  static defaultProps = {
-    filesCount: 0,
-    showResize: false,
-  };
-
-  static propTypes = {
-    onSave: PropTypes.func.isRequired,
-    onCancel: PropTypes.func,
-    filesCount: PropTypes.number,
-    showResize: PropTypes.bool,
-    getFiles: PropTypes.func,
-    suggestedTaskName: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-  };
-
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    let filesCountOk = true;
-    if (this.taskForm && !this.taskForm.checkFilesCount(this.props.filesCount))
-      filesCountOk = false;
-
-    return (
-      <div className="new-task-panel theme-background-highlight">
-        <div className="form-horizontal">
-          <div className={this.state.inReview ? "disabled" : ""}>
-            <p>
-              {interpolate(
-                _(
-                  "%(count)s files selected. Please check these additional options:"
-                ),
-                { count: this.props.filesCount }
-              )}
-            </p>
-
-            {!filesCountOk ? (
-              <div className="alert alert-warning">
-                {interpolate(
-                  _(
-                    "Number of files selected exceeds the maximum of %(count)s allowed on this processing node."
-                  ),
-                  { count: this.taskForm.selectedNodeMaxImages() }
-                )}
-                <button
-                  onClick={this.props.onCancel}
-                  type="button"
-                  className="btn btn-xs btn-primary redo"
-                >
-                  <span>
-                    <i className="glyphicon glyphicon-remove-circle"></i>{" "}
-                    {_("Cancel")}
-                  </span>
-                </button>
-              </div>
-            ) : (
-              ""
-            )}
-
-            <EditTaskForm
-              selectedNode={Storage.getItem("last_processing_node") || "auto"}
-              onFormLoaded={this.handleFormTaskLoaded}
-              onFormChanged={this.handleFormChanged}
-              inReview={this.state.inReview}
-              suggestedTaskName={this.props.suggestedTaskName}
-              ref={(domNode) => {
-                if (domNode) this.taskForm = domNode;
-              }}
-            />
-
-            {this.state.editTaskFormLoaded && this.props.showResize ? (
-              <div>
-                <div className="form-group">
-                  <label className="col-sm-2 control-label">
-                    {_("Resize Images")}
-                  </label>
-                  <div className="col-sm-10">
-                    <div className="btn-group">
-                      <button
-                        type="button"
-                        className="btn btn-default dropdown-toggle"
-                        data-toggle="dropdown"
-                      >
-                        {ResizeModes.toHuman(this.state.resizeMode)}{" "}
-                        <span className="caret"></span>
-                      </button>
-                      <ul className="dropdown-menu">
-                        {ResizeModes.all().map((mode) => (
-                          <li key={mode}>
-                            <a
-                              href="javascript:void(0);"
-                              onClick={this.setResizeMode(mode)}
-                            >
-                              <i
-                                style={{
-                                  opacity:
-                                    this.state.resizeMode === mode ? 1 : 0,
-                                }}
-                                className="fa fa-check"
-                              ></i>{" "}
-                              {ResizeModes.toHuman(mode)}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div
-                      className={
-                        "resize-control " +
-                        (this.state.resizeMode === ResizeModes.NO ? "hide" : "")
-                      }
-                    >
-                      <input
-                        type="number"
-                        step="100"
-                        className="form-control"
-                        onChange={this.handleResizeSizeChange}
-                        value={this.state.resizeSize}
-                      />
-                      <span>{_("px")}</span>
-                    </div>
-                  </div>
-                </div>
-                {this.state.items.map((Item, i) => (
-                  <div key={i} className="form-group">
-                    <Item
-                      taskInfo={this.state.taskInfo}
-                      getFiles={this.props.getFiles}
-                      filesCount={this.props.filesCount}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              ""
-            )}
-          </div>
-
-          {this.state.editTaskFormLoaded ? (
-            <div className="form-group">
-              <div className="col-sm-offset-2 col-sm-10 text-right">
-                {this.props.onCancel !== undefined && (
-                  <button
-                    type="submit"
-                    className="btn btn-danger"
-                    onClick={this.cancel}
-                    style={{ marginRight: 4 }}
-                  >
-                    <i className="glyphicon glyphicon-remove-circle"></i>{" "}
-                    {_("Cancel")}
-                  </button>
-                )}
-                {this.state.loading ? (
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={true}
-                  >
-                    <i className="fa fa-circle-notch fa-spin fa-fw"></i>
-                    {_("Loading…")}
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    onClick={this.save}
-                    disabled={this.props.filesCount < 1 || !filesCountOk}
-                  >
-                    <i className="glyphicon glyphicon-saved"></i>{" "}
-                    {!this.state.inReview ? _("Review") : _("Start Processing")}
-                  </button>
-                )}
-              </div>
             </div>
           ) : (
             ""
