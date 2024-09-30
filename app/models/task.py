@@ -628,6 +628,7 @@ class Task(models.Model):
         self.save()
 
     def handle_s3_import(self):
+        logger.info("donwloading images from s3")
         endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
         access_key = settings.S3_DOWNLOAD_ACCESS_KEY
         secret_key = settings.S3_dOWNLOAD_SECRET_KEY
@@ -774,6 +775,10 @@ class Task(models.Model):
 
                 elif self.pending_action == pending_actions.RESTART:
                     logger.info("Restarting {}".format(self))
+
+                    if self.image_origin == image_origins.S3:
+                        self.handle_s3_import()
+                    
                     if self.processing_node:
 
                         # Check if the UUID is still valid, as processing nodes purge
@@ -791,8 +796,6 @@ class Task(models.Model):
 
                         if uuid_still_exists:
                             # Good to go
-                            if self.image_origin == image_origins.S3:
-                                self.handle_s3_import()
 
                             try:
                                 self.processing_node.restart_task(self.uuid, self.options)
@@ -1020,6 +1023,8 @@ class Task(models.Model):
             self.console += gettext("Done!") + "\n"
         
         self.save()
+
+        self._upload_assets_to_s3()
 
         from app.plugins import signals as plugin_signals
         plugin_signals.task_completed.send_robust(sender=self.__class__, task_id=self.id)
@@ -1327,3 +1332,44 @@ class Task(models.Model):
         if not os.path.exists(fotos_s3_dir):
             os.makedirs(fotos_s3_dir, exist_ok=True)
         return fotos_s3_dir
+
+    def _upload_assets_to_s3(self):
+        files_to_upload = self._get_all_assets_files()
+        files_uploadeds = []
+
+        for file_to_upload in files_to_upload:
+            endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
+            access_key = settings.S3_DOWNLOAD_ACCESS_KEY
+            secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+
+            try:
+                # Criar o cliente S3 utilizando boto3
+                s3_client = boto3.client('s3',
+                                    endpoint_url=endpoint_url,
+                                    aws_access_key_id=access_key,
+                                    aws_secret_access_key=secret_key,
+                                    config=Config(signature_version='s3v4'))
+                
+                s3_client.upload_file(file_to_upload, 'odm', file_to_upload)
+                files_uploadeds.append(file_to_upload)
+            except Exception as e:
+                logger.error('failed upload on file ' + file_to_upload)
+                logger.error(e)
+                raise NodeServerError(e)
+
+        logger.info('uploadado', files_uploadeds)
+        
+    def _get_all_assets_files(self):
+        assets_path = self.assets_path()
+
+        return self._get_all_files_on_dir(assets_path)
+
+    def _get_all_files_on_dir(self, dir) -> list[str]:
+        all_files = []
+        for entry in os.scandir(dir):
+            if entry.is_dir():
+                all_files += self._get_all_files_on_dir(entry.path)
+            else:
+                all_files.append(entry.path)
+        
+        return all_files

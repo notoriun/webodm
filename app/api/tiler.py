@@ -96,8 +96,10 @@ def get_pointcloud_path(task):
 def get_url(task, file_type):
     raster_path = get_raster_path(task, file_type)
 
-    if len(task.s3_images) > 0:
-        return raster_path
+    # if len(task.s3_images) > 0:
+    #     return raster_path
+
+    print('using file ', f's3://odm/{raster_path}')
 
     return f's3://odm/{raster_path}'
 
