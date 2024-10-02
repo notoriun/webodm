@@ -6,7 +6,8 @@ const CANCEL = 1,
   RESIZE = 4,
   IMPORT = 5,
   IMPORT_FROM_S3 = 6,
-  IMPORT_FROM_S3_WITH_RESIZE = 7;
+  IMPORT_FROM_S3_WITH_RESIZE = 7,
+  UPLOAD_TO_S3 = 8;
 
 let pendingActions = {
   [CANCEL]: {
@@ -30,6 +31,9 @@ let pendingActions = {
   [IMPORT_FROM_S3_WITH_RESIZE]: {
     descr: _("Downloading from s3..."),
   },
+  [UPLOAD_TO_S3]: {
+    descr: _("Uploading to s3..."),
+  },
 };
 
 export default {
@@ -40,6 +44,7 @@ export default {
   IMPORT: IMPORT,
   IMPORT_FROM_S3: IMPORT_FROM_S3,
   IMPORT_FROM_S3_WITH_RESIZE: IMPORT_FROM_S3_WITH_RESIZE,
+  UPLOAD_TO_S3: UPLOAD_TO_S3,
 
   description: function (pendingAction) {
     if (pendingActions[pendingAction])

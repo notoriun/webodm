@@ -241,6 +241,7 @@ class Task(models.Model):
         (pending_actions.IMPORT, 'IMPORT'),
         (pending_actions.IMPORT_FROM_S3, 'IMPORT_FROM_S3'),
         (pending_actions.IMPORT_FROM_S3_WITH_RESIZE, 'IMPORT_FROM_S3_WITH_RESIZE'),
+        (pending_actions.UPLOAD_TO_S3, 'UPLOAD_TO_S3'),
     )
 
     IMAGE_ORIGINS = (
@@ -285,6 +286,14 @@ class Task(models.Model):
     running_progress = models.FloatField(default=0.0,
                                         help_text=_("Value between 0 and 1 indicating the running progress (estimated) of this task"),
                                         verbose_name=_("Running Progress"),
+                                        blank=True)
+    downloading_s3_progress = models.FloatField(default=0.0,
+                                        help_text=_("Value between 0 and 1 indicating the downloading images from s3 progress (estimated) of this task"),
+                                        verbose_name=_("Downloading Images from S3 Progress"),
+                                        blank=True)
+    uploading_s3_progress = models.FloatField(default=0.0,
+                                        help_text=_("Value between 0 and 1 indicating the uploading images to s3 progress (estimated) of this task"),
+                                        verbose_name=_("Uploading Images to S3 Progress"),
                                         blank=True)
     import_url = models.TextField(null=False, default="", blank=True, help_text=_("URL this task is imported from (only for imported tasks)"), verbose_name=_("Import URL"))
     images_count = models.IntegerField(null=False, blank=True, default=0, help_text=_("Number of images associated with this task"), verbose_name=_("Images Count"))
@@ -632,8 +641,23 @@ class Task(models.Model):
         endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
         access_key = settings.S3_DOWNLOAD_ACCESS_KEY
         secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+        self.downloading_s3_progress = 0.0
+        self.save()
+
+        class DownloadProgressCallback(object):
+            def __init__(self, task, downloaded_images, total_size):
+                self._size = total_size
+                self._downloaded_bytes = 0.0
+                self._task = task
+                self._downloaded_images = downloaded_images
+
+            def __call__(self, bytes_transferred):
+                self._downloaded_bytes += bytes_transferred
+                progress = self._downloaded_bytes / self._size if self._size > 0 else 0
+                self._task._update_download_progress(self._downloaded_images, progress)
 
         try:
+            self._remove_root_images()
             # Criar o cliente S3 utilizando boto3
             s3_client = boto3.client('s3',
                                 endpoint_url=endpoint_url,
@@ -649,16 +673,19 @@ class Task(models.Model):
                 image_index = self.s3_images.index(image)
                 original_image_filename = image_path.rsplit('/')[-1]
                 destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
-                s3_client.download_file(bucket, image_path, destiny_image_filename)
+
+                s3_object = s3_client.get_object(Bucket=bucket, Key=image_path)
+                total_size = s3_object['ContentLength']
+                s3_client.download_file(bucket, image_path, destiny_image_filename, Callback=DownloadProgressCallback(self, downloaded_images, total_size))
                 downloaded_images.append(destiny_image_filename)
         
+            self.images_count = len(downloaded_images)
+            self.pending_action = pending_actions.RESIZE if self.pending_action == pending_actions.IMPORT_FROM_S3_WITH_RESIZE else None
+            self.update_size()
+            self.save()
         except Exception as e:
+            self.set_failure(str(e))
             raise NodeServerError(e)
-
-        self.images_count = len(downloaded_images)
-        self.pending_action = pending_actions.RESIZE if self.pending_action == pending_actions.IMPORT_FROM_S3_WITH_RESIZE else None
-        self.update_size()
-        self.save()
 
     def process(self):
         """
@@ -669,6 +696,9 @@ class Task(models.Model):
         """
 
         try:
+            if self.pending_action == pending_actions.UPLOAD_TO_S3:
+                self._upload_and_remove_assets()
+
             if self.pending_action in [pending_actions.IMPORT_FROM_S3, pending_actions.IMPORT_FROM_S3_WITH_RESIZE]:
                 self.handle_s3_import()
 
@@ -775,11 +805,12 @@ class Task(models.Model):
 
                 elif self.pending_action == pending_actions.RESTART:
                     logger.info("Restarting {}".format(self))
-
-                    if self.image_origin == image_origins.S3:
-                        self.handle_s3_import()
                     
                     if self.processing_node:
+                        if self.image_origin == image_origins.S3:
+                            self.pending_action = pending_actions.IMPORT_FROM_S3
+                            self.save()
+                            self.handle_s3_import()
 
                         # Check if the UUID is still valid, as processing nodes purge
                         # results after a set amount of time, the UUID might have been eliminated.
@@ -823,7 +854,7 @@ class Task(models.Model):
                         self.processing_time = -1
                         self.status = None
                         self.last_error = None
-                        self.pending_action = pending_actions.IMPORT_FROM_S3 if self.image_origin == image_origins.S3 else None
+                        self.pending_action = None
                         self.running_progress = 0
                         self.save()
                     else:
@@ -1016,6 +1047,7 @@ class Task(models.Model):
         self.potree_scene = {}
         self.running_progress = 1.0
         self.status = status_codes.COMPLETED
+        self.pending_action = pending_actions.UPLOAD_TO_S3
 
         if is_backup:
             self.read_backup_file()
@@ -1023,8 +1055,6 @@ class Task(models.Model):
             self.console += gettext("Done!") + "\n"
         
         self.save()
-
-        self._upload_assets_to_s3()
 
         from app.plugins import signals as plugin_signals
         plugin_signals.task_completed.send_robust(sender=self.__class__, task_id=self.id)
@@ -1278,11 +1308,7 @@ class Task(models.Model):
                 raise
 
     def scan_images(self):
-        tp = self.task_path()
-        try:
-            return [e.name for e in os.scandir(tp) if e.is_file()]
-        except:
-            return []
+        return [e.name for e in self._entry_root_images()]
 
     def get_image_path(self, filename):
         p = self.task_path(filename)
@@ -1312,7 +1338,7 @@ class Task(models.Model):
             uploaded[name] = os.path.getsize(dst_path)
         return uploaded
 
-    def update_size(self, commit=False):
+    def update_size(self, commit=False, clear_quota=True):
         try:
             total_bytes = 0
             for dirpath, _, filenames in os.walk(self.task_path()):
@@ -1323,7 +1349,8 @@ class Task(models.Model):
             self.size = (total_bytes / 1024 / 1024)
             if commit: self.save()
 
-            self.project.owner.profile.clear_used_quota_cache()
+            if clear_quota:
+                self.project.owner.profile.clear_used_quota_cache()
         except Exception as e:
             logger.warn("Cannot update size for task {}: {}".format(self, str(e)))
 
@@ -1333,36 +1360,56 @@ class Task(models.Model):
             os.makedirs(fotos_s3_dir, exist_ok=True)
         return fotos_s3_dir
 
+    def _upload_and_remove_assets(self):
+        self._upload_assets_to_s3()
+        self._remove_assets()
+
+        self.pending_action = None
+        self.save()
+
     def _upload_assets_to_s3(self):
-        files_to_upload = self._get_all_assets_files()
+        endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
+        access_key = settings.S3_DOWNLOAD_ACCESS_KEY
+        secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+        files_to_upload = [f for f in self._get_all_assets_files() if os.path.exists(f)]
         files_uploadeds = []
+        self.uploading_s3_progress = 0.0
+        self.save()
 
-        for file_to_upload in files_to_upload:
-            endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
-            access_key = settings.S3_DOWNLOAD_ACCESS_KEY
-            secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+        class UploadProgressCallback(object):
+            def __init__(self, task: Task, uploaded_images, total_size, total_images):
+                self._size = total_size
+                self._uploaded_bytes = 0.0
+                self._task = task
+                self._uploaded_images = uploaded_images
+                self._total_images = total_images
 
-            try:
-                # Criar o cliente S3 utilizando boto3
-                s3_client = boto3.client('s3',
-                                    endpoint_url=endpoint_url,
-                                    aws_access_key_id=access_key,
-                                    aws_secret_access_key=secret_key,
-                                    config=Config(signature_version='s3v4'))
-                
-                s3_client.upload_file(file_to_upload, 'odm', file_to_upload)
+            def __call__(self, bytes_transferred):
+                self._uploaded_bytes += bytes_transferred
+                progress = self._uploaded_bytes / self._size if self._size > 0 else 0
+                self._task._update_upload_progress(self._uploaded_images, self._total_images, progress)
+                logger.info(str([self._size, self._uploaded_bytes, bytes_transferred, progress]))
+
+        try:
+            # Criar o cliente S3 utilizando boto3
+            s3_client = boto3.client('s3',
+                                endpoint_url=endpoint_url,
+                                aws_access_key_id=access_key,
+                                aws_secret_access_key=secret_key,
+                                config=Config(signature_version='s3v4'))
+
+            for file_to_upload in files_to_upload:
+                file_size = os.path.getsize(file_to_upload)
+                s3_client.upload_file(file_to_upload, 'odm', file_to_upload, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
                 files_uploadeds.append(file_to_upload)
-            except Exception as e:
-                logger.error('failed upload on file ' + file_to_upload)
-                logger.error(e)
-                raise NodeServerError(e)
+        except Exception as e:
+            raise NodeServerError(e)
 
-        logger.info('uploadado', files_uploadeds)
         
     def _get_all_assets_files(self):
-        assets_path = self.assets_path()
+        task_path = self.task_path()
 
-        return self._get_all_files_on_dir(assets_path)
+        return self._get_all_files_on_dir(task_path)
 
     def _get_all_files_on_dir(self, dir) -> list[str]:
         all_files = []
@@ -1373,3 +1420,32 @@ class Task(models.Model):
                 all_files.append(entry.path)
         
         return all_files
+
+    def _remove_assets(self):
+        task_path = self.task_path()
+        shutil.rmtree(task_path)
+
+    def _remove_root_images(self):
+        for e in self._entry_root_images():
+            os.remove(e.path)
+
+    def _entry_root_images(self):
+        tp = self.task_path()
+        try:
+            return [e for e in os.scandir(tp) if e.is_file()]
+        except:
+            return []
+
+    def _update_download_progress(self, downloaded_images, progress):
+        self.downloading_s3_progress = self._calculate_progress_of_images(downloaded_images, len(self.s3_images), progress)
+        self.save()
+
+    def _update_upload_progress(self, uploaded_images, total_images, progress):
+        self.uploading_s3_progress = self._calculate_progress_of_images(uploaded_images, total_images, progress)
+        self.save()
+
+    def _calculate_progress_of_images(self, succeded_images, total_images, progress):
+        percent_per_image = 1.0 / total_images
+        percent_success = len(succeded_images) * percent_per_image
+        percent_current_progress = progress * percent_per_image
+        return percent_success + percent_current_progress
