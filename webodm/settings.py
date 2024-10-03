@@ -400,7 +400,8 @@ if TESTING or FLUSHING:
 
 S3_DOWNLOAD_ENDPOINT = "https://s3.notoriun.com.br/"
 S3_DOWNLOAD_ACCESS_KEY = 'ygor'
-S3_dOWNLOAD_SECRET_KEY = 'gvJL3Fuv0cAgUkEHyQAfCUzOIfKhAeHqQk9IjQpC'
+S3_DOWNLOAD_SECRET_KEY = 'gvJL3Fuv0cAgUkEHyQAfCUzOIfKhAeHqQk9IjQpC'
+S3_BUCKET = 'odm'
 
 try:
     from .local_settings import *

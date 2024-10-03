@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app import models, pending_actions, image_origins
+from app.s3_utils import get_s3_object
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
@@ -634,7 +635,6 @@ class TaskViewSet(viewsets.ViewSet):
     def upload(self, request, pk=None, project_pk=None, type=""):
         project = get_and_check_project(request, project_pk, ('change_project', ))
         files = flatten_files(request.FILES)
-        print("files", files)
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
@@ -785,29 +785,20 @@ class TaskNestedView(APIView):
         return task
 
 
-def download_file_response(request, filePath, content_disposition, download_filename=None):
-    filename = os.path.basename(filePath)
-    if download_filename is None:
-        download_filename = filename
-    filesize = os.stat(filePath).st_size
-    file = open(filePath, "rb")
+def download_file_response(s3_object, content_disposition):
+    file = s3_object['Body']
 
     # More than 100mb, normal http response, otherwise stream
     # Django docs say to avoid streaming when possible
-    stream = filesize > 1e8 or request.GET.get('_force_stream', False)
-    if stream:
-        response = FileResponse(file)
-    else:
-        response = HttpResponse(FileWrapper(file),
-                                content_type=(mimetypes.guess_type(filename)[0] or "application/zip"))
+    # stream = filesize > 1e8 or request.GET.get('_force_stream', False)
+    content_type = s3_object['ContentType']
+    response = HttpResponse(file,
+                            content_type=content_type)
 
-    response['Content-Type'] = mimetypes.guess_type(filename)[0] or "application/zip"
-    response['Content-Disposition'] = "{}; filename={}".format(content_disposition, download_filename)
-    response['Content-Length'] = filesize
-
-    # For testing
-    if stream:
-        response['_stream'] = 'yes'
+    response['Content-Type'] = content_type
+    response['Content-Disposition'] = content_disposition
+    response['Content-Length'] = s3_object['ContentLength']
+    response['_stream'] = 'yes'
 
     return response
 
@@ -839,10 +830,13 @@ class TaskDownloads(TaskNestedView):
         # Verificar se é um pedido para DZI
         if asset.startswith("foto_giga") and asset.endswith(".dzi"):
             dzi_file_path = task.assets_path(asset)
-            if not os.path.exists(dzi_file_path):
+            s3_object = get_s3_object(dzi_file_path)
+
+            if not s3_object:
                 raise exceptions.NotFound(_("Asset does not exist"))
 
-            return download_file_response(request, dzi_file_path, 'inline')
+            content_disposition = 'inline; filename={}'.format(os.path.basename(dzi_file_path))
+            return download_file_response(s3_object, content_disposition)
 
         # Check and download
         try:
@@ -851,7 +845,8 @@ class TaskDownloads(TaskNestedView):
             raise exceptions.NotFound(_("Asset does not exist"))
 
         is_stream = not isinstance(asset_fs, str)
-        if not is_stream and not os.path.isfile(asset_fs):
+        s3_object = get_s3_object(asset_fs) if not is_stream else None
+        if not is_stream and not s3_object:
             raise exceptions.NotFound(_("Asset does not exist"))
 
         download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
@@ -859,7 +854,8 @@ class TaskDownloads(TaskNestedView):
         if is_stream:
             return download_file_stream(request, asset_fs, 'attachment', download_filename=download_filename)
         else:
-            return download_file_response(request, asset_fs, 'attachment', download_filename=download_filename)
+            content_disposition = 'attachment; filename={}'.format(download_filename)
+            return download_file_response(s3_object, content_disposition)
 
 """
 Raw access to the task's asset folder resources
@@ -878,10 +874,14 @@ class TaskAssets(TaskNestedView):
         except SuspiciousFileOperation:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        if (not os.path.exists(asset_path)) or os.path.isdir(asset_path):
-            raise exceptions.NotFound(_("Asset does not exist"))
+        s3_key = task.assets_path(unsafe_asset_path)
+        s3_object = get_s3_object(s3_key)
 
-        return download_file_response(request, asset_path, 'inline')
+        if not s3_object:
+            raise exceptions.NotFound(_("Asset does not exista"))
+        
+        content_disposition = 'inline; filename={}'.format(os.path.basename(asset_path))
+        return download_file_response(s3_object, content_disposition)
 
 """
 Task backup endpoint

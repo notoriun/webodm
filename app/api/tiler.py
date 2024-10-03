@@ -111,7 +111,7 @@ from contextlib import contextmanager
 def open_cog_reader(url):
     endpoint_url = sanitize_s3_endpoint(settings.S3_DOWNLOAD_ENDPOINT)
     access_key = settings.S3_DOWNLOAD_ACCESS_KEY
-    secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+    secret_key = settings.S3_DOWNLOAD_SECRET_KEY
 
     try:
         # Set AWS credentials

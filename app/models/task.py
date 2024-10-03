@@ -52,6 +52,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from functools import partial
 import subprocess
 from app.classes.console import Console
+from app.s3_utils import get_s3_client
 
 logger = logging.getLogger('app.logger')
 
@@ -638,9 +639,6 @@ class Task(models.Model):
 
     def handle_s3_import(self):
         logger.info("donwloading images from s3")
-        endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
-        access_key = settings.S3_DOWNLOAD_ACCESS_KEY
-        secret_key = settings.S3_dOWNLOAD_SECRET_KEY
         self.downloading_s3_progress = 0.0
         self.save()
 
@@ -658,12 +656,7 @@ class Task(models.Model):
 
         try:
             self._remove_root_images()
-            # Criar o cliente S3 utilizando boto3
-            s3_client = boto3.client('s3',
-                                endpoint_url=endpoint_url,
-                                aws_access_key_id=access_key,
-                                aws_secret_access_key=secret_key,
-                                config=Config(signature_version='s3v4'))
+            s3_client = get_s3_client()
             
             fotos_s3_dir = self._create_task_s3_download_dir()
             downloaded_images = []
@@ -674,7 +667,7 @@ class Task(models.Model):
                 original_image_filename = image_path.rsplit('/')[-1]
                 destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
 
-                s3_object = s3_client.get_object(Bucket=bucket, Key=image_path)
+                s3_object = s3_client.head_object(Bucket=bucket, Key=image_path)
                 total_size = s3_object['ContentLength']
                 s3_client.download_file(bucket, image_path, destiny_image_filename, Callback=DownloadProgressCallback(self, downloaded_images, total_size))
                 downloaded_images.append(destiny_image_filename)
@@ -1368,9 +1361,7 @@ class Task(models.Model):
         self.save()
 
     def _upload_assets_to_s3(self):
-        endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
-        access_key = settings.S3_DOWNLOAD_ACCESS_KEY
-        secret_key = settings.S3_dOWNLOAD_SECRET_KEY
+        s3_bucket = settings.S3_BUCKET
         files_to_upload = [f for f in self._get_all_assets_files() if os.path.exists(f)]
         files_uploadeds = []
         self.uploading_s3_progress = 0.0
@@ -1391,16 +1382,11 @@ class Task(models.Model):
                 logger.info(str([self._size, self._uploaded_bytes, bytes_transferred, progress]))
 
         try:
-            # Criar o cliente S3 utilizando boto3
-            s3_client = boto3.client('s3',
-                                endpoint_url=endpoint_url,
-                                aws_access_key_id=access_key,
-                                aws_secret_access_key=secret_key,
-                                config=Config(signature_version='s3v4'))
+            s3_client = get_s3_client()
 
             for file_to_upload in files_to_upload:
                 file_size = os.path.getsize(file_to_upload)
-                s3_client.upload_file(file_to_upload, 'odm', file_to_upload, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
+                s3_client.upload_file(file_to_upload, s3_bucket, file_to_upload, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
                 files_uploadeds.append(file_to_upload)
         except Exception as e:
             raise NodeServerError(e)
@@ -1431,6 +1417,10 @@ class Task(models.Model):
 
     def _entry_root_images(self):
         tp = self.task_path()
+
+        if not os.path.exists(tp):
+            return []
+
         try:
             return [e for e in os.scandir(tp) if e.is_file()]
         except:
