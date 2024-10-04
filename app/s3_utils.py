@@ -4,6 +4,8 @@ from botocore.config import Config
 from webodm import settings
 
 
+logger = logging.getLogger('app.logger')
+
 def get_s3_client():
     endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
     access_key = settings.S3_DOWNLOAD_ACCESS_KEY
@@ -24,7 +26,17 @@ def get_s3_object(key, bucket=settings.S3_BUCKET):
         if s3_object_exists:
             return s3_object
     except Exception as e:
-        logger = logging.getLogger('app.logger')
         logger.error(str(e))
     
     return None
+
+def list_s3_objects(key_to_contains: str, bucket=settings.S3_BUCKET):
+    try:
+        s3_client = get_s3_client()
+        response = s3_client.list_objects_v2(Bucket=bucket, Prefix=key_to_contains)
+        
+        return response['Contents']
+    except Exception as e:
+        logger.error(str(e))
+    
+    return []

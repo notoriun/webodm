@@ -360,16 +360,14 @@ class TaskViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def upload_images(self, task, files):
-        if len(files) <= 1:
-            raise exceptions.ValidationError(detail=_("Cannot create task, you need at least 2 images"))
+        if len(files) == 0:
+            raise exceptions.ValidationError(detail=_("No files uploaded"))
 
-        with transaction.atomic():
-            task.handle_images_upload(files)
-            task.images_count = len(task.scan_images())
-            task.update_size()
-            task.save()
-            worker_tasks.process_task.delay(task.id)
-        return {'success': True, 'uploaded': [file.name for file in files]}
+        uploaded = task.handle_images_upload(files)
+        task.images_count = len(task.scan_images())
+        task.save()
+
+        return {'success': True, 'uploaded': uploaded }
 
     def upload_fotos(self, task, files):
         # Garantir que o diretório assets/fotos existe

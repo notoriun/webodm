@@ -52,7 +52,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from functools import partial
 import subprocess
 from app.classes.console import Console
-from app.s3_utils import get_s3_client
+from app.s3_utils import get_s3_client, list_s3_objects, get_s3_object
 
 logger = logging.getLogger('app.logger')
 
@@ -514,12 +514,22 @@ class Task(models.Model):
                 logger.warning("Cannot read backup file: %s" % str(e))
 
     def get_task_backup_stream(self):
+        self.download_all_s3_images()
         self.write_backup_file()
         zip_dir = self.task_path("")
-        paths = [{'n': os.path.relpath(os.path.join(dp, f), zip_dir), 'fs': os.path.join(dp, f)} for dp, dn, filenames in os.walk(zip_dir) for f in filenames]
+        paths = [
+            {
+                'n': os.path.relpath(os.path.join(dp, f), zip_dir),
+                'fs': os.path.join(dp, f)
+            } for dp, dn, filenames in os.walk(zip_dir) for f in filenames
+        ]
         if len(paths) == 0:
             raise FileNotFoundError("No files available for export")
-        return zipfly.ZipStream(paths)
+
+        def on_streamed_backup():
+            logger.info("streamou o zip de backup")
+
+        return zipfly.ZipStream(paths, on_streamed_backup)
     
     def get_asset_file_or_stream(self, asset):
         """
@@ -1439,3 +1449,21 @@ class Task(models.Model):
         percent_success = len(succeded_images) * percent_per_image
         percent_current_progress = progress * percent_per_image
         return percent_success + percent_current_progress
+
+    def download_all_s3_images(self):
+        task_path = self.task_path()
+        logger.info('will download images with "{}"'.format(task_path))
+        s3_images = list_s3_objects(task_path)
+        s3_client = get_s3_client()
+        bucket = settings.S3_BUCKET
+        downloaded_images = []
+        logger.info('will download images: "{}"'.format(str([image['Key'] for image in s3_images])))
+
+        for image in s3_images:
+            image_key = image['Key']
+            logger.info('start download image: "{}"'.format(image_key))
+
+            s3_client.download_file(bucket, image_key, image_key)
+            downloaded_images.append(image_key)
+            logger.info('downloaded image: "{}"'.format(image_key))
+
