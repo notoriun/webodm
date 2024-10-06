@@ -1,13 +1,6 @@
-import os
 import json
 import rasterio
-import boto3
-import re
-from botocore.client import Config
-from rasterio.session import AWSSession
-from rasterio.env import Env
-from contextlib import contextmanager
-from rasterio.errors import RasterioIOError, NotGeoreferencedWarning
+from rasterio.errors import NotGeoreferencedWarning
 from rasterio.enums import ColorInterp
 from rasterio.crs import CRS
 from rasterio.features import bounds as featureBounds
@@ -23,7 +16,6 @@ from rio_tiler.models import ImageStatistics
 from rio_tiler.models import Metadata as RioMetadata
 from rio_tiler.profiles import img_profiles
 from rio_tiler.colormap import cmap as colormap
-from rio_tiler.io import COGReader
 import numpy as np
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
@@ -39,9 +31,7 @@ from .hillshade import LightSource
 from .formulas import lookup_formula, get_algorithm_list, get_auto_bands
 from .tasks import TaskNestedView
 from worker.tasks import export_raster, export_pointcloud
-from webodm import settings
-#import logging
-#logging.basicConfig(level=logging.DEBUG)
+from app.s3_utils import open_cog_reader, append_s3_bucket_prefix
 
 
 # Disable specific warnings
@@ -88,63 +78,12 @@ def get_extent(task, tile_type):
     return extent
 
 def get_raster_path(task, tile_type):
-    return task.get_asset_download_path(tile_type + ".tif")
+    path = task.get_asset_download_path(tile_type + ".tif")
+    return append_s3_bucket_prefix(path)
 
 def get_pointcloud_path(task):
-    return task.get_asset_download_path("georeferenced_model.laz")
-
-def get_url(task, file_type):
-    raster_path = get_raster_path(task, file_type)
-
-    # if len(task.s3_images) > 0:
-    #     return raster_path
-
-    print('using file ', f's3://odm/{raster_path}')
-
-    return f's3://odm/{raster_path}'
-
-
-# Function to open COGReader with S3 connection
-from contextlib import contextmanager
-
-@contextmanager
-def open_cog_reader(url):
-    endpoint_url = sanitize_s3_endpoint(settings.S3_DOWNLOAD_ENDPOINT)
-    access_key = settings.S3_DOWNLOAD_ACCESS_KEY
-    secret_key = settings.S3_DOWNLOAD_SECRET_KEY
-
-    try:
-        # Set AWS credentials
-        boto3_session = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-        )
-
-        # Create a rasterio AWSSession with the boto3 session and your MinIO endpoint
-        aws_session = AWSSession(
-            boto3_session,
-            endpoint_url=endpoint_url,
-            region_name='us-east-1',  # Adjust if needed
-            profile_name=None
-        )
-
-        with rasterio.Env(
-            session=aws_session,
-            AWS_VIRTUAL_HOSTING=False,  # Important for MinIO
-            AWS_S3_ENDPOINT=endpoint_url,
-            SSL=False,
-        ):
-            with COGReader(url) as src:
-                yield src
-    except RasterioIOError:
-        raise exceptions.NotFound(_("Unable to read the data from S3"))
-    except Exception as e:
-        print(e)
-        raise e
-
-def sanitize_s3_endpoint(s3_endpoint: str):
-    without_last_slash = s3_endpoint[0:-1] if s3_endpoint[-1] == '/' else s3_endpoint
-    return re.sub(r'(http|https)://', '', without_last_slash)
+    path = task.get_asset_download_path("georeferenced_model.laz")
+    return append_s3_bucket_prefix(path)
 
 class TileJson(TaskNestedView):
     def get(self, request, pk=None, project_pk=None, tile_type=""):
@@ -153,7 +92,7 @@ class TileJson(TaskNestedView):
         """
         task = self.get_and_check_task(request, pk)
 
-        url = get_url(task, tile_type)
+        url = get_raster_path(task, tile_type)
 
         # Remove the local file check
         # if not os.path.isfile(raster_path):
@@ -221,12 +160,8 @@ class Metadata(TaskNestedView):
             raise exceptions.ValidationError(str(e))
         pmin, pmax = 2.0, 98.0
 
-        url = get_url(task, tile_type)
+        url = get_raster_path(task, tile_type)
 
-
-        # Remove the local file check
-        # if not os.path.isfile(raster_path):
-        #     raise exceptions.NotFound()
         try:
             with open_cog_reader(url) as src:
                 band_count = src.dataset.meta['count']
@@ -408,12 +343,7 @@ class Tiles(TaskNestedView):
         if nodata is not None:
             nodata = np.nan if nodata == "nan" else float(nodata)
         tilesize = scale * tilesize
-        url = get_url(task, tile_type)
-        #url = get_raster_path(task, tile_type)
-
-        # Remove the local file check
-        # if not os.path.isfile(url):
-        #     raise exceptions.NotFound()
+        url = get_raster_path(task, tile_type)
 
         with open_cog_reader(url) as src:
             if not src.tile_exists(z, x, y):
@@ -658,10 +588,11 @@ class Export(TaskNestedView):
         if asset_type == 'georeferenced_model':
             url = get_pointcloud_path(task)
         else:
-            url = get_url(task, asset_type)
+            url = get_raster_path(task, asset_type)
 
-        if not os.path.isfile(url):
-            raise exceptions.NotFound()
+        # Usando o s3 para baixar agora
+        # if not os.path.isfile(url):
+        #     raise exceptions.NotFound()
 
         if epsg is not None and task.epsg is None:
             raise exceptions.ValidationError(_("Cannot use epsg on non-georeferenced dataset"))

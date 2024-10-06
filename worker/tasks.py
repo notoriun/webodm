@@ -13,8 +13,8 @@ from django.db.models import Count
 from django.db.models import Q
 from app.models import Profile
 
-from app.models import Project
-from app.models import Task
+from app.models import Project, Task
+from app.s3_utils import download_s3_file, remove_s3_bucket_prefix
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from webodm import settings
@@ -194,11 +194,15 @@ def export_raster(self, input, **opts):
         return {'error': str(e)}
 
 @app.task(bind=True)
-def export_pointcloud(self, input, **opts):
+def export_pointcloud(self, input: str, **opts):
     try:
+        input_extension = input.split('.')[-1]
         logger.info("Exporting point cloud {} with options: {}".format(input, json.dumps(opts)))
         tmpfile = tempfile.mktemp('_pointcloud.{}'.format(opts.get('format', 'laz')), dir=settings.MEDIA_TMP)
-        export_pointcloud_sync(input, tmpfile, **opts)
+        tmpfile_input_s3 = tempfile.mktemp(f'_pointcloud_s3_file.{input_extension}', dir=settings.MEDIA_TMP)
+        download_s3_file(input, tmpfile_input_s3)
+
+        export_pointcloud_sync(tmpfile_input_s3, tmpfile, **opts)
         result = {'file': tmpfile}
 
         if settings.TESTING:
