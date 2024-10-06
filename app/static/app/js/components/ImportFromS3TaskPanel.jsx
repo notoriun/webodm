@@ -308,28 +308,36 @@ class ImportFromS3TaskPanel extends React.Component {
 
   sendStartDownloadS3() {
     $.post(
-      `/api/projects/${this.props.projectId}/tasks/${this.state.taskId}/start-download-from-s3/`,
+      `/api/projects/${this.props.projectId}/tasks/${this.state.taskId}/set-s3-images/`,
       {
         images: this.state.s3Images.join(","),
       }
     )
       .done(() => {
-        this.setState({ loading: false, importingFromS3Url: false });
+        $.ajax({
+          url: `/api/projects/${this.props.projectId}/tasks/${this.state.taskId}/commit/`,
+          contentType: "application/json",
+          dataType: "json",
+          type: "POST",
+        })
+          .done(() => {
+            this.setState({ loading: false, importingFromS3Url: false });
 
-        this.props.onImported();
-        // } else {
-        //   this.setState({
-        //     error:
-        //       json.error ||
-        //       interpolate(_("Invalid JSON response: %(error)s"), {
-        //         error: JSON.stringify(json),
-        //       }),
-        //   });
-        // }
+            this.props.onImported();
+          })
+          .fail(() => {
+            this.setState({
+              importingFromS3Url: false,
+              error: _(
+                "Cannot import from this S3 URL. Check your internet connection."
+              ),
+            });
+          });
       })
       .fail(() => {
         this.setState({
           importingFromS3Url: false,
+          loading: false, 
           error: _(
             "Cannot import from this S3 URL. Check your internet connection."
           ),
@@ -439,7 +447,7 @@ class ImportFromS3TaskPanel extends React.Component {
               {this.state.s3Images.map((image, imageIndex) => (
                 <div className="form-group">
                   <label className="col-sm-2 control-label">
-                    {_("S3 Bucket URL") + ` #${imageIndex}`}
+                    {_("S3 Bucket URL") + ` #${imageIndex + 1}`}
                   </label>
                   <div
                     className={

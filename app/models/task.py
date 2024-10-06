@@ -6,11 +6,9 @@ import struct
 from datetime import datetime
 import uuid as uuid_module
 from app.vendor import zipfly
-import boto3
 from botocore.client import Config
 
 import json
-from shlex import quote
 
 import errno
 import piexif
@@ -52,7 +50,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from functools import partial
 import subprocess
 from app.classes.console import Console
-from app.s3_utils import get_s3_client, list_s3_objects, get_s3_object
+from app.s3_utils import get_s3_client, list_s3_objects, download_s3_file
 
 logger = logging.getLogger('app.logger')
 
@@ -653,7 +651,7 @@ class Task(models.Model):
         self.save()
 
         class DownloadProgressCallback(object):
-            def __init__(self, task, downloaded_images, total_size):
+            def __init__(self, task: Task, downloaded_images, total_size):
                 self._size = total_size
                 self._downloaded_bytes = 0.0
                 self._task = task
@@ -663,6 +661,7 @@ class Task(models.Model):
                 self._downloaded_bytes += bytes_transferred
                 progress = self._downloaded_bytes / self._size if self._size > 0 else 0
                 self._task._update_download_progress(self._downloaded_images, progress)
+                logger.info('Download from S3 percent {}%'.format(self._task.downloading_s3_progress * 100))
 
         try:
             self._remove_root_images()
@@ -679,7 +678,13 @@ class Task(models.Model):
 
                 s3_object = s3_client.head_object(Bucket=bucket, Key=image_path)
                 total_size = s3_object['ContentLength']
-                s3_client.download_file(bucket, image_path, destiny_image_filename, Callback=DownloadProgressCallback(self, downloaded_images, total_size))
+                download_s3_file(
+                    image_path,
+                    destiny_image_filename,
+                    s3_client,
+                    bucket,
+                    Callback=DownloadProgressCallback(self, downloaded_images, total_size)
+                )
                 downloaded_images.append(destiny_image_filename)
         
             self.images_count = len(downloaded_images)
@@ -700,7 +705,7 @@ class Task(models.Model):
 
         try:
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
-                self._upload_and_remove_assets()
+                self.upload_and_remove_assets()
 
             if self.pending_action in [pending_actions.IMPORT_FROM_S3, pending_actions.IMPORT_FROM_S3_WITH_RESIZE]:
                 self.handle_s3_import()
@@ -1309,6 +1314,9 @@ class Task(models.Model):
                 pass
             else:
                 raise
+    
+    def scan_s3_assets(self):
+        return [obj['Key'] for obj in list_s3_objects(self.task_path())]
 
     def scan_images(self):
         return [e.name for e in self._entry_root_images()]
@@ -1363,11 +1371,13 @@ class Task(models.Model):
             os.makedirs(fotos_s3_dir, exist_ok=True)
         return fotos_s3_dir
 
-    def _upload_and_remove_assets(self):
+    def upload_and_remove_assets(self, reset_pending_action=False):
+        initial_pending_action = self.pending_action
+
         self._upload_assets_to_s3()
         self._remove_assets()
 
-        self.pending_action = None
+        self.pending_action = initial_pending_action if reset_pending_action else None
         self.save()
 
     def _upload_assets_to_s3(self):
@@ -1389,7 +1399,7 @@ class Task(models.Model):
                 self._uploaded_bytes += bytes_transferred
                 progress = self._uploaded_bytes / self._size if self._size > 0 else 0
                 self._task._update_upload_progress(self._uploaded_images, self._total_images, progress)
-                logger.info(str([self._size, self._uploaded_bytes, bytes_transferred, progress]))
+                logger.info('Upload to S3 percent {}%'.format(self._task.uploading_s3_progress * 100))
 
         try:
             s3_client = get_s3_client()
@@ -1419,6 +1429,10 @@ class Task(models.Model):
 
     def _remove_assets(self):
         task_path = self.task_path()
+        
+        if task_path[-1] == '/':
+            task_path = task_path[0:-1]
+
         shutil.rmtree(task_path)
 
     def _remove_root_images(self):
@@ -1455,7 +1469,6 @@ class Task(models.Model):
         logger.info('will download images with "{}"'.format(task_path))
         s3_images = list_s3_objects(task_path)
         s3_client = get_s3_client()
-        bucket = settings.S3_BUCKET
         downloaded_images = []
         logger.info('will download images: "{}"'.format(str([image['Key'] for image in s3_images])))
 
@@ -1463,7 +1476,7 @@ class Task(models.Model):
             image_key = image['Key']
             logger.info('start download image: "{}"'.format(image_key))
 
-            s3_client.download_file(bucket, image_key, image_key)
+            download_s3_file(image_key, image_key, s3_client)
             downloaded_images.append(image_key)
             logger.info('downloaded image: "{}"'.format(image_key))
 

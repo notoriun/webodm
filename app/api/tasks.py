@@ -19,7 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app import models, pending_actions, image_origins
-from app.s3_utils import get_s3_object
+from app.s3_utils import get_s3_object, list_s3_objects
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
@@ -349,7 +349,7 @@ class TaskViewSet(viewsets.ViewSet):
         task.partial = False
         task.images_count = len(task.scan_images())
 
-        if task.images_count < 1:
+        if task.images_count < 1 and len(task.s3_images) < 1:
             raise exceptions.ValidationError(detail=_("You need to upload at least 1 file before commit"))
 
         task.update_size()
@@ -377,31 +377,20 @@ class TaskViewSet(viewsets.ViewSet):
 
         # Carregar o metadata.json existente, se existir
         metadata_path = os.path.join(fotos_dir, 'metadata.json')
-        try:
-            if os.path.exists(metadata_path):
-                with open(metadata_path, 'r') as metadata_file:
-                    metadata = json.load(metadata_file)
-            else:
-                metadata = {}
-        except Exception as e:
-            print(e)
-            metadata = {}
+        metadata = self._read_metadata_json(metadata_path)
 
         uploaded_files = []
 
         # Identificar o índice inicial para novos arquivos
-        existing_files = os.listdir(fotos_dir)
-        max_index = 0
-        for file in existing_files:
-            if file.startswith("foto_") and file.endswith(".jpg"):
-                index = int(file.split('_')[1].split('.')[0])
-                if index > max_index:
-                    max_index = index
+        foto_prefix = os.path.join(fotos_dir, "foto_")
+        existing_files_index = self._list_file_indexes_with(foto_prefix, ".jpg")
+        max_index = existing_files_index[-1] if len(existing_files_index) > 0 else 0
 
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
 
         for idx, file in enumerate(files):
             try:
+    
                 # Manter o arquivo aberto e acessar diretamente os dados de memória
                 if isinstance(file, InMemoryUploadedFile):
                     image = Image.open(file)
@@ -459,7 +448,8 @@ class TaskViewSet(viewsets.ViewSet):
         if metadata_asset not in task.available_assets:
             task.available_assets.append(metadata_asset)
 
-        task.images_count = len(task.scan_images())
+        task.upload_and_remove_assets(True)
+        task.images_count = len(task.scan_s3_assets())
         task.save()
         return {'success': True, 'uploaded': uploaded_files}
 
@@ -471,22 +461,14 @@ class TaskViewSet(viewsets.ViewSet):
 
         # Carregar o metadata.json existente, se existir
         metadata_path = os.path.join(videos_dir, 'metadata.json')
-        if os.path.exists(metadata_path):
-            with open(metadata_path, 'r') as metadata_file:
-                metadata = json.load(metadata_file)
-        else:
-            metadata = {}
+        metadata = self._read_metadata_json(metadata_path)
 
         uploaded_files = []
 
         # Identificar o índice inicial para novos arquivos
-        existing_files = os.listdir(videos_dir)
-        max_index = 0
-        for file in existing_files:
-            if file.startswith("video_") and file.endswith(".mp4"):
-                index = int(file.split('_')[1].split('.')[0])
-                if index > max_index:
-                    max_index = index
+        video_prefix = os.path.join(videos_dir, "video_")
+        existing_files_index = self._list_file_indexes_with(video_prefix, ".mp4")
+        max_index = existing_files_index[-1] if len(existing_files_index) > 0 else 0
 
         # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
         for idx, file in enumerate(files):
@@ -527,16 +509,20 @@ class TaskViewSet(viewsets.ViewSet):
         if metadata_asset not in task.available_assets:
             task.available_assets.append(metadata_asset)
 
-        task.images_count = len(task.scan_images())
+        task.upload_and_remove_assets(True)
+        task.images_count = len(task.scan_s3_assets())
         task.save()
         return {'success': True, 'uploaded': uploaded_files}
 
     def upload_foto360(self, task, files):
-        print("upload_foto360")
+        # Garantir que o diretório assets existe
+        assets_dir = task.assets_path()
+        if not os.path.exists(assets_dir):
+            os.makedirs(assets_dir, exist_ok=True)
     
+        files = []
+
         for file in files:
-            print("file", file)
-            
             # Salvar o arquivo temporariamente para verificar os metadados
             temp_path = os.path.join('/tmp', file.name)
             with open(temp_path, 'wb+') as temp_file:
@@ -546,11 +532,6 @@ class TaskViewSet(viewsets.ViewSet):
             #if not is_360_photo(temp_path):
             #    os.remove(temp_path)
             #    raise ValidationError("O arquivo não é uma foto 360")
-            
-            # Garantir que o diretório assets existe
-            assets_dir = task.assets_path("")
-            if not os.path.exists(assets_dir):
-                os.makedirs(assets_dir, exist_ok=True)
 
             # Salvar o arquivo na pasta assets com o nome foto360.jpg
             dst_path = task.assets_path("foto360.jpg")
@@ -567,14 +548,13 @@ class TaskViewSet(viewsets.ViewSet):
             if "foto360.jpg" not in task.available_assets:
                 task.available_assets.append("foto360.jpg")
 
-            task.images_count = len(task.scan_images())
-            task.save()
-            
-            return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
+        task.upload_and_remove_assets(True)
+        task.images_count = len(task.scan_s3_assets())
+        task.save()
+
+        return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
 
     def upload_foto_giga(self, task, files):
-
-
         uploaded_files = []
 
         # Salvar os novos arquivos na pasta assets/foto_giga com nomes sequenciais
@@ -621,11 +601,17 @@ class TaskViewSet(viewsets.ViewSet):
                 if asset_info not in task.available_assets:
                     task.available_assets.append(asset_info)
 
+                try:
+                    os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
+                except:
+                    pass
                 uploaded_files.append(file.name)
 
             except Exception as e:
                 continue
-        task.images_count = len(task.scan_images())
+
+        task.upload_and_remove_assets(True)
+        task.images_count = len(task.scan_s3_assets())
         task.save()
         return {'success': True, 'uploaded': uploaded_files}
 
@@ -666,10 +652,10 @@ class TaskViewSet(viewsets.ViewSet):
 
         return Response(response, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path="start-download-from-s3")
-    def start_download_from_s3(self, request, pk=None, project_pk=None):
+    @action(detail=True, methods=['post'], url_path="set-s3-images")
+    def set_s3_images(self, request, pk=None, project_pk=None):
         """
-        Download images from s3 to task
+        Set s3 images to download on task proccess
         """
         get_and_check_project(request, project_pk, ('change_project', ))
         try:
@@ -679,13 +665,11 @@ class TaskViewSet(viewsets.ViewSet):
 
         imagesParam: str = request.data.get('images', '')
         images = imagesParam.split(',')
-        task.s3_images = [image.strip() for image in images if len(image.strip()) > 0]
+        task.s3_images += [image.strip() for image in images if len(image.strip()) > 0]
         task.pending_action = pending_actions.IMPORT_FROM_S3_WITH_RESIZE if task.pending_action == pending_actions.RESIZE else pending_actions.IMPORT_FROM_S3
-        task.partial = False
         task.image_origin = image_origins.S3
         task.save()
-        worker_tasks.process_task.delay(task.id)
-        return Response({'success': True, 'uploaded': images}, status=status.HTTP_200_OK)
+        return Response({'success': True, 'setted': task.s3_images}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None, project_pk=None):
@@ -765,6 +749,32 @@ class TaskViewSet(viewsets.ViewSet):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
+    def _read_metadata_json(self, metadata_path):
+        try:
+            metadata_object = get_s3_object(metadata_path)
+            if metadata_object:
+                metadata = json.load(metadata_object['Body'])
+            else:
+                metadata = {}
+        except Exception as e:
+            print(e)
+            metadata = {}
+        
+        return metadata
+    
+    def _list_file_indexes_with(self, prefix, suffix):
+        existing_files = list_s3_objects(prefix)
+        files_indexes = []
+
+        for file in existing_files:
+            filename = file['Key']
+            if filename.endswith(suffix):
+                index = int(filename.split(prefix)[1].split(suffix)[0])
+                files_indexes.append(index)
+
+        files_indexes.sort()
+
+        return files_indexes
 
 class TaskNestedView(APIView):
     queryset = models.Task.objects.all().defer('orthophoto_extent', 'dtm_extent', 'dsm_extent', )
