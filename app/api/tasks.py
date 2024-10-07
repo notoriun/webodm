@@ -520,9 +520,10 @@ class TaskViewSet(viewsets.ViewSet):
         if not os.path.exists(assets_dir):
             os.makedirs(assets_dir, exist_ok=True)
     
-        files = []
+        file = files[0] if len(files) > 0 else None
+        file_uploaded = None
 
-        for file in files:
+        if file:
             # Salvar o arquivo temporariamente para verificar os metadados
             temp_path = os.path.join('/tmp', file.name)
             with open(temp_path, 'wb+') as temp_file:
@@ -534,9 +535,8 @@ class TaskViewSet(viewsets.ViewSet):
             #    raise ValidationError("O arquivo não é uma foto 360")
 
             # Salvar o arquivo na pasta assets com o nome foto360.jpg
-            dst_path = task.assets_path("foto360.jpg")
-            print("dst_path", dst_path)
-            with open(dst_path, 'wb+') as fd:
+            file_uploaded = task.assets_path("foto360.jpg")
+            with open(file_uploaded, 'wb+') as fd:
                 for chunk in file.chunks():
                     print("chunk")
                     fd.write(chunk)
@@ -552,7 +552,7 @@ class TaskViewSet(viewsets.ViewSet):
         task.images_count = len(task.scan_s3_assets())
         task.save()
 
-        return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
+        return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(file_uploaded)}}
 
     def upload_foto_giga(self, task, files):
         uploaded_files = []
