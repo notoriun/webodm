@@ -294,6 +294,11 @@ class TaskFilesUploader:
     def _download_files_from_s3(self, s3_images):
         downloaded_s3_images = []
         s3_client = get_s3_client()
+
+        if not s3_client:
+            logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
+            return []
+
         for image in s3_images:
             s3_image_name = image.split('/')[-1]
             destiny_path = tempfile.mktemp(f'_{s3_image_name}', dir=settings.MEDIA_TMP)

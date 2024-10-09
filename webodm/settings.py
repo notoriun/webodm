@@ -398,10 +398,10 @@ if TESTING or FLUSHING:
     CELERY_TASK_ALWAYS_EAGER = True
     EXTERNAL_AUTH_ENDPOINT = 'http://0.0.0.0:5555/auth'
 
-S3_DOWNLOAD_ENDPOINT = "https://s3.notoriun.com.br/"
-S3_DOWNLOAD_ACCESS_KEY = 'ygor'
-S3_DOWNLOAD_SECRET_KEY = 'gvJL3Fuv0cAgUkEHyQAfCUzOIfKhAeHqQk9IjQpC'
-S3_BUCKET = 'odm'
+S3_DOWNLOAD_ENDPOINT = os.environ.get('WO_S3_DOWNLOAD_ENDPOINT', None)
+S3_DOWNLOAD_ACCESS_KEY = os.environ.get('WO_S3_DOWNLOAD_ACCESS_KEY', None)
+S3_DOWNLOAD_SECRET_KEY = os.environ.get('WO_S3_DOWNLOAD_SECRET_KEY', None)
+S3_BUCKET = os.environ.get('WO_S3_BUCKET', None)
 
 try:
     from .local_settings import *

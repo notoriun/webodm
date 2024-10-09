@@ -18,6 +18,9 @@ def get_s3_client():
     access_key = settings.S3_DOWNLOAD_ACCESS_KEY
     secret_key = settings.S3_DOWNLOAD_SECRET_KEY
 
+    if not endpoint_url or not access_key or not secret_key:
+        return None
+
     return boto3.client('s3',
                         endpoint_url=endpoint_url,
                         aws_access_key_id=access_key,
@@ -26,7 +29,16 @@ def get_s3_client():
 
 def get_s3_object(key, bucket=settings.S3_BUCKET):
     try:
+        if not bucket:
+            logger.error('Could not get any object from s3, because is missing some s3 configuration variable')
+            return None
+
         s3_client = get_s3_client()
+        
+        if not s3_client:
+            logger.error('Could not get any object from s3, because is missing some s3 configuration variable')
+            return None
+
         s3_object = s3_client.get_object(Bucket=bucket, Key=key)
         s3_object_exists = 'DeleteMarker' not in s3_object
         
@@ -39,7 +51,16 @@ def get_s3_object(key, bucket=settings.S3_BUCKET):
 
 def list_s3_objects(key_to_contains: str, bucket=settings.S3_BUCKET):
     try:
+        if not bucket:
+            logger.error('Could not list any object from s3, because is missing some s3 configuration variable')
+            return []
+
         s3_client = get_s3_client()
+
+        if not s3_client:
+            logger.error('Could not list any object from s3, because is missing some s3 configuration variable')
+            return []
+
         response = s3_client.list_objects_v2(Bucket=bucket, Prefix=key_to_contains)
         
         return response['Contents']
@@ -88,8 +109,16 @@ def sanitize_s3_endpoint(s3_endpoint: str):
     return re.sub(r'(http|https)://', '', without_last_slash)
 
 def download_s3_file(file_path, destiny_image_filename, s3_client=None, bucket=settings.S3_BUCKET, *args, **kwargs):
+    if not bucket:
+        logger.error('Could not download any file from s3, because is missing some s3 configuration variable')
+        return
+
     if not s3_client:
         s3_client = get_s3_client()
+    
+        if not s3_client:
+            logger.error('Could not download any file from s3, because is missing some s3 configuration variable')
+            return
 
     key = remove_s3_bucket_prefix(file_path)
     logger.info('Downloading s3 file {} to {}'.format(key, destiny_image_filename))
@@ -98,10 +127,14 @@ def download_s3_file(file_path, destiny_image_filename, s3_client=None, bucket=s
 def append_s3_bucket_prefix(path: str):
     bucket = settings.S3_BUCKET
 
+    if not bucket:
+        logger.error('Could append s3 prefix to access any s3 object, because is missing some s3 configuration variable')
+        return path
+
     return f's3://{bucket}/{path}'
 
 def remove_s3_bucket_prefix(path: str):
     s3_prefix = 's3://'
-    bucket = settings.S3_BUCKET + '/'
+    bucket = settings.S3_BUCKET + '/' if settings.S3_BUCKET else ''
 
     return path.replace(s3_prefix, '').replace(bucket, '')

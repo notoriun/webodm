@@ -667,27 +667,30 @@ class Task(models.Model):
         try:
             self._remove_root_images()
             s3_client = get_s3_client()
-            
-            fotos_s3_dir = self._create_task_s3_download_dir()
             downloaded_images = []
+            
+            if not s3_client:
+                logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
+            else:
+                fotos_s3_dir = self._create_task_s3_download_dir()
 
-            for image in self.s3_images:
-                bucket, image_path = image.replace('s3://', '').split('/', 1)
-                image_index = self.s3_images.index(image)
-                original_image_filename = image_path.rsplit('/')[-1]
-                destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
+                for image in self.s3_images:
+                    bucket, image_path = image.replace('s3://', '').split('/', 1)
+                    image_index = self.s3_images.index(image)
+                    original_image_filename = image_path.rsplit('/')[-1]
+                    destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
 
-                s3_object = s3_client.head_object(Bucket=bucket, Key=image_path)
-                total_size = s3_object['ContentLength']
-                download_s3_file(
-                    image_path,
-                    destiny_image_filename,
-                    s3_client,
-                    bucket,
-                    Callback=DownloadProgressCallback(self, downloaded_images, total_size)
-                )
-                downloaded_images.append(destiny_image_filename)
-        
+                    s3_object = s3_client.head_object(Bucket=bucket, Key=image_path)
+                    total_size = s3_object['ContentLength']
+                    download_s3_file(
+                        image_path,
+                        destiny_image_filename,
+                        s3_client,
+                        bucket,
+                        Callback=DownloadProgressCallback(self, downloaded_images, total_size)
+                    )
+                    downloaded_images.append(destiny_image_filename)
+
             self.images_count = len(downloaded_images)
             self.pending_action = pending_actions.RESIZE if self.pending_action == pending_actions.IMPORT_FROM_S3_WITH_RESIZE else None
             self.update_size()
@@ -1385,6 +1388,10 @@ class Task(models.Model):
         self.uploading_s3_progress = 0.0
         self.save()
 
+        if not s3_bucket:
+            logger.error('Could not upload any image to s3, because is missing some s3 configuration variable')
+            return
+
         class UploadProgressCallback(object):
             def __init__(self, task: Task, uploaded_images, total_size, total_images):
                 self._size = total_size
@@ -1401,6 +1408,10 @@ class Task(models.Model):
 
         try:
             s3_client = get_s3_client()
+
+            if not s3_client:
+                logger.error('Could not upload any image to s3, because is missing some s3 configuration variable')
+                return
 
             for file_to_upload in files_to_upload:
                 file_size = os.path.getsize(file_to_upload)
@@ -1467,7 +1478,11 @@ class Task(models.Model):
         logger.info('will download images with "{}"'.format(task_path))
         s3_images = list_s3_objects(task_path)
         s3_client = get_s3_client()
-        downloaded_images = []
+
+        if not s3_client:
+            logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
+            return
+
         logger.info('will download images: "{}"'.format(str([image['Key'] for image in s3_images])))
 
         for image in s3_images:
@@ -1475,6 +1490,5 @@ class Task(models.Model):
             logger.info('start download image: "{}"'.format(image_key))
 
             download_s3_file(image_key, image_key, s3_client)
-            downloaded_images.append(image_key)
             logger.info('downloaded image: "{}"'.format(image_key))
 

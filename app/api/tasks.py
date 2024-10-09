@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 from app import models, pending_actions, image_origins
 from app.utils.s3_utils import get_s3_object
 from app.utils.request_files_utils import save_request_file
+from app.security import path_traversal_check
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
@@ -114,7 +115,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Task
         exclude = ('orthophoto_extent', 'dsm_extent', 'dtm_extent', )
-        read_only_fields = ('processing_time', 'status', 'last_error', 'created_at', 'pending_action', 'available_assets', 'size', )
+        read_only_fields = ('processing_time', 'status', 'last_error', 'created_at', 'pending_action', 'available_assets', 'size', 's3_images', 'image_origin', 'upload_in_progress')
 
 class TaskViewSet(viewsets.ViewSet):
     """
@@ -253,7 +254,6 @@ class TaskViewSet(viewsets.ViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            print(valid_s3_images)
             celery_task_id = worker_tasks.task_upload_file.delay(
                 pk,
                 files_paths,
@@ -261,7 +261,6 @@ class TaskViewSet(viewsets.ViewSet):
                 upload_type).task_id
             response = {'celery_task_id': celery_task_id}
         except Exception as e:
-            print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_200_OK)
@@ -480,7 +479,7 @@ class TaskAssets(TaskNestedView):
         s3_object = get_s3_object(s3_key)
 
         if not s3_object:
-            raise exceptions.NotFound(_("Asset does not exista"))
+            raise exceptions.NotFound(_("Asset does not exist"))
         
         content_disposition = 'inline; filename={}'.format(os.path.basename(asset_path))
         return download_file_response(s3_object, content_disposition)
