@@ -31,7 +31,7 @@ from .hillshade import LightSource
 from .formulas import lookup_formula, get_algorithm_list, get_auto_bands
 from .tasks import TaskNestedView
 from worker.tasks import export_raster, export_pointcloud
-from app.s3_utils import open_cog_reader, append_s3_bucket_prefix
+from app.utils.s3_utils import open_cog_reader, append_s3_bucket_prefix
 
 
 # Disable specific warnings

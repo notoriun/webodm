@@ -92,7 +92,7 @@ def download_s3_file(file_path, destiny_image_filename, s3_client=None, bucket=s
         s3_client = get_s3_client()
 
     key = remove_s3_bucket_prefix(file_path)
-    logger.info('Download {}'.format(key))
+    logger.info('Downloading s3 file {} to {}'.format(key, destiny_image_filename))
     s3_client.download_file(bucket, key, destiny_image_filename, *args, **kwargs)
 
 def append_s3_bucket_prefix(path: str):

@@ -48,9 +48,9 @@ from .project import Project
 from django.utils.translation import gettext_lazy as _, gettext
 
 from functools import partial
-import subprocess
 from app.classes.console import Console
-from app.s3_utils import get_s3_client, list_s3_objects, download_s3_file
+from app.utils.s3_utils import get_s3_client, list_s3_objects, download_s3_file
+from app.utils.file_utils import ensure_path_exists, get_file_name
 
 logger = logging.getLogger('app.logger')
 
@@ -304,6 +304,7 @@ class Task(models.Model):
     size = models.FloatField(default=0.0, blank=True, help_text=_("Size of the task on disk in megabytes"), verbose_name=_("Size"))
     s3_images = fields.JSONField(default=list, blank=True, help_text=_("List s3 buckets with images"), verbose_name=_("S3 buckets images"))
     image_origin = models.IntegerField(choices=IMAGE_ORIGINS, default=image_origins.USER_UPLOAD, null=False, blank=False, help_text=_("From where the image come."), verbose_name=_("Image Origin"))
+    upload_in_progress = models.BooleanField(default=False, help_text=_("A flag indicating whether this task is in upload progress"), verbose_name=_("Upload In Progress"))
     
     class Meta:
         verbose_name = _("Task")
@@ -704,8 +705,11 @@ class Task(models.Model):
         """
 
         try:
+            if self.upload_in_progress:
+                return
+
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
-                self.upload_and_remove_assets()
+                self.upload_and_cache_assets()
 
             if self.pending_action in [pending_actions.IMPORT_FROM_S3, pending_actions.IMPORT_FROM_S3_WITH_RESIZE]:
                 self.handle_s3_import()
@@ -1325,28 +1329,22 @@ class Task(models.Model):
         p = self.task_path(filename)
         return path_traversal_check(p, self.task_path())
     
-    def handle_images_upload(self, files):
+    def handle_images_upload(self, files: list[dict[str, str]]):
         uploaded = {}
         for file in files:
-            name = file.name
-            if name is None:
+            if file is None:
                 continue
 
+            name = file['name']
+
             tp = self.task_path()
-            if not os.path.exists(tp):
-                os.makedirs(tp, exist_ok=True)
+            ensure_path_exists(tp)
 
             dst_path = self.get_image_path(name)
-
-            with open(dst_path, 'wb+') as fd:
-                if isinstance(file, InMemoryUploadedFile):
-                    for chunk in file.chunks():
-                        fd.write(chunk)
-                else:
-                    with open(file.temporary_file_path(), 'rb') as f:
-                        shutil.copyfileobj(f, fd)
+            shutil.copyfile(file['path'], dst_path)
             
             uploaded[name] = os.path.getsize(dst_path)
+
         return uploaded
 
     def update_size(self, commit=False, clear_quota=True):
@@ -1371,11 +1369,11 @@ class Task(models.Model):
             os.makedirs(fotos_s3_dir, exist_ok=True)
         return fotos_s3_dir
 
-    def upload_and_remove_assets(self, reset_pending_action=False):
+    def upload_and_cache_assets(self, reset_pending_action=False):
         initial_pending_action = self.pending_action
 
         self._upload_assets_to_s3()
-        self._remove_assets()
+        # self._remove_assets()
 
         self.pending_action = initial_pending_action if reset_pending_action else None
         self.save()

@@ -12,7 +12,7 @@ from rio_tiler.errors import InvalidColorMapName
 from app.api.hsvblend import hsv_blend
 from app.api.hillshade import LightSource
 from rasterio.warp import calculate_default_transform, reproject, Resampling
-from app.s3_utils import open_cog_reader
+from app.utils.s3_utils import open_cog_reader
 
 logger = logging.getLogger('app.logger')
 
