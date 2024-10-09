@@ -17,6 +17,7 @@ import ResizeModes from "../classes/ResizeModes";
 import Tags from "../classes/Tags";
 import exifr from "../vendor/exifr";
 import { _, interpolate } from "../classes/gettext";
+  import Workers from '../classes/Workers';
 import $ from "jquery";
 
 class ProjectListItem extends React.Component {
@@ -271,31 +272,54 @@ class ProjectListItem extends React.Component {
             } else {
               // Check response
               let response = JSON.parse(file.xhr.response);
-              if (
-                response.success &&
-                response.uploaded &&
-                response.uploaded[file.name] === file.size
-              ) {
-                // Update progress by removing the tracked progress and
-                // use the file size as the true number of bytes
-                let totalBytesSent =
-                  this.state.upload.totalBytesSent + file.size;
-                if (file.trackedBytesSent)
-                  totalBytesSent -= file.trackedBytesSent;
 
-                const progress =
-                  (totalBytesSent / this.state.upload.totalBytes) * 100;
+              Workers.waitAndGetResult(response.celery_task_id, (error, result) => {
+                if (error) {
+                  throw new Error(
+                    interpolate(
+                      _(
+                        "Cannot upload %(filename)s, erro: %(error)"
+                      ),
+                      {
+                        filename: file.name,
+                        error: error
+                      }
+                    )
+                  );
+                } else {
+                  if (
+                    result.success &&
+                    result.uploaded &&
+                    result.uploaded[file.name] === file.size
+                  ) {
+                    // Update progress by removing the tracked progress and
+                    // use the file size as the true number of bytes
+                    let totalBytesSent =
+                      this.state.upload.totalBytesSent + file.size;
+                    if (file.trackedBytesSent)
+                      totalBytesSent -= file.trackedBytesSent;
+    
+                    const progress =
+                      (totalBytesSent / this.state.upload.totalBytes) * 100;
+    
+                    this.setUploadState({
+                      progress,
+                      totalBytesSent,
+                      uploadedCount: this.state.upload.uploadedCount + 1,
+                    });
+    
 
-                this.setUploadState({
-                  progress,
-                  totalBytesSent,
-                  uploadedCount: this.state.upload.uploadedCount + 1,
-                });
-
-                this.dz.processQueue();
-              } else {
-                retry();
-              }
+                    const remainingFilesCount =
+                      this.state.upload.totalCount - this.state.upload.uploadedCount;
+                    if (remainingFilesCount === 0 &&
+                        this.state.upload.uploadedCount > 0) {
+                      this.dz.emit('queuecomplete');
+                    }
+                  } else {
+                    retry();
+                  }
+                }
+              })
             }
           } catch (e) {
             if (this.manuallyCanceled) {
