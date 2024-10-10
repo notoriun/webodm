@@ -6,7 +6,6 @@ import struct
 from datetime import datetime
 import uuid as uuid_module
 from app.vendor import zipfly
-from botocore.client import Config
 
 import json
 
@@ -50,7 +49,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from functools import partial
 from app.classes.console import Console
 from app.utils.s3_utils import get_s3_client, list_s3_objects, download_s3_file
-from app.utils.file_utils import ensure_path_exists, get_file_name
+from app.utils.file_utils import ensure_path_exists, remove_path_from_path
 
 logger = logging.getLogger('app.logger')
 
@@ -63,8 +62,8 @@ def task_directory_path(taskId, projectId):
 
 
 def full_task_directory_path(taskId, projectId, *args):
-    #return os.path.join(settings.MEDIA_ROOT, task_directory_path(taskId, projectId), *args)
-    return os.path.join(task_directory_path(taskId, projectId), *args)
+    return os.path.join(settings.MEDIA_ROOT, task_directory_path(taskId, projectId), *args)
+    # return os.path.join(task_directory_path(taskId, projectId), *args)
 
 
 def assets_directory_path(taskId, projectId, filename):
@@ -391,8 +390,8 @@ class Task(models.Model):
         """
         Get path relative to the root task directory
         """
-        #return os.path.join(settings.MEDIA_ROOT,
-        return os.path.join(assets_directory_path(self.id, self.project.id, ""),
+        return os.path.join(settings.MEDIA_ROOT,
+                            assets_directory_path(self.id, self.project.id, ""),
                             *args)
 
     def is_asset_available_slow(self, asset):
@@ -1415,7 +1414,8 @@ class Task(models.Model):
 
             for file_to_upload in files_to_upload:
                 file_size = os.path.getsize(file_to_upload)
-                s3_client.upload_file(file_to_upload, s3_bucket, file_to_upload, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
+                s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
+                s3_client.upload_file(file_to_upload, s3_bucket, s3_key, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
                 files_uploadeds.append(file_to_upload)
         except Exception as e:
             raise NodeServerError(e)

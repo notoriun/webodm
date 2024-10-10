@@ -60,6 +60,14 @@ app.conf.beat_schedule = {
         	'retry': False
         }
     },
+    'refresh-file-cache-keys': {
+        'task': 'worker.cache_files.refresh_file_cache_keys',
+        'schedule': 5,
+        'options': {
+        	'expires': 2,
+        	'retry': False
+        }
+    },
 }
 
 # Mock class for handling async results during testing

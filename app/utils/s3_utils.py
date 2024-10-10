@@ -2,6 +2,8 @@ import boto3
 import logging
 import rasterio
 import re
+import os
+import worker.cache_files as worker_cache_files_tasks
 from botocore.config import Config
 from webodm import settings
 from contextlib import contextmanager
@@ -9,6 +11,7 @@ from rasterio.errors import RasterioIOError
 from rasterio.session import AWSSession
 from rio_tiler.io import COGReader
 from rest_framework import exceptions
+from app.utils.file_utils import remove_path_from_path
 
 
 logger = logging.getLogger('app.logger')
@@ -70,10 +73,25 @@ def list_s3_objects(key_to_contains: str, bucket=settings.S3_BUCKET):
     return []
 
 @contextmanager
-def open_cog_reader(url):
-    endpoint_url = sanitize_s3_endpoint(settings.S3_DOWNLOAD_ENDPOINT)
+def open_cog_reader(url: str):
+    endpoint_url = sanitize_s3_endpoint(settings.S3_DOWNLOAD_ENDPOINT) if settings.S3_DOWNLOAD_ENDPOINT else None
     access_key = settings.S3_DOWNLOAD_ACCESS_KEY
     secret_key = settings.S3_DOWNLOAD_SECRET_KEY
+
+    has_s3_config = endpoint_url and access_key and secret_key
+    is_s3_url = has_s3_prefix(url)
+
+    local_path = remove_s3_bucket_prefix(url)
+    if os.path.isfile(local_path):
+        with COGReader(local_path) as source:
+            yield source
+
+    if not is_s3_url:
+        raise exceptions.NotFound(local_path)
+
+    if not has_s3_config:
+        logger.error('Could not connect to s3, because is missing some s3 configuration variable')
+        raise exceptions.NotFound(_("Unable to read the data from S3"))
 
     try:
         # Set AWS credentials
@@ -96,8 +114,10 @@ def open_cog_reader(url):
             AWS_S3_ENDPOINT=endpoint_url,
             SSL=False,
         ):
-            with COGReader(url) as src:
-                yield src
+            with COGReader(url) as source:
+                yield source
+
+        worker_cache_files_tasks.download_and_add_to_cache.delay(url)
     except RasterioIOError:
         raise exceptions.NotFound(_("Unable to read the data from S3"))
     except Exception as e:
@@ -120,7 +140,7 @@ def download_s3_file(file_path, destiny_image_filename, s3_client=None, bucket=s
             logger.error('Could not download any file from s3, because is missing some s3 configuration variable')
             return
 
-    key = remove_s3_bucket_prefix(file_path)
+    key = remove_s3_bucket_prefix(file_path, bucket)
     logger.info('Downloading s3 file {} to {}'.format(key, destiny_image_filename))
     s3_client.download_file(bucket, key, destiny_image_filename, *args, **kwargs)
 
@@ -131,10 +151,17 @@ def append_s3_bucket_prefix(path: str):
         logger.error('Could append s3 prefix to access any s3 object, because is missing some s3 configuration variable')
         return path
 
-    return f's3://{bucket}/{path}'
+    s3_path = remove_path_from_path(path, settings.MEDIA_ROOT)
 
-def remove_s3_bucket_prefix(path: str):
+    return f's3://{bucket}/{s3_path}'
+
+def remove_s3_bucket_prefix(path: str, bucket=settings.S3_BUCKET):
     s3_prefix = 's3://'
-    bucket = settings.S3_BUCKET + '/' if settings.S3_BUCKET else ''
+    bucket_with_lash = bucket + '/' if bucket else ''
 
-    return path.replace(s3_prefix, '').replace(bucket, '')
+    return path.replace(s3_prefix, '').replace(bucket_with_lash, '')
+
+def has_s3_prefix(path: str):
+    s3_prefix = 's3://'
+
+    return path.startswith(s3_prefix)
