@@ -38,6 +38,8 @@ services:
       - WO_S3_DOWNLOAD_ACCESS_KEY
       - WO_S3_DOWNLOAD_SECRET_KEY
       - WO_S3_BUCKET
+      - WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS
+      - WO_S3_CACHE_MAX_SIZE_MB
     restart: unless-stopped
     oom_score_adj: 0
   broker:
@@ -62,5 +64,7 @@ services:
       - WO_S3_DOWNLOAD_ACCESS_KEY
       - WO_S3_DOWNLOAD_SECRET_KEY
       - WO_S3_BUCKET
+      - WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS
+      - WO_S3_CACHE_MAX_SIZE_MB
     restart: unless-stopped
     oom_score_adj: 250

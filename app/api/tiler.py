@@ -11,6 +11,7 @@ from rio_tiler.utils import (
     render,
     create_cutline,
     apply_cmap,
+    _stats as raster_stats,
 )
 from rio_tiler.models import ImageStatistics
 from rio_tiler.models import Metadata as RioMetadata
@@ -186,9 +187,10 @@ class Metadata(TaskNestedView):
                     data = np.ma.array(data)
                     data.mask = mask == 0
                     stats = {
-                        str(b + 1): ImageStatistics(**rasterio.features.dataset_statistics(data[b], percentiles=(pmin, pmax), bins=255, range=hrange))
+                        str(b + 1): raster_stats(data[b], percentiles=(pmin, pmax), bins=255, range=hrange)
                         for b in range(data.shape[0])
                     }
+                    stats = {b: ImageStatistics(**s) for b, s in stats.items()}
                     metadata = RioMetadata(statistics=stats, **src.info().dict())
                 else:
                     if (boundaries_cutline is not None) and (boundaries_bbox is not None):

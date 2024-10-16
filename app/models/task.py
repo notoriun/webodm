@@ -3,18 +3,20 @@ import os
 import shutil
 import time
 import struct
-from datetime import datetime
-import uuid as uuid_module
-from app.vendor import zipfly
-
 import json
-
 import errno
 import piexif
 import re
-
 import zipfile
 import rasterio
+import uuid as uuid_module
+import worker.cache_files as worker_cache_files_tasks
+
+from datetime import datetime
+from app.vendor import zipfly
+
+
+
 from shutil import copyfile
 import requests
 from PIL import Image
@@ -48,8 +50,8 @@ from django.utils.translation import gettext_lazy as _, gettext
 
 from functools import partial
 from app.classes.console import Console
-from app.utils.s3_utils import get_s3_client, list_s3_objects, download_s3_file
-from app.utils.file_utils import ensure_path_exists, remove_path_from_path
+from app.utils.s3_utils import get_s3_client, list_s3_objects, download_s3_file, get_s3_object_metadata, append_s3_bucket_prefix
+from app.utils.file_utils import ensure_path_exists, remove_path_from_path, get_all_files_in_dir
 
 logger = logging.getLogger('app.logger')
 
@@ -679,7 +681,7 @@ class Task(models.Model):
                     original_image_filename = image_path.rsplit('/')[-1]
                     destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
 
-                    s3_object = s3_client.head_object(Bucket=bucket, Key=image_path)
+                    s3_object = get_s3_object_metadata(bucket=bucket, key=image_path, s3_client=s3_client)
                     total_size = s3_object['ContentLength']
                     download_s3_file(
                         image_path,
@@ -1374,8 +1376,9 @@ class Task(models.Model):
     def upload_and_cache_assets(self, reset_pending_action=False):
         initial_pending_action = self.pending_action
 
-        self._upload_assets_to_s3()
-        # self._remove_assets()
+        files_uploadeds = self._upload_assets_to_s3()
+        for file in files_uploadeds:
+            worker_cache_files_tasks.download_and_add_to_cache.delay(file)
 
         self.pending_action = initial_pending_action if reset_pending_action else None
         self.save()
@@ -1416,25 +1419,16 @@ class Task(models.Model):
                 file_size = os.path.getsize(file_to_upload)
                 s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
                 s3_client.upload_file(file_to_upload, s3_bucket, s3_key, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
-                files_uploadeds.append(file_to_upload)
+                files_uploadeds.append(append_s3_bucket_prefix(file_to_upload))
         except Exception as e:
             raise NodeServerError(e)
 
-        
+        return files_uploadeds
+
     def _get_all_assets_files(self):
         task_path = self.task_path()
 
-        return self._get_all_files_on_dir(task_path)
-
-    def _get_all_files_on_dir(self, dir) -> list[str]:
-        all_files = []
-        for entry in os.scandir(dir):
-            if entry.is_dir():
-                all_files += self._get_all_files_on_dir(entry.path)
-            else:
-                all_files.append(entry.path)
-        
-        return all_files
+        return get_all_files_in_dir(task_path)
 
     def _remove_assets(self):
         task_path = self.task_path()

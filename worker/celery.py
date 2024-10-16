@@ -1,4 +1,5 @@
 from celery import Celery
+from webodm import settings
 import os
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webodm.settings')
@@ -62,7 +63,7 @@ app.conf.beat_schedule = {
     },
     'refresh-file-cache-keys': {
         'task': 'worker.cache_files.refresh_file_cache_keys',
-        'schedule': 5,
+        'schedule': settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS,
         'options': {
         	'expires': 2,
         	'retry': False
