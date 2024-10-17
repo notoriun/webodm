@@ -531,6 +531,16 @@ class Task(models.Model):
 
         return zipfly.ZipStream(paths, on_streamed_backup)
     
+    def is_asset_a_zip(self, asset):
+        if not (asset in self.ASSETS_MAP):
+            return False
+
+        value = self.ASSETS_MAP[asset]
+        return (
+            isinstance(value, dict) and
+            'deferred_path' in value and
+            'deferred_compress_dir' in value)
+
     def get_asset_file_or_stream(self, asset):
         """
         Get a stream to an asset

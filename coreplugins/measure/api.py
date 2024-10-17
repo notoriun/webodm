@@ -2,7 +2,7 @@ import os
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
-from app.api.workers import GetTaskResult, TaskResultOutputError, CheckTask
+from app.api.workers import GetTaskResult, CheckTask
 from app.models import Task
 from app.plugins.views import TaskView
 from django.utils.translation import gettext_lazy as _
@@ -29,7 +29,7 @@ class TaskVolume(TaskView):
         dsm = os.path.abspath(task.get_asset_download_path("dsm.tif"))
 
         try: 
-            celery_task_id = run_function_async(calc_volume, input_dem=dsm, pts=points, pts_epsg=4326, base_method=method).task_id
+            celery_task_id = run_function_async(calc_volume, task_id=pk, input_dem=dsm, pts=points, pts_epsg=4326, base_method=method).task_id
             return Response({'celery_task_id': celery_task_id}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_200_OK)

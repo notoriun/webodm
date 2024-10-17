@@ -4,8 +4,8 @@ import tempfile
 import traceback
 import json
 import socket
-
 import time
+
 from threading import Event, Thread
 from celery.utils.log import get_task_logger
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,8 +14,10 @@ from django.db.models import Q
 from app.models import Profile
 
 from app.models import Project, Task
-from app.utils.s3_utils import download_s3_file
+from app.vendor import zipfly
+from app.utils.s3_utils import list_s3_objects, convert_task_path_to_s3
 from app.classes.task_files_uploader import TaskFilesUploader
+from app.classes.task_assets_manager import TaskAssetsManager
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from webodm import settings
@@ -195,13 +197,14 @@ def export_raster(self, input, **opts):
         return {'error': str(e)}
 
 @app.task(bind=True)
-def export_pointcloud(self, input: str, **opts):
+def export_pointcloud(self, task_id, input: str, **opts):
     try:
-        input_extension = input.split('.')[-1]
         logger.info("Exporting point cloud {} with options: {}".format(input, json.dumps(opts)))
         tmpfile = tempfile.mktemp('_pointcloud.{}'.format(opts.get('format', 'laz')), dir=settings.MEDIA_TMP)
-        tmpfile_input_s3 = tempfile.mktemp(f'_pointcloud_s3_file.{input_extension}', dir=settings.MEDIA_TMP)
-        download_s3_file(input, tmpfile_input_s3)
+
+        task = Task.objects.get(pk=task_id)
+        task_assets_manager = TaskAssetsManager(task)
+        tmpfile_input_s3 = task_assets_manager.download_asset_to_temp(input)
 
         export_pointcloud_sync(tmpfile_input_s3, tmpfile, **opts)
         result = {'file': tmpfile}
@@ -259,6 +262,54 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
             TestSafeAsyncResult.set(self.request.id, result)
 
         return { 'output': result }
+    except Exception as e:
+        logger.error(str(e))
+        logger.info(f'upload task finished with error {str(e)}')
+        return {'error': str(e)}
+
+
+@app.task(bind=True)
+def generate_zip_from_dir(self, task_id, asset):
+    try:
+        logger.info(f"Start generate zip from {asset}")
+        tmpfile = tempfile.mktemp('.zip', dir=settings.MEDIA_TMP)
+
+        task = Task.objects.get(pk=task_id)
+        asset_zip = task.ASSETS_MAP[asset]
+        zip_dir = os.path.abspath(task.assets_path(asset_zip['deferred_compress_dir']))
+        s3_dir = convert_task_path_to_s3(zip_dir)
+
+        s3_objects = list_s3_objects(s3_dir)
+        s3_keys = [s3_object['Key'] for s3_object in s3_objects]
+        
+        logger.info(f'Found these files to add in zip: {s3_keys}')
+        task_assets_manager = TaskAssetsManager(task)
+        for s3_key in s3_keys:
+            local_path = os.path.join(settings.MEDIA_ROOT, s3_key)
+            task_assets_manager.download_asset_to_temp(local_path)
+
+        logger.info('downloaded all files')
+        paths = [{'n': os.path.relpath(os.path.join(dp, f), zip_dir), 'fs': os.path.join(dp, f)} for dp, dn, filenames in os.walk(zip_dir) for f in filenames]
+        if 'deferred_exclude_files' in asset_zip and isinstance(asset_zip['deferred_exclude_files'], tuple):
+            paths = [p for p in paths if os.path.basename(p['fs']) not in asset_zip['deferred_exclude_files']]
+        if len(paths) == 0:
+            raise FileNotFoundError("No files available for download")
+
+        logger.info(f'creating zip with {paths}')
+        zip_stream = zipfly.ZipStream(paths)
+
+        logger.info(f'writing zip in {tmpfile}')
+        with open(tmpfile, 'wb') as zip_file:
+            zip_stream.lazy_load(1024)
+            for zip_data in zip_stream.generator:
+                zip_file.write(zip_data)
+
+        result = {'file': tmpfile}
+
+        if settings.TESTING:
+            TestSafeAsyncResult.set(self.request.id, result)
+
+        return result
     except Exception as e:
         logger.error(str(e))
         logger.info(f'upload task finished with error {str(e)}')

@@ -21,6 +21,7 @@ def get_s3_client():
     endpoint_url = settings.S3_DOWNLOAD_ENDPOINT
     access_key = settings.S3_DOWNLOAD_ACCESS_KEY
     secret_key = settings.S3_DOWNLOAD_SECRET_KEY
+    timeout = settings.S3_TIMEOUT
 
     if not endpoint_url or not access_key or not secret_key:
         return None
@@ -29,7 +30,10 @@ def get_s3_client():
                         endpoint_url=endpoint_url,
                         aws_access_key_id=access_key,
                         aws_secret_access_key=secret_key,
-                        config=Config(signature_version='s3v4'))
+                        config=Config(
+                            signature_version='s3v4',
+                            connect_timeout=timeout,
+                            read_timeout=timeout))
 
 
 def get_s3_object(key: str, bucket=settings.S3_BUCKET, s3_client=None):
@@ -54,19 +58,18 @@ def get_s3_object(key: str, bucket=settings.S3_BUCKET, s3_client=None):
     return None
 
 
-def list_s3_objects(key_to_contains: str, bucket=settings.S3_BUCKET):
+def list_s3_objects(key_to_contains: str, s3_client=None, bucket=settings.S3_BUCKET):
     try:
         if not bucket:
             logger.error('Could not list any object from s3, because is missing some s3 configuration variable')
             return []
 
-        s3_client = get_s3_client()
+        valid_s3_client = _get_valid_s3_client(s3_client)
 
-        if not s3_client:
-            logger.error('Could not list any object from s3, because is missing some s3 configuration variable')
-            return []
+        if not valid_s3_client:
+            return None
 
-        response = s3_client.list_objects_v2(Bucket=bucket, Prefix=key_to_contains)
+        response = valid_s3_client.list_objects_v2(Bucket=bucket, Prefix=key_to_contains)
         
         return response['Contents']
     except Exception as e:
@@ -187,6 +190,10 @@ def get_s3_object_metadata(key: str, bucket=settings.S3_BUCKET, s3_client=None):
     return valid_s3_client.head_object(Bucket=bucket, Key=key)
 
 
+def convert_task_path_to_s3(task_path: str):
+    return task_path.replace(ensure_sep_at_end(settings.MEDIA_ROOT), '')
+
+
 def _get_valid_s3_client(unsafe_s3_client):
     logger.info(f'unsafe s3 client: {unsafe_s3_client}')
     if isinstance(unsafe_s3_client, BaseClient) and unsafe_s3_client.meta.service_model.service_name == 's3':
@@ -196,11 +203,7 @@ def _get_valid_s3_client(unsafe_s3_client):
     logger.info(f'generated new client: {s3_client}')
 
     if not s3_client:
-        logger.error('Could not download any file from s3, because is missing some s3 configuration variable')
+        logger.error('Could not connect to s3, because is missing some s3 configuration variable')
         return None
 
     return s3_client
-
-
-def convert_task_path_to_s3(task_path: str):
-    return task_path.replace(ensure_sep_at_end(settings.MEDIA_ROOT), '')

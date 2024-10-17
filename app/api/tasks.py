@@ -427,18 +427,19 @@ class TaskDownloads(TaskNestedView):
         except FileNotFoundError:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        is_stream = not isinstance(asset_fs, str)
+        download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
+        
+        if task.is_asset_a_zip(asset):
+            celery_task_id = worker_tasks.generate_zip_from_dir.delay(pk, asset).task_id
+
+            return Response({'celery_task_id': celery_task_id, 'filename': download_filename}, status=status.HTTP_200_OK)
+
         asset_stream = asset_manager.get_asset_stream(asset_fs)
-        if not is_stream and not asset_stream:
+        if not asset_stream:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
-
-        if is_stream:
-            return download_file_stream(request, FileWrapper(asset_fs), 'attachment', download_filename=download_filename)
-        else:
-            content_disposition = 'attachment; filename={}'.format(download_filename)
-            return download_file_stream(request, asset_stream, content_disposition, get_file_name(asset))
+        content_disposition = 'attachment; filename={}'.format(download_filename)
+        return download_file_stream(request, asset_stream, content_disposition, get_file_name(asset))
 
 """
 Raw access to the task's asset folder resources

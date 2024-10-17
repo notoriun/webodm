@@ -2,13 +2,11 @@ import json
 import os
 
 from django.core.cache import caches
-from celery.utils.log import get_task_logger
 
 from webodm import settings
 from time import sleep
 from contextlib import contextmanager
 
-logger = get_task_logger("app.logger")
 cache_files_queue_key = 's3_cache_files_queue'
 cache_files_lock_key = 's3_cache_files_lock'
 
@@ -17,7 +15,6 @@ def set_files_in_cache(files: list[str]):
     redis_cache = _get_redis_cache()
 
     files_cache_str = json.dumps(files)
-    logger.info(f'setting files to cache {files_cache_str}')
     redis_cache.set(cache_files_queue_key, files_cache_str, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1)
 
 
@@ -29,7 +26,6 @@ def get_files_in_cache() -> list[str]:
     if not files_in_cache:
         return []
 
-    # logger.info(f'getted files from cache {files_in_cache}')
     return json.loads(files_in_cache)
 
 

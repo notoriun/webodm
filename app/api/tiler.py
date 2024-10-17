@@ -626,6 +626,6 @@ class Export(TaskNestedView):
             if export_format == 'laz' and (epsg == task.epsg or epsg is None):
                 return Response({'url': '/api/projects/{}/tasks/{}/download/{}.laz'.format(task.project.id, task.id, asset_type), 'filename': filename})
             else:
-                celery_task_id = export_pointcloud.delay(url, epsg=epsg,
+                celery_task_id = export_pointcloud.delay(pk, url, epsg=epsg,
                                                             format=export_format).task_id
                 return Response({'celery_task_id': celery_task_id, 'filename': filename})

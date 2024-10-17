@@ -292,7 +292,7 @@ class ZipStream:
         self.lazy_load(count)
         return next(self.generator)
     
-    def _wrap_zipfly_generator(zipfly: ZipFly):
+    def _wrap_zipfly_generator(self, zipfly: ZipFly):
         def wrapper(zip_stream: ZipStream):
             for chunk in zipfly.generator():
                 yield chunk
