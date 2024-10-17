@@ -235,7 +235,10 @@ class TaskViewSet(viewsets.ViewSet):
     def upload(self, request, pk=None, project_pk=None, type=""):
         project = get_and_check_project(request, project_pk, ('change_project', ))
         files = flatten_files(request.FILES)
-        if len(files) == 0:
+        s3_images = request.data.get('images_download_s3', '')
+        valid_s3_images = self._sanitize_s3_images(s3_images)
+
+        if len(files) == 0 and len(valid_s3_images) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
         try:
@@ -245,9 +248,7 @@ class TaskViewSet(viewsets.ViewSet):
 
         try:
             upload_type = request.data.get('type', 'orthophoto')
-            s3_images = request.data.get('images_download_s3', '')
             files_paths = save_request_files(files)
-            valid_s3_images = self._sanitize_s3_images(s3_images)
 
             # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
             serializer = TaskSerializer(task, data=request.data, partial=True)
