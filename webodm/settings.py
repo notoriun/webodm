@@ -360,6 +360,14 @@ if DEBUG and not TESTING:
         }
     }
 
+CACHES['s3_images_cache'] = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": os.environ.get('WO_BROKER', 'redis://localhost'),
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    }
+}
+
 # Number of minutes a processing node hasn't been seen
 # before it should be considered offline
 NODE_OFFLINE_MINUTES = 5
@@ -397,6 +405,14 @@ TASK_OPTIONS_DOCS_LINK = "https://docs.opendronemap.org/arguments/"
 if TESTING or FLUSHING:
     CELERY_TASK_ALWAYS_EAGER = True
     EXTERNAL_AUTH_ENDPOINT = 'http://0.0.0.0:5555/auth'
+
+S3_DOWNLOAD_ENDPOINT = os.environ.get('WO_S3_DOWNLOAD_ENDPOINT', None)
+S3_DOWNLOAD_ACCESS_KEY = os.environ.get('WO_S3_DOWNLOAD_ACCESS_KEY', None)
+S3_DOWNLOAD_SECRET_KEY = os.environ.get('WO_S3_DOWNLOAD_SECRET_KEY', None)
+S3_BUCKET = os.environ.get('WO_S3_BUCKET', None)
+S3_TIMEOUT = 60
+S3_CACHE_MAX_SIZE_MB = int(os.environ.get('WO_S3_CACHE_MAX_SIZE_MB', '0')) 
+S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS = int(os.environ.get('WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS', '30'))
 
 try:
     from .local_settings import *

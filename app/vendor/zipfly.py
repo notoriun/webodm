@@ -278,15 +278,26 @@ class ZipFly:
         return self._buffer_size
 
 class ZipStream:
-    def __init__(self, paths):
+    def __init__(self, paths, end_read_callback=None):
         self.paths = paths
         self.generator = None
+        self.end_read_callback = end_read_callback
 
     def lazy_load(self, chunksize):
         if self.generator is None:
             zfly = ZipFly(paths=self.paths, mode='w', chunksize=chunksize)
-            self.generator = zfly.generator()
+            self.generator = self._wrap_zipfly_generator(zfly)(self)
 
     def read(self, count):
         self.lazy_load(count)
         return next(self.generator)
+    
+    def _wrap_zipfly_generator(self, zipfly: ZipFly):
+        def wrapper(zip_stream: ZipStream):
+            for chunk in zipfly.generator():
+                yield chunk
+
+            if zip_stream.end_read_callback:
+                zip_stream.end_read_callback()
+        
+        return wrapper

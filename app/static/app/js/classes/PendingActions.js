@@ -1,39 +1,54 @@
-import { _ } from './gettext';
+import { _ } from "./gettext";
 
 const CANCEL = 1,
-      REMOVE = 2,
-      RESTART = 3,
-      RESIZE = 4,
-      IMPORT = 5;
+  REMOVE = 2,
+  RESTART = 3,
+  RESIZE = 4,
+  IMPORT = 5,
+  IMPORT_FROM_S3 = 6,
+  IMPORT_FROM_S3_WITH_RESIZE = 7,
+  UPLOAD_TO_S3 = 8;
 
 let pendingActions = {
-    [CANCEL]: {
-        descr: _("Canceling...")
-    },
-    [REMOVE]: {
-        descr: _("Deleting...")
-    },
-    [RESTART]: {
-        descr: _("Restarting...")
-    },
-    [RESIZE]: {
-      descr: _("Resizing images...")
-    },
-    [IMPORT]: {
-      descr: _("Importing...")
-    }
+  [CANCEL]: {
+    descr: _("Canceling..."),
+  },
+  [REMOVE]: {
+    descr: _("Deleting..."),
+  },
+  [RESTART]: {
+    descr: _("Restarting..."),
+  },
+  [RESIZE]: {
+    descr: _("Resizing images..."),
+  },
+  [IMPORT]: {
+    descr: _("Importing..."),
+  },
+  [IMPORT_FROM_S3]: {
+    descr: _("Downloading from s3..."),
+  },
+  [IMPORT_FROM_S3_WITH_RESIZE]: {
+    descr: _("Downloading from s3..."),
+  },
+  [UPLOAD_TO_S3]: {
+    descr: _("Uploading to s3..."),
+  },
 };
 
 export default {
-    CANCEL: CANCEL,
-    REMOVE: REMOVE,
-    RESTART: RESTART,
-    RESIZE: RESIZE,
-    IMPORT: IMPORT,
+  CANCEL: CANCEL,
+  REMOVE: REMOVE,
+  RESTART: RESTART,
+  RESIZE: RESIZE,
+  IMPORT: IMPORT,
+  IMPORT_FROM_S3: IMPORT_FROM_S3,
+  IMPORT_FROM_S3_WITH_RESIZE: IMPORT_FROM_S3_WITH_RESIZE,
+  UPLOAD_TO_S3: UPLOAD_TO_S3,
 
-    description: function(pendingAction) {
-      if (pendingActions[pendingAction]) return pendingActions[pendingAction].descr;
-      else return "";
-    }
+  description: function (pendingAction) {
+    if (pendingActions[pendingAction])
+      return pendingActions[pendingAction].descr;
+    else return "";
+  },
 };
-

@@ -5,9 +5,10 @@ import math
 from .tasks import TaskNestedView
 from rest_framework import exceptions
 from app.models.task import assets_directory_path
+from app.classes.task_assets_manager import TaskAssetsManager
 from PIL import Image, ImageDraw, ImageOps
 from django.http import HttpResponse
-from .tasks import download_file_response
+from .tasks import download_file_stream
 from .common import hex2rgb
 import numpy as np
 
@@ -32,8 +33,9 @@ class Thumbnail(TaskNestedView):
         Generate a thumbnail on the fly for a particular task's image
         """
         task = self.get_and_check_task(request, pk)
-        image_path = task.get_image_path(image_filename)
-        if not os.path.isfile(image_path):
+        assets_manager = TaskAssetsManager(task)
+        image_stream = assets_manager.get_image_stream(image_filename)
+        if not image_stream:
             raise exceptions.NotFound()
 
         try:
@@ -77,7 +79,14 @@ class Thumbnail(TaskNestedView):
         except ValueError:
             raise exceptions.ValidationError("Invalid query parameters")
 
-        with Image.open(image_path) as img:
+        image_data = io.BytesIO()
+
+        for chunk in image_stream:
+            image_data.write(chunk)
+
+        image_data.seek(0)
+
+        with Image.open(image_data) as img:
             if img.mode != 'RGB':
                 img = normalize(img)
                 img = img.convert('RGB')
@@ -140,8 +149,10 @@ class ImageDownload(TaskNestedView):
         Download a task's image
         """
         task = self.get_and_check_task(request, pk)
-        image_path = task.get_image_path(image_filename)
-        if not os.path.isfile(image_path):
+
+        assets_manager = TaskAssetsManager(task)
+        image_stream = assets_manager.get_image_stream(image_filename)
+        if not image_stream:
             raise exceptions.NotFound()
 
-        return download_file_response(request, image_path, 'attachment')
+        return download_file_stream(request, image_stream, 'attachment', os.path.basename(image_filename))
