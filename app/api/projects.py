@@ -23,10 +23,10 @@ def normalized_perm_names(perms):
 
 class ProjectSerializer(serializers.ModelSerializer):
     tasks = TaskIDsSerializer(many=True, read_only=True)
-    User = get_user_model()
+    # User = get_user_model()
     owner = serializers.HiddenField(
-            #default=serializers.CurrentUserDefault()
-            default=User.objects.filter(is_superuser=True).order_by('id').first()
+            default=serializers.CurrentUserDefault()
+            # default=User.objects.filter(is_superuser=True).order_by('id').first()
         )
     owned = serializers.SerializerMethodField()
     created_at = serializers.ReadOnlyField()
