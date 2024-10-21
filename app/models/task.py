@@ -1074,6 +1074,7 @@ class Task(models.Model):
         self.running_progress = 1.0
         self.status = status_codes.COMPLETED
         self.pending_action = pending_actions.UPLOAD_TO_S3
+        self._remove_root_images()
 
         if is_backup:
             self.read_backup_file()
@@ -1388,7 +1389,7 @@ class Task(models.Model):
 
         files_uploadeds = self._upload_assets_to_s3()
         for file in files_uploadeds:
-            worker_cache_files_tasks.download_and_add_to_cache.delay(file)
+            worker_cache_files_tasks.download_and_add_to_cache.delay(file, False)
 
         self.pending_action = initial_pending_action if reset_pending_action else None
         self.save()

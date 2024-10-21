@@ -16,6 +16,7 @@ from app.models import Profile
 from app.models import Project, Task
 from app.vendor import zipfly
 from app.utils.s3_utils import list_s3_objects, convert_task_path_to_s3
+from app.utils.file_utils import ensure_path_exists
 from app.classes.task_files_uploader import TaskFilesUploader
 from app.classes.task_assets_manager import TaskAssetsManager
 from nodeodm import status_codes
@@ -269,14 +270,50 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
 
 
 @app.task(bind=True)
-def generate_zip_from_dir(self, task_id, asset):
+def generate_zip_from_asset(self, task_id, asset):
     try:
         logger.info(f"Start generate zip from {asset}")
-        tmpfile = tempfile.mktemp('.zip', dir=settings.MEDIA_TMP)
 
         task = Task.objects.get(pk=task_id)
         asset_zip = task.ASSETS_MAP[asset]
         zip_dir = os.path.abspath(task.assets_path(asset_zip['deferred_compress_dir']))
+        result = _generate_zip_from_dir(task, zip_dir, asset_zip['deferred_exclude_files'])
+
+        if settings.TESTING:
+            TestSafeAsyncResult.set(self.request.id, result)
+
+        return result
+    except Exception as e:
+        logger.error(str(e))
+        logger.info(f'generate zip from task finished with error {str(e)}')
+        return {'error': str(e)}
+
+
+@app.task(bind=True)
+def generate_backup_zip(self, task_id):
+    try:
+        logger.info("Start generate backup zip")
+
+        task = Task.objects.get(pk=task_id)
+        ensure_path_exists(task.task_path("data"))
+        task.write_backup_file()
+        zip_dir = os.path.abspath(task.task_path(""))
+        result = _generate_zip_from_dir(task, zip_dir)
+
+        if settings.TESTING:
+            TestSafeAsyncResult.set(self.request.id, result)
+
+        return result
+    except Exception as e:
+        logger.error(str(e))
+        logger.info(f'backup task finished with error {str(e)}')
+        return {'error': str(e)}
+
+
+def _generate_zip_from_dir(task, zip_dir, exclude_files = tuple([])):
+    try:
+        tmpfile = tempfile.mktemp('.zip', dir=settings.MEDIA_TMP)
+
         s3_dir = convert_task_path_to_s3(zip_dir)
 
         s3_objects = list_s3_objects(s3_dir)
@@ -289,9 +326,15 @@ def generate_zip_from_dir(self, task_id, asset):
             task_assets_manager.download_asset_to_temp(local_path)
 
         logger.info('downloaded all files')
-        paths = [{'n': os.path.relpath(os.path.join(dp, f), zip_dir), 'fs': os.path.join(dp, f)} for dp, dn, filenames in os.walk(zip_dir) for f in filenames]
-        if 'deferred_exclude_files' in asset_zip and isinstance(asset_zip['deferred_exclude_files'], tuple):
-            paths = [p for p in paths if os.path.basename(p['fs']) not in asset_zip['deferred_exclude_files']]
+        paths = [
+            {
+                'n': os.path.relpath(os.path.join(dp, f), zip_dir),
+                'fs': os.path.join(dp, f)
+            }
+            for dp, dn, filenames in os.walk(zip_dir) for f in filenames
+        ]
+        if isinstance(exclude_files, tuple):
+            paths = [p for p in paths if os.path.basename(p['fs']) not in exclude_files]
         if len(paths) == 0:
             raise FileNotFoundError("No files available for download")
 
@@ -305,9 +348,6 @@ def generate_zip_from_dir(self, task_id, asset):
                 zip_file.write(zip_data)
 
         result = {'file': tmpfile}
-
-        if settings.TESTING:
-            TestSafeAsyncResult.set(self.request.id, result)
 
         return result
     except Exception as e:

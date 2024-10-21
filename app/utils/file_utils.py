@@ -19,7 +19,7 @@ def get_all_files_in_dir(dir) -> list[str]:
             all_files += get_all_files_in_dir(entry.path)
         else:
             all_files.append(entry.path)
-    
+
     return all_files
 
 
