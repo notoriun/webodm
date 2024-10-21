@@ -422,18 +422,18 @@ class TaskDownloads(TaskNestedView):
             content_disposition = 'inline; filename={}'.format(os.path.basename(asset))
             return download_file_stream(request, asset_stream, content_disposition, get_file_name(asset))
 
+        download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
+        
+        if task.is_asset_a_zip(asset):
+            celery_task_id = worker_tasks.generate_zip_from_asset.delay(pk, asset).task_id
+
+            return Response({'celery_task_id': celery_task_id, 'filename': download_filename}, status=status.HTTP_200_OK)
+
         # Check and download
         try:
             asset_fs = task.get_asset_file_or_stream(asset)
         except FileNotFoundError:
             raise exceptions.NotFound(_("Asset does not exist"))
-
-        download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
-        
-        if task.is_asset_a_zip(asset):
-            celery_task_id = worker_tasks.generate_zip_from_dir.delay(pk, asset).task_id
-
-            return Response({'celery_task_id': celery_task_id, 'filename': download_filename}, status=status.HTTP_200_OK)
 
         asset_stream = asset_manager.get_asset_stream(asset_fs)
         if not asset_stream:
@@ -480,13 +480,13 @@ class TaskBackup(TaskNestedView):
 
         # Check and download
         try:
-            asset_fs = task.get_task_backup_stream()
+            celery_task_id = worker_tasks.generate_backup_zip.delay(pk).task_id
         except FileNotFoundError:
             raise exceptions.NotFound(_("Asset does not exist"))
 
         download_filename = request.GET.get('filename', get_asset_download_filename(task, "backup.zip"))
 
-        return download_file_stream(request, FileWrapper(asset_fs), 'attachment', download_filename=download_filename)
+        return Response({'celery_task_id': celery_task_id, 'filename': download_filename}, status=status.HTTP_200_OK)
 
 """
 Task assets import

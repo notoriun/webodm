@@ -39,9 +39,17 @@ class AssetDownloadButtons extends React.Component {
     }
 
     handleDownloadZip = (asset) => {
+        this.downloadZip(asset.downloadUrl(this.props.task.project, this.props.task.id))
+    }
+
+    handleDownloadBackup = () => {
+        this.downloadZip(`/api/projects/${this.props.task.project}/tasks/${this.props.task.id}/backup`)
+    }
+
+    downloadZip = (url) => {
         $.ajax({
             type: 'GET',
-            url: asset.downloadUrl(this.props.task.project, this.props.task.id)
+            url
         }).done(result => {
             if (result.celery_task_id){
                 Workers.waitForCompletion(result.celery_task_id, error => {
@@ -87,7 +95,7 @@ class AssetDownloadButtons extends React.Component {
                 }else{
                     let onClick = undefined;
                     let buttonHref = asset.downloadUrl(this.props.task.project, this.props.task.id)
-                    const isZipDownload = buttonHref.endsWith('.zip')
+                    const isZipDownload = buttonHref.endsWith('.zip') || buttonHref.endsWith('/backup')
 
                     if (asset.exportFormats){
                         onClick = e => {
@@ -125,7 +133,7 @@ class AssetDownloadButtons extends React.Component {
                 }
             })}
             <li>
-                <a href={`/api/projects/${this.props.task.project}/tasks/${this.props.task.id}/backup`}><i className="fa fa-file-download fa-fw"></i> {_("Backup")}</a>
+                <a href="javascript:void(0);" onClick={this.handleDownloadBackup}><i className="fa fa-file-download fa-fw"></i> {_("Backup")}</a>
             </li>
           </ul>
         </div>);
