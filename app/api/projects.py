@@ -139,7 +139,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def permissions(self, request, pk=None):
-        print('get_permissionsXXXXXX')
         project = get_and_check_project(request, pk, ('change_project', ))
 
         result = []
@@ -211,18 +210,17 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response({'success': True}, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
-        project = get_and_check_project(request, pk, ('view_project', ))
+        # project = get_and_check_project(request, pk, ('view_project', ))
 
         # Owner? Delete the project
-        if project.owner == request.user or request.user.is_superuser:
-            get_and_check_project(request, pk, ('delete_project', ))
-
-            return super().destroy(self, request, pk=pk)
-        else:
+        #if project.owner == request.user or request.user.is_superuser:
+        #    get_and_check_project(request, pk, ('delete_project', ))
+        return super().destroy(self, request, pk=pk)
+        #else:
             # Do not remove the project, simply remove all user's permissions to the project
             # to avoid shared projects from being accidentally deleted
-            for p in ["add", "change", "delete", "view"]:
-                perm = p + "_project"
-                remove_perm(perm, request.user, project)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        #    for p in ["add", "change", "delete", "view"]:
+        #        perm = p + "_project"
+        #        remove_perm(perm, request.user, project)
+        #    return Response(status=status.HTTP_204_NO_CONTENT)
         
