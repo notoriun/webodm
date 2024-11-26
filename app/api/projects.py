@@ -22,19 +22,22 @@ def normalized_perm_names(perms):
     return list(map(lambda p: p.replace("_project", ""),perms))
 
 
-def try_get_first_user_serializer():
-    try:
-        return User.objects.filter(is_superuser=True).order_by('id').first()
-    except:
-        return serializers.CurrentUserDefault()
+class FirstUserField(serializers.HiddenField):
+    def __init__(self, **kwargs):
+        super().__init__(default=kwargs.pop('default', None), **kwargs)
+
+    def get_default(self, *args, **kwargs):
+        try:
+            return User.objects.filter(is_superuser=True).order_by('id').first()
+        except Exception as e:
+            print(e)
+            return serializers.CurrentUserDefault()
 
 
 class ProjectSerializer(serializers.ModelSerializer):
     tasks = TaskIDsSerializer(many=True, read_only=True)
     User = get_user_model()
-    owner = serializers.HiddenField(
-            default=try_get_first_user_serializer()
-        )
+    owner = FirstUserField()
     owned = serializers.SerializerMethodField()
     created_at = serializers.ReadOnlyField()
     permissions = serializers.SerializerMethodField()
