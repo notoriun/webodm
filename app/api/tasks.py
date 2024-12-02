@@ -1,3 +1,6 @@
+import logging
+import tempfile
+
 import os
 import re
 import shutil
@@ -35,6 +38,8 @@ import ffmpeg
 import re
 import xml.etree.ElementTree as ET
 import piexif
+
+logger = logging.getLogger('app.logger')
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -190,9 +195,11 @@ def is_360_photo(image_path):
             user_comment = exif_dict["Exif"][piexif.ExifIFD.UserComment]
             if b"360" in user_comment or b"Photo Sphere" in user_comment:
                 return True
+            logger.info(f"Foto {image_path} não é uma foto 360")
         return False
     except Exception as e:
-        print(f"Erro ao verificar metadados da imagem: {str(e)}")
+        # print(f"Erro ao verificar metadados da imagem: {str(e)}")
+        logger.error(f"Erro ao verificar metadados da imagem: {str(e)}")
         return False
 
 class TaskIDsSerializer(serializers.BaseSerializer):
@@ -357,6 +364,7 @@ class TaskViewSet(viewsets.ViewSet):
 
         serializer = TaskSerializer(task)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def upload_images(self, task, files):
         if len(files) <= 1:
             raise exceptions.ValidationError(detail=_("Cannot create task, you need at least 2 images"))
@@ -370,6 +378,10 @@ class TaskViewSet(viewsets.ViewSet):
         return {'success': True, 'uploaded': [file.name for file in files]}
 
     def upload_fotos(self, task, files):
+        logger.info(f"upload_fotos - Task {task.id}")
+        print(f"upload_fotos - Task {task.id}")
+        errors = [] # usada para gravar os arquivos que não foram processados
+        
         # Garantir que o diretório assets/fotos existe
         fotos_dir = task.assets_path("fotos")
         if not os.path.exists(fotos_dir):
@@ -385,6 +397,8 @@ class TaskViewSet(viewsets.ViewSet):
                 metadata = {}
         except Exception as e:
             print(e)
+            logger.error(f"Erro ao carregar metadata.json: {str(e)}")
+            errors.append(str(e))
             metadata = {}
 
         uploaded_files = []
@@ -404,35 +418,43 @@ class TaskViewSet(viewsets.ViewSet):
             try:
                 # Manter o arquivo aberto e acessar diretamente os dados de memória
                 if isinstance(file, InMemoryUploadedFile):
+                    logger.info(f"Processando {file.name}")
                     image = Image.open(file)
                     exif_data = get_exif_data(image)
                     lat_lon_alt = get_lat_lon_alt(exif_data)
 
                     if not lat_lon_alt:
+                        logger.error(f"Metadados GPS não encontrados para {file.name}")
+                        errors.append(f"Metadados GPS não encontrados para {file.name}")
                         continue
 
                     filename = f"foto_{max_index + idx + 1}.jpg"
                     dst_path = os.path.join(fotos_dir, filename)
 
                     # Gravar o arquivo no diretório de destino
+                    logger.info(f"Salvando {filename} em {dst_path}")
                     with open(dst_path, 'wb+') as fd:
                         for chunk in file.chunks():
                             fd.write(chunk)
+                            
                 else:
                     # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
                     with open(file.temporary_file_path(), 'rb') as f:
+                        logger.info(f"Processando {file.name}")
                         image = Image.open(f)
                         exif_data = get_exif_data(image)
                         lat_lon_alt = get_lat_lon_alt(exif_data)
 
-
                         if not lat_lon_alt:
+                            logger.error(f"Metadados GPS não encontrados para {file.name}")
+                            errors.append(f"Metadados GPS não encontrados para {file.name}")
                             continue
 
                         filename = f"foto_{max_index + idx + 1}.jpg"
                         dst_path = os.path.join(fotos_dir, filename)
 
                         # Gravar o arquivo no diretório de destino
+                        logger.info(f"Salvando {filename} em {dst_path}")
                         with open(dst_path, 'wb+') as fd:
                             f.seek(0)
                             shutil.copyfileobj(f, fd)
@@ -448,28 +470,40 @@ class TaskViewSet(viewsets.ViewSet):
 
             except Exception as e:
                 print(e)
+                logger.error(f"Erro ao processar {file.name}: {str(e)}")
+                errors.append(str(e))
                 continue
 
         # Atualizar o arquivo metadata.json
+        logger.info(f"Salvando metadata.json em {metadata_path}")
         with open(metadata_path, 'w') as metadata_file:
             json.dump(metadata, metadata_file)
 
         # Adicionar metadata.json em available_assets
+        logger.info(f"Adicionando {len(uploaded_files)} arquivos a available_assets")
         metadata_asset = 'fotos/metadata.json'
         if metadata_asset not in task.available_assets:
             task.available_assets.append(metadata_asset)
 
         task.images_count = len(task.scan_images())
         task.save()
-        return {'success': True, 'uploaded': uploaded_files}
+        #
+        success = len(uploaded_files) > 0
+        logger.info(f"Sucesso: {success}")
+        return {'success': success, 'uploaded': uploaded_files , 'errors': errors}
 
     def upload_videos(self, task, files):
+        logger.info(f"upload_videos - Task {task.id}")
+        errors = []
+        
+        
         # Garantir que o diretório assets/videos existe
         videos_dir = task.assets_path("videos")
         if not os.path.exists(videos_dir):
             os.makedirs(videos_dir, exist_ok=True)
 
         # Carregar o metadata.json existente, se existir
+        logger.info(f"Carregando metadata.json de {videos_dir}")
         metadata_path = os.path.join(videos_dir, 'metadata.json')
         if os.path.exists(metadata_path):
             with open(metadata_path, 'r') as metadata_file:
@@ -513,12 +547,17 @@ class TaskViewSet(viewsets.ViewSet):
                         task.available_assets.append(asset_info)
                     uploaded_files.append(file.name)
                 else:
+                    logger.error(f"Metadados GPS não encontrados para {file.name}")
+                    errors.append(f"Metadados GPS não encontrados para {file.name}")
                     os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
 
             except Exception as e:
+                logger.error(f"Erro ao processar {file.name}: {str(e)}")
+                errors.append(str(e))
                 continue
 
         # Atualizar o arquivo metadata.json
+        logger.info(f"Salvando metadata.json em {metadata_path}")
         with open(metadata_path, 'w') as metadata_file:
             json.dump(metadata, metadata_file)
 
@@ -529,13 +568,16 @@ class TaskViewSet(viewsets.ViewSet):
 
         task.images_count = len(task.scan_images())
         task.save()
-        return {'success': True, 'uploaded': uploaded_files}
+        
+        success = len(uploaded_files) > 0
+        
+        return {'success': success, 'uploaded': uploaded_files , errors: errors}
+
 
     def upload_foto360(self, task, files):
-        print("upload_foto360")
+        logger.info("upload_foto360 {task.id} " )
     
         for file in files:
-            print("file", file)
             
             # Salvar o arquivo temporariamente para verificar os metadados
             temp_path = os.path.join('/tmp', file.name)
@@ -554,13 +596,14 @@ class TaskViewSet(viewsets.ViewSet):
 
             # Salvar o arquivo na pasta assets com o nome foto360.jpg
             dst_path = task.assets_path("foto360.jpg")
-            print("dst_path", dst_path)
+            logger.info(f"Salvando {file.name} em {dst_path}")
             with open(dst_path, 'wb+') as fd:
                 for chunk in file.chunks():
                     print("chunk")
                     fd.write(chunk)
 
             # Remover o arquivo temporário
+            logger.info(f"Removendo o temporario {temp_path}")
             os.remove(temp_path)
 
             # Adicionar "foto360.jpg" ao campo available_assets
@@ -570,38 +613,35 @@ class TaskViewSet(viewsets.ViewSet):
             task.images_count = len(task.scan_images())
             task.save()
             
-            return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
+        success = os.path.exists(dst_path) and os.path.getsize(dst_path) > 0
+        
+        logger.info(f"Sucesso: {success}")  
+        return {'success': success, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
+
+
 
     def upload_foto_giga(self, task, files):
-
-
+        logger.info("upload_foto_giga")
+        
         uploaded_files = []
+        errors = []
 
-        # Salvar os novos arquivos na pasta assets/foto_giga com nomes sequenciais
+        # Definir o diretório uma vez
+        foto_giga_dir = os.path.join(task.assets_path("foto_giga"))
+
+        # Remover o diretório se existir e criar novamente
+        if os.path.exists(foto_giga_dir):
+            shutil.rmtree(foto_giga_dir)
+        os.makedirs(foto_giga_dir, exist_ok=True)
+
+        # Limpar available_assets relacionado a foto_giga
+        task.available_assets = [asset for asset in task.available_assets if not ("foto_giga" in asset or "metadata.dzi")]
+
         for idx, file in enumerate(files):
             try:
                 filename = f"foto_giga_{idx + 1}.jpg"
-                # Garantir que o diretório assets/foto_giga existe
-                foto_giga_dir = os.path.join(task.assets_path("foto_giga"))
-                if os.path.exists(foto_giga_dir):
-                    shutil.rmtree(foto_giga_dir)
-                if not os.path.exists(foto_giga_dir):
-                    os.makedirs(foto_giga_dir, exist_ok=True)
                 dst_path = os.path.join(foto_giga_dir, filename)
 
-                 # Manter o arquivo aberto e acessar diretamente os dados de memória
-                #if isinstance(file, InMemoryUploadedFile):
-                #    image = Image.open(file)
-                #    # Converter para JPG e salvar
-                #    image = image.convert("RGB")
-                #    image.save(dst_path, "JPEG")
-                #else:
-                #    # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
-                #    with open(file.temporary_file_path(), 'rb') as f:
-                #        image = Image.open(f)
-                #        # Converter para JPG e salvar
-                #        image = image.convert("RGB")
-                #        image.save(dst_path, "JPEG")
                 # Gravar o arquivo no diretório de destino
                 with open(dst_path, 'wb+') as fd:
                     if isinstance(file, InMemoryUploadedFile):
@@ -612,22 +652,29 @@ class TaskViewSet(viewsets.ViewSet):
                             shutil.copyfileobj(f, fd)
 
                 # Criar arquivos DZI
+                logger.info(f"Convertendo {filename} para DZI")
                 create_dzi(dst_path, foto_giga_dir)
-
-                # Adicionar a informação em available_assets
-                asset_info = f"foto_giga/metadata.dzi"
-                task.available_assets = [asset for asset in task.available_assets if not ("foto_giga" in asset or "metadata.dzi" in asset)]
-                task.save()
-                if asset_info not in task.available_assets:
-                    task.available_assets.append(asset_info)
-
+                
                 uploaded_files.append(file.name)
 
             except Exception as e:
+                logger.error(f"Erro ao processar o arquivo {file.name}: {e}")
+                errors.append(f"Erro ao processar o arquivo {file.name}: {e}")
                 continue
+
+        # Atualizar available_assets após o processamento
+        asset_info = f"foto_giga/metadata.dzi"
+        if asset_info not in task.available_assets:
+            task.available_assets.append(asset_info)
+
+        # Atualizar images_count e salvar a tarefa
         task.images_count = len(task.scan_images())
         task.save()
-        return {'success': True, 'uploaded': uploaded_files}
+
+        success = len(uploaded_files) > 0
+
+        return {'success': success, 'uploaded': uploaded_files , errors: errors}
+
 
     @action(detail=True, methods=['post'])
     def upload(self, request, pk=None, project_pk=None, type=""):
