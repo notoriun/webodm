@@ -571,7 +571,7 @@ class TaskViewSet(viewsets.ViewSet):
         
         success = len(uploaded_files) > 0
         
-        return {'success': success, 'uploaded': uploaded_files , errors: errors}
+        return {'success': success, 'uploaded': uploaded_files , 'errors': errors}
 
 
     def upload_foto360(self, task, files):
@@ -673,7 +673,7 @@ class TaskViewSet(viewsets.ViewSet):
 
         success = len(uploaded_files) > 0
 
-        return {'success': success, 'uploaded': uploaded_files , errors: errors}
+        return {'success': success, 'uploaded': uploaded_files , 'errors': errors}
 
 
     @action(detail=True, methods=['post'])
