@@ -381,12 +381,13 @@ class TaskViewSet(viewsets.ViewSet):
 
     def upload_fotos(self, task, files):
         logger.info(f"upload_fotos - Task {task.id}")
-        print(f"upload_fotos - Task {task.id}")
         errors = [] # usada para gravar os arquivos que não foram processados
         
         # Garantir que o diretório assets/fotos existe
         fotos_dir = task.assets_path("fotos")
+        logger.info(f"Garantindo que {fotos_dir} existe")
         if not os.path.exists(fotos_dir):
+            logger.info(f"Criando {fotos_dir}")
             os.makedirs(fotos_dir, exist_ok=True)
 
         # Carregar o metadata.json existente, se existir
@@ -542,6 +543,7 @@ class TaskViewSet(viewsets.ViewSet):
                 # Extrair metadados GPS do vídeo
                 lat_lon = get_video_gps(dst_path)
                 if lat_lon:
+                    logger.info(f"Metadados GPS encontrados para {file.name}: {lat_lon}")
                     metadata[filename] = {'latitude': lat_lon[0], 'longitude': lat_lon[1]}
                     # Adicionar a informação em available_assets
                     asset_info = f"videos/{filename}"
@@ -556,6 +558,7 @@ class TaskViewSet(viewsets.ViewSet):
             except Exception as e:
                 logger.error(f"Erro ao processar {file.name}: {str(e)}")
                 errors.append(str(e))
+                os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
                 continue
 
         # Atualizar o arquivo metadata.json
@@ -601,7 +604,6 @@ class TaskViewSet(viewsets.ViewSet):
             logger.info(f"Salvando {file.name} em {dst_path}")
             with open(dst_path, 'wb+') as fd:
                 for chunk in file.chunks():
-                    print("chunk")
                     fd.write(chunk)
 
             # Remover o arquivo temporário
@@ -682,7 +684,6 @@ class TaskViewSet(viewsets.ViewSet):
     def upload(self, request, pk=None, project_pk=None, type=""):
         project = get_and_check_project(request, project_pk, ('change_project', ))
         files = flatten_files(request.FILES)
-        print("files", files)
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
