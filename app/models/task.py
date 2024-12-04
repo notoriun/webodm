@@ -383,10 +383,18 @@ class Task(models.Model):
         if asset in self.ASSETS_MAP:
             value = self.ASSETS_MAP[asset]
             if isinstance(value, str):
-                return os.path.exists(self.assets_path(value))
+                if os.path.exists(self.assets_path(value)):
+                    return True
             elif isinstance(value, dict):
                 if 'deferred_compress_dir' in value:
-                    return os.path.exists(self.assets_path(value['deferred_compress_dir']))
+                    if os.path.exists(self.assets_path(value['deferred_compress_dir'])):
+                        return True
+
+        # Additional checks for 'foto360.jpg' and files in 'fotos' or 'videos' directories
+        if asset == 'foto360.jpg':
+            return os.path.exists(self.assets_path('foto360.jpg'))
+        if asset.startswith('fotos/') or asset.startswith('videos/'):
+            return os.path.exists(self.assets_path(asset))
 
         return False
 
@@ -1048,8 +1056,24 @@ class Task(models.Model):
         :param commit: when True also saves the model, otherwise the user should manually call save()
         """
         all_assets = list(self.ASSETS_MAP.keys())
-        self.available_assets = [asset for asset in all_assets if self.is_asset_available_slow(asset)]
-        if commit: self.save()
+        logger.info("All assets: {}".format(all_assets))
+        
+        # Obter os assets disponíveis atualmente
+        current_available_assets = set(self.available_assets)
+        logger.info("Current available assets for {}: {}".format(self, current_available_assets))
+        
+        # Verificar e adicionar novos assets disponíveis
+        new_available_assets = [asset for asset in all_assets if self.is_asset_available_slow(asset)]
+        logger.info("New available assets for {}: {}".format(self, new_available_assets))
+        
+        # Atualizar a lista de available_assets com novos assets
+        updated_available_assets = current_available_assets.union(new_available_assets)
+        self.available_assets = list(updated_available_assets)
+        
+        logger.info("Updated available assets for {}: {}".format(self, self.available_assets))
+        
+        if commit:
+            self.save()
 
     
     def update_epsg_field(self, commit=False):
