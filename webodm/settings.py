@@ -219,6 +219,7 @@ WEBPACK_LOADER = {
 }
 
 
+
 # Logging
 LOGGING = {
     'version': 1,
@@ -242,7 +243,13 @@ LOGGING = {
             # 'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
-        }
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'webodm.log'),
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
@@ -251,8 +258,12 @@ LOGGING = {
             'level': 'WARNING',
         },
         'app.logger': {
-            'handlers': ['console'],
+            'handlers': ['file','console'],
             'level': 'INFO',
+        },
+        'app.trace': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
         },
         'apscheduler.executors.default': {
             'handlers': ['console'],
@@ -411,7 +422,7 @@ S3_DOWNLOAD_ACCESS_KEY = os.environ.get('WO_S3_DOWNLOAD_ACCESS_KEY', None)
 S3_DOWNLOAD_SECRET_KEY = os.environ.get('WO_S3_DOWNLOAD_SECRET_KEY', None)
 S3_BUCKET = os.environ.get('WO_S3_BUCKET', None)
 S3_TIMEOUT = 60
-S3_CACHE_MAX_SIZE_MB = int(os.environ.get('WO_S3_CACHE_MAX_SIZE_MB', '0')) 
+S3_CACHE_MAX_SIZE_MB = int(os.environ.get('WO_S3_CACHE_MAX_SIZE_MB', '0'))
 S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS = int(os.environ.get('WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS', '30'))
 
 try:

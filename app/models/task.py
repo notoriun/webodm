@@ -306,7 +306,7 @@ class Task(models.Model):
     s3_images = fields.JSONField(default=list, blank=True, help_text=_("List s3 buckets with images"), verbose_name=_("S3 buckets images"))
     image_origin = models.IntegerField(choices=IMAGE_ORIGINS, default=image_origins.USER_UPLOAD, null=False, blank=False, help_text=_("From where the image come."), verbose_name=_("Image Origin"))
     upload_in_progress = models.BooleanField(default=False, help_text=_("A flag indicating whether this task is in upload progress"), verbose_name=_("Upload In Progress"))
-    
+
     class Meta:
         verbose_name = _("Task")
         verbose_name_plural = _("Tasks")
@@ -316,7 +316,7 @@ class Task(models.Model):
 
         # To help keep track of changes to the project id
         self.__original_project_id = self.project.id
-        
+
         self.console = Console(self.data_path("console_output.txt"))
 
     def __str__(self):
@@ -354,7 +354,7 @@ class Task(models.Model):
             self.__original_project_id = self.project.id
 
         # Manually validate the fields we want,
-        # since Django's clean_fields() method obliterates 
+        # since Django's clean_fields() method obliterates
         # our foreign keys without explanation :/
         errors = {}
         for f in self._meta.fields:
@@ -407,10 +407,18 @@ class Task(models.Model):
         if asset in self.ASSETS_MAP:
             value = self.ASSETS_MAP[asset]
             if isinstance(value, str):
-                return os.path.exists(self.assets_path(value))
+                if os.path.exists(self.assets_path(value)):
+                    return True
             elif isinstance(value, dict):
                 if 'deferred_compress_dir' in value:
-                    return os.path.exists(self.assets_path(value['deferred_compress_dir']))
+                    if os.path.exists(self.assets_path(value['deferred_compress_dir'])):
+                        return True
+
+        # Additional checks for 'foto360.jpg' and files in 'fotos' or 'videos' directories
+        if asset == 'foto360.jpg':
+            return os.path.exists(self.assets_path('foto360.jpg'))
+        if asset.startswith('fotos/') or asset.startswith('videos/'):
+            return os.path.exists(self.assets_path(asset))
 
         return False
 
@@ -432,7 +440,7 @@ class Task(models.Model):
                 points = j.get('point_cloud_statistics', {}).get('stats', {}).get('statistic', [{}])[0].get('count')
             else:
                 points = j.get('reconstruction_statistics', {}).get('reconstructed_points_count')
-                        
+
             return {
                 'pointcloud':{
                     'points': points,
@@ -476,7 +484,7 @@ class Task(models.Model):
             return task
         except Exception as e:
             logger.warning("Cannot duplicate task: {}".format(str(e)))
-        
+
         return False
 
     def write_backup_file(self):
@@ -492,7 +500,7 @@ class Task(models.Model):
                 'potree_scene': self.potree_scene,
                 'tags': self.tags
             }))
-    
+
     def read_backup_file(self):
         """Set this tasks fields based on the backup file (but don't save)"""
         backup_file = self.data_path("backup.json")
@@ -530,7 +538,7 @@ class Task(models.Model):
             logger.info("streamou o zip de backup")
 
         return zipfly.ZipStream(paths, on_streamed_backup)
-    
+
     def is_asset_a_zip(self, asset):
         if not (asset in self.ASSETS_MAP):
             return False
@@ -679,7 +687,7 @@ class Task(models.Model):
             self._remove_root_images()
             s3_client = get_s3_client()
             downloaded_images = []
-            
+
             if not s3_client:
                 logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
             else:
@@ -831,7 +839,7 @@ class Task(models.Model):
 
                 elif self.pending_action == pending_actions.RESTART:
                     logger.info("Restarting {}".format(self))
-                    
+
                     if self.processing_node:
                         if self.image_origin == image_origins.S3:
                             self.pending_action = pending_actions.IMPORT_FROM_S3
@@ -934,11 +942,11 @@ class Task(models.Model):
                             assets_dir = self.assets_path("")
 
                             # Remove previous assets directory
-                            if os.path.exists(assets_dir):
-                                logger.info("Removing old assets directory: {} for {}".format(assets_dir, self))
-                                shutil.rmtree(assets_dir)
+                            #if os.path.exists(assets_dir):
+                            #    logger.info("Removing old assets directory: {} for {}".format(assets_dir, self))
+                                #shutil.rmtree(assets_dir)
 
-                            os.makedirs(assets_dir)
+                            os.makedirs(assets_dir, exist_ok=True)
 
                             # Download and try to extract results up to 4 times
                             # (~5% of the times, on large downloads, the archive could be corrupted)
@@ -982,7 +990,7 @@ class Task(models.Model):
                         else:
                             # FAILED, CANCELED
                             self.save()
-                            
+
                             if self.status == status_codes.FAILED:
                                 from app.plugins import signals as plugin_signals
                                 plugin_signals.task_failed.send_robust(sender=self.__class__, task_id=self.id)
@@ -1013,7 +1021,7 @@ class Task(models.Model):
             zip_h.extractall(assets_dir)
 
         logger.info("Extracted all.zip for {}".format(self))
-        
+
         os.remove(zip_path)
 
         # Check if this looks like a backup file, in which case we need to move the files
@@ -1023,7 +1031,7 @@ class Task(models.Model):
             logger.info("Restoring from backup")
             try:
                 tmp_dir = os.path.join(settings.FILE_UPLOAD_TEMP_DIR, f"{self.id}.backup")
-                
+
                 shutil.move(assets_dir, tmp_dir)
                 shutil.rmtree(self.task_path(""))
                 shutil.move(tmp_dir, self.task_path(""))
@@ -1080,7 +1088,7 @@ class Task(models.Model):
             self.read_backup_file()
         else:
             self.console += gettext("Done!") + "\n"
-        
+
         self.save()
 
         from app.plugins import signals as plugin_signals
@@ -1098,7 +1106,7 @@ class Task(models.Model):
 
     def get_map_items(self):
         types = []
-        if 'orthophoto.tif' in self.available_assets: 
+        if 'orthophoto.tif' in self.available_assets:
             types.append('orthophoto')
             types.append('plant')
         if 'dsm.tif' in self.available_assets: types.append('dsm')
@@ -1162,10 +1170,26 @@ class Task(models.Model):
         :param commit: when True also saves the model, otherwise the user should manually call save()
         """
         all_assets = list(self.ASSETS_MAP.keys())
-        self.available_assets = [asset for asset in all_assets if self.is_asset_available_slow(asset)]
-        if commit: self.save()
+        logger.info("All assets: {}".format(all_assets))
 
-    
+        # Obter os assets disponíveis atualmente
+        current_available_assets = set(self.available_assets)
+        logger.info("Current available assets for {}: {}".format(self, current_available_assets))
+
+        # Verificar e adicionar novos assets disponíveis
+        new_available_assets = [asset for asset in all_assets if self.is_asset_available_slow(asset)]
+        logger.info("New available assets for {}: {}".format(self, new_available_assets))
+
+        # Atualizar a lista de available_assets com novos assets
+        updated_available_assets = current_available_assets.union(new_available_assets)
+        self.available_assets = list(updated_available_assets)
+
+        logger.info("Updated available assets for {}: {}".format(self, self.available_assets))
+
+        if commit:
+            self.save()
+
+
     def update_epsg_field(self, commit=False):
         """
         Updates the epsg field with the correct value
@@ -1242,7 +1266,7 @@ class Task(models.Model):
         self.status = status_codes.FAILED
         self.pending_action = None
         self.save()
-        
+
     def find_all_files_matching(self, regex):
         directory = full_task_directory_path(self.id, self.project.id)
         return [os.path.join(directory, f) for f in os.listdir(directory) if
@@ -1333,7 +1357,7 @@ class Task(models.Model):
                 pass
             else:
                 raise
-    
+
     def scan_s3_assets(self):
         return [obj['Key'] for obj in list_s3_objects(self.task_path())]
 
@@ -1343,7 +1367,7 @@ class Task(models.Model):
     def get_image_path(self, filename):
         p = self.task_path(filename)
         return path_traversal_check(p, self.task_path())
-    
+
     def handle_images_upload(self, files: list[dict[str, str]]):
         uploaded = {}
         for file in files:
@@ -1357,7 +1381,7 @@ class Task(models.Model):
 
             dst_path = self.get_image_path(name)
             shutil.copyfile(file['path'], dst_path)
-            
+
             uploaded[name] = os.path.getsize(dst_path)
 
         return uploaded
@@ -1443,7 +1467,7 @@ class Task(models.Model):
 
     def _remove_assets(self):
         task_path = self.task_path()
-        
+
         if task_path[-1] == '/':
             task_path = task_path[0:-1]
 

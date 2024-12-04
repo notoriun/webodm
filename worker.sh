@@ -6,7 +6,7 @@ usage(){
   echo "Usage: $0 <command>"
   echo
   echo "This program manages the background worker processes. WebODM requires at least one background process worker to be running at all times."
-  echo 
+  echo
   echo "Command list:"
   echo "	start				Start background worker"
   echo "	scheduler start		Start background worker scheduler"
@@ -18,16 +18,16 @@ check_command(){
 	check_msg_prefix="Checking for $1... "
 	check_msg_result="\033[92m\033[1m OK\033[0m\033[39m"
 
-	hash $1 2>/dev/null || not_found=true 
+	hash $1 2>/dev/null || not_found=true
 	if [[ $not_found ]]; then
-		
+
 		# Can we attempt to install it?
 		if [[ ! -z "$3" ]]; then
 			echo -e "$check_msg_prefix \033[93mnot found, we'll attempt to install\033[39m"
 			run "$3 || sudo $3"
 
 			# Recurse, but don't pass the install command
-			check_command "$1" "$2"	
+			check_command "$1" "$2"
 		else
 			check_msg_result="\033[91m can't find $1! Check that the program is installed and that you have added the proper path to the program to your PATH environment variable before launching WebODM. If you change your PATH environment variable, remember to close and reopen your terminal. $2\033[39m"
 		fi
@@ -52,12 +52,6 @@ start(){
 	action=$1
 
 	echo "Starting worker using broker at $WO_BROKER"
-	# Check ffmpeg version
-	python -c "import sys;import re;import subprocess;version = subprocess.Popen([\"ffmpeg\", \"--version\"], stdout=subprocess.PIPE).communicate()[0].decode().rstrip();ret = 0 if re.compile('^GDAL [2-9]\.[0-9]+').match(version) else 1; print('Checking GDAL version... ' + ('{}, excellent!'.format(version) if ret == 0 else version));sys.exit(ret);"
-	if [ $? -ne 0 ]; then
-		apt-get update;
-		apt-get install -y ffmpeg;
-	fi
 	celery -A worker worker --autoscale $(grep -c '^processor' /proc/cpuinfo),2 --max-tasks-per-child 1000 --loglevel=warn > /dev/null
 }
 

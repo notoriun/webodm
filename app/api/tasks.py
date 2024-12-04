@@ -1,3 +1,5 @@
+import logging
+
 import os
 import re
 import shutil
@@ -33,6 +35,8 @@ from PIL import Image
 import re
 import piexif
 
+logger = logging.getLogger('app.logger')
+
 Image.MAX_IMAGE_PIXELS = None
 
 
@@ -54,9 +58,11 @@ def is_360_photo(image_path):
             user_comment = exif_dict["Exif"][piexif.ExifIFD.UserComment]
             if b"360" in user_comment or b"Photo Sphere" in user_comment:
                 return True
+            logger.info(f"Foto {image_path} não é uma foto 360")
         return False
     except Exception as e:
-        print(f"Erro ao verificar metadados da imagem: {str(e)}")
+        # print(f"Erro ao verificar metadados da imagem: {str(e)}")
+        logger.error(f"Erro ao verificar metadados da imagem: {str(e)}")
         return False
 
 def save_request_files(request_files: list[UploadedFile]):
@@ -423,7 +429,7 @@ class TaskDownloads(TaskNestedView):
             return download_file_stream(request, asset_stream, content_disposition, get_file_name(asset))
 
         download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
-        
+
         if task.is_asset_a_zip(asset):
             celery_task_id = worker_tasks.generate_zip_from_asset.delay(pk, asset).task_id
 
@@ -464,7 +470,7 @@ class TaskAssets(TaskNestedView):
 
         if not asset:
             raise exceptions.NotFound(_("Asset does not exist"))
-        
+
         content_disposition = 'inline; filename={}'.format(os.path.basename(asset_path))
         return download_file_stream(request, asset, content_disposition, get_file_name(unsafe_asset_path))
 
