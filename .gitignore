@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pid
+webpack-stats.json
 
 # C extensions
 *.so
