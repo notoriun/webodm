@@ -15,7 +15,7 @@ WORKDIR /webodm
 RUN printf "deb http://old-releases.ubuntu.com/ubuntu/ hirsute main restricted\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-updates main restricted\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute universe\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-updates universe\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute multiverse\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-updates multiverse\ndeb http://old-releases.ubuntu.com/ubuntu/ hirsute-backports main restricted universe multiverse" > /etc/apt/sources.list
 
 # Install Node.js using new Node install method
-RUN apt-get -qq update && apt-get -o Acquire::Retries=3 -qq install -y --no-install-recommends wget curl
+RUN apt-get update && apt-get -o Acquire::Retries=3 install -y --no-install-recommends wget curl
 
 RUN apt-get -o Acquire::Retries=3 install -y ca-certificates gnupg && \
     mkdir -p /etc/apt/keyrings
@@ -33,7 +33,7 @@ RUN apt-get -o Acquire::Retries=3 -qq update && apt-get -o Acquire::Retries=3 -q
 
 #RUN pip install -U pip
 
-RUN pip install -r requirements.txt "boto3==1.14.14"
+RUN pip install -r requirements.txt "boto3==1.14.14" ffmpeg-python
 
 RUN apt-get install -y ffmpeg
     # Setup cron
