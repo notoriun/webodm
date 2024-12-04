@@ -822,11 +822,11 @@ class Task(models.Model):
                             assets_dir = self.assets_path("")
 
                             # Remove previous assets directory
-                            if os.path.exists(assets_dir):
-                                logger.info("Removing old assets directory: {} for {}".format(assets_dir, self))
-                                shutil.rmtree(assets_dir)
+                            #if os.path.exists(assets_dir):
+                            #    logger.info("Removing old assets directory: {} for {}".format(assets_dir, self))
+                                #shutil.rmtree(assets_dir)
 
-                            os.makedirs(assets_dir)
+                            os.makedirs(assets_dir, exist_ok=True)
 
                             # Download and try to extract results up to 4 times
                             # (~5% of the times, on large downloads, the archive could be corrupted)
