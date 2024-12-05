@@ -11,6 +11,7 @@ echo "|__/|__/\___/_.___/\____/_____/_/  /_/   "
 echo                          
 echo -e "\033[39m"
 
+# Função para exibir mensagem de quase pronto
 almost_there(){
     echo 
     echo "===================="
@@ -18,7 +19,7 @@ almost_there(){
     echo "===================="
 }
 
-# Check python version
+# Verificação da versão do Python
 python -c "import sys;ret = 1 if sys.version_info <= (3, 0) else 0;print('Checking python version... ' + ('3.x, good!' if ret == 0 else '2.x'));sys.exit(ret);"
 if [ $? -ne 0 ]; then
 	almost_there
@@ -27,28 +28,19 @@ if [ $? -ne 0 ]; then
     exit
 fi
 
-# Check GDAL version
-python -c "import sys;import re;import subprocess;version = subprocess.Popen([\"gdalinfo\", \"--version\"], stdout=subprocess.PIPE).communicate()[0].decode().rstrip();ret = 0 if re.compile('^GDAL [2-9]\.[0-9]+').match(version) else 1; print('Checking GDAL version... ' + ('{}, excellent!'.format(version) if ret == 0 else version));sys.exit(ret);"
-if [ $? -ne 0 ]; then
-	almost_there
-    echo -e "\033[33mYour system is currently using a version of GDAL that is too old, or GDAL is not installed. You need to install or configure your system to use GDAL 2.1 or higher. If you have installed multiple versions of GDAL, make sure the newer one takes priority in your PATH environment variable.\033[39m"
-    echo
-    exit
+# Configuração para depuração remota
+if [ "$ENABLE_DEBUGPY" = "True" ]; then
+    echo "Installing debugpy for remote debugging..."
+    pip install debugpy
 fi
 
-# Check ffmpeg version
-python -c "import sys;import re;import subprocess;version = subprocess.Popen([\"ffmpeg\", \"--version\"], stdout=subprocess.PIPE).communicate()[0].decode().rstrip();ret = 0 if re.compile('^GDAL [2-9]\.[0-9]+').match(version) else 1; print('Checking GDAL version... ' + ('{}, excellent!'.format(version) if ret == 0 else version));sys.exit(ret);"
-if [ $? -ne 0 ]; then
-	apt-get update;
-    apt-get install -y ffmpeg;
-fi
-
+# Configuração do ambiente de desenvolvimento
 if [ "$1" = "--setup-devenv" ] || [ "$2" = "--setup-devenv" ]; then
-    echo Setup git modules...
-    
+    echo "Setting up development environment..."
+
     git submodule update --init
     
-    echo Setup npm dependencies...
+    echo "Installing npm dependencies..."
     npm install
 
     cd nodeodm/external/NodeODM
@@ -56,19 +48,20 @@ if [ "$1" = "--setup-devenv" ] || [ "$2" = "--setup-devenv" ]; then
 
     cd /webodm
 
-    echo Setup pip requirements...
+    echo "Installing pip requirements..."
     pip install -r requirements.txt
 
-    echo Build translations...
+    echo "Building translations..."
     python manage.py translate build --safe
 
-    echo Setup webpack watch...
+    echo "Starting webpack in watch mode..."
     webpack --watch &
 fi
 
-echo Running migrations
+echo "Running migrations..."
 python manage.py migrate
 
+# Adicionar nós padrão, se configurado
 if [[ "$WO_DEFAULT_NODES" > 0 ]]; then
     i=0
     while [ $i -ne "$WO_DEFAULT_NODES" ]
@@ -79,27 +72,26 @@ if [[ "$WO_DEFAULT_NODES" > 0 ]]; then
     done
 fi
 
-if [[ "$WO_CREATE_MICMAC_PNODE" = "YES" ]]; then
-    python manage.py addnode node-micmac-1 3000
+# Executar servidor Django no modo desenvolvimento
+if [ "$1" = "--setup-devenv" ] || [ "$2" = "--setup-devenv" ]; then
+    if [ "$ENABLE_DEBUGPY" = "True" ]; then
+        echo "Starting Django with debugpy on port 5678..."
+        python -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
+    else
+        echo "Starting Django development server..."
+        python manage.py runserver 0.0.0.0:8000
+    fi
+    exit
 fi
 
-export WO_HOST="${WO_HOST:=localhost}"
-export WO_PORT="${WO_PORT:=8000}"
-
-# Dump environment to .cronenv
-printenv > .cronenv
-
+# Caso contrário, inicie normalmente com nginx e gunicorn
 proto="http"
 if [ "$WO_SSL" = "YES" ]; then
     proto="https"
 fi
 
-cat app/scripts/unlock_all_tasks.py | python manage.py shell
-./worker.sh scheduler start
-
 congrats(){
     (sleep 5; echo
-
     echo "Trying to establish communication..."
     status=$(curl --max-time 300 -L -s -o /dev/null -w "%{http_code}" "$proto://localhost:8000")
 
@@ -123,39 +115,7 @@ congrats(){
     echo -e "\033[39m") &
 }
 
-if [ "$1" = "--setup-devenv" ] || [ "$2" = "--setup-devenv" ] || [ "$1" = "--no-gunicorn" ]; then
-    congrats
-    python manage.py runserver 0.0.0.0:8000
-else
-    if [ -e /webodm ] && [ ! -e /webodm/build/static ]; then
-       echo -e "\033[91mWARN:\033[39m /webodm/build/static does not exist, CSS, JS and other files might not be available."
-    fi
-
-    echo "Generating nginx configurations from templates..."
-    for templ in nginx/*.template
-    do
-        echo "- ${templ%.*}"
-        envsubst '\$WO_PORT \$WO_HOST' < $templ > ${templ%.*}
-    done
-
-    # Check if we need to auto-generate SSL certs via letsencrypt
-    if [ "$WO_SSL" = "YES" ] && [ -z "$WO_SSL_KEY" ]; then
-        echo "Launching letsencrypt-autogen.sh"
-        ./nginx/letsencrypt-autogen.sh
-    fi
-
-    # Check if SSL key/certs are available
-    conf="nginx.conf"
-    if [ -e nginx/ssl ]; then
-        echo "Using nginx SSL configuration"
-        conf="nginx-ssl.conf"
-    fi
-
-    congrats
-
-    nginx -c $(pwd)/nginx/$conf
-    gunicorn webodm.wsgi --bind unix:/tmp/gunicorn.sock --timeout 300000 --max-requests 500 --workers $((2*$(grep -c '^processor' /proc/cpuinfo)+1)) --preload
-fi
-
-# If this is executed, it means the previous command failed, don't display the congratulations message
-kill %1
+# Execução final com nginx e gunicorn
+congrats
+nginx -c $(pwd)/nginx/nginx.conf
+gunicorn webodm.wsgi --bind unix:/tmp/gunicorn.sock --timeout 300000 --max-requests 500 --workers $((2*$(grep -c '^processor' /proc/cpuinfo)+1)) --preload

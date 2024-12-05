@@ -3,7 +3,12 @@ services:
   webapp:
     entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh --create-default-pnode --setup-devenv\""
     ports:
-      - "35729:35729"
+      - "35729:35729"  # Porta para Live Reload
+      - "8000:8000"    # Porta do servidor Django
+      - "5678:5678"    # Porta do depurador remoto
+    environment:
+      - ENABLE_DEBUGPY=True  # Variável para habilitar depurador
+      - DJANGO_SETTINGS_MODULE=webodm.settings
     volumes:
       - .:/webodm
   worker:
