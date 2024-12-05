@@ -7,6 +7,7 @@ __pycache__
 **/__pycache__
 *.py[cod]
 *$py.class
+*.pyc
 
 # C extensions
 *.so
@@ -111,3 +112,6 @@ dpkg/deb
 .secret_key
 
 appmedia
+.cronenv
+.env
+webpack-stats.json
