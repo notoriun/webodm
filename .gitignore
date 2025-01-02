@@ -111,3 +111,4 @@ dpkg/deb
 .secret_key
 
 appmedia
+database
