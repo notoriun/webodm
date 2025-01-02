@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from app.models import Task
 from app.utils.s3_utils import get_s3_object, list_s3_objects, download_s3_file, get_s3_client
 from app.utils.file_utils import ensure_path_exists, get_file_name
+from nodeodm import status_codes
 from webodm import settings
 from rest_framework import exceptions
 from django.utils.translation import gettext_lazy as _
@@ -33,31 +34,36 @@ class TaskFilesUploader:
         return self._task_loaded
 
     def upload_files(self, local_files_to_upload: list[dict[str, str]], s3_files_to_upload: list[str], upload_type: str):
-        self.task_upload_in_progress(True)
-        files_paths = [file['path'] for file in local_files_to_upload]
-        s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
-        all_files_to_upload = files_paths + s3_downloaded_files
-        
-        if upload_type == 'foto':
-            response = self._upload_fotos(all_files_to_upload)
-        elif upload_type == 'video':
-            response = self._upload_videos(all_files_to_upload)
-        elif upload_type == 'foto360':
-            response = self._upload_foto360(all_files_to_upload)
-        elif upload_type == 'foto_giga':
-            response = self._upload_foto_giga(all_files_to_upload)
-        else:  # Default to 'orthophoto'
-            response = self._upload_images(
-                [{
-                    'path': filepath,
-                    'name': get_file_name(filepath)
-                } for filepath in s3_downloaded_files] + local_files_to_upload
-            )
+        try:
+            self.task_upload_in_progress(True)
+            files_paths = [file['path'] for file in local_files_to_upload]
+            s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
+            all_files_to_upload = files_paths + s3_downloaded_files
+            
+            if upload_type == 'foto':
+                response = self._upload_fotos(all_files_to_upload)
+            elif upload_type == 'video':
+                response = self._upload_videos(all_files_to_upload)
+            elif upload_type == 'foto360':
+                response = self._upload_foto360(all_files_to_upload)
+            elif upload_type == 'foto_giga':
+                response = self._upload_foto_giga(all_files_to_upload)
+            else:  # Default to 'orthophoto'
+                response = self._upload_images(
+                    [{
+                        'path': filepath,
+                        'name': get_file_name(filepath)
+                    } for filepath in s3_downloaded_files] + local_files_to_upload
+                )
 
-        self.task_upload_in_progress(False)
+            self.task_upload_in_progress(False)
 
-        return response
-    
+            return response
+        except Exception as e:
+            self.task.set_failure(str(e))
+            self.task_upload_in_progress(False)
+            raise e
+
     def _refresh_task(self):
         self._task_loaded = Task.objects.get(pk=self._task_id)
 
@@ -300,10 +306,13 @@ class TaskFilesUploader:
             return []
 
         for image in s3_images:
-            s3_image_name = image.split('/')[-1]
-            destiny_path = tempfile.mktemp(f'_{s3_image_name}', dir=settings.MEDIA_TMP)
-            download_s3_file(image, destiny_path, s3_client)
-            downloaded_s3_images.append(destiny_path)
+            try:
+                s3_image_name = image.split('/')[-1]
+                destiny_path = tempfile.mktemp(f'_{s3_image_name}', dir=settings.MEDIA_TMP)
+                download_s3_file(image, destiny_path, s3_client)
+                downloaded_s3_images.append(destiny_path)
+            except Exception as e:
+                raise Exception(f"Error at download '{image}', maybe not found or not have permission. \nOriginal error: {str(e)}")
 
         logger.info(f'downloaded files {downloaded_s3_images}')
         return downloaded_s3_images
