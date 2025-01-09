@@ -11,8 +11,8 @@ from rio_tiler.colormap import cmap as colormap, apply_cmap
 from rio_tiler.errors import InvalidColorMapName
 from app.api.hsvblend import hsv_blend
 from app.api.hillshade import LightSource
-from rio_tiler.io import COGReader
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+from app.utils.s3_utils import open_cog_reader
 
 logger = logging.getLogger('app.logger')
 
@@ -37,7 +37,7 @@ def export_raster(input, output, **opts):
 
     dem = asset_type in ['dsm', 'dtm']
     
-    with COGReader(input) as ds_src:
+    with open_cog_reader(input) as ds_src:
         src = ds_src.dataset
         profile = src.meta.copy()
 

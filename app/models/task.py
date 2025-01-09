@@ -3,19 +3,20 @@ import os
 import shutil
 import time
 import struct
-from datetime import datetime
-import uuid as uuid_module
-from app.vendor import zipfly
-
 import json
-from shlex import quote
-
 import errno
 import piexif
 import re
-
 import zipfile
 import rasterio
+import uuid as uuid_module
+import worker.cache_files as worker_cache_files_tasks
+
+from datetime import datetime
+from app.vendor import zipfly
+
+
+
 from shutil import copyfile
 import requests
 from PIL import Image
@@ -32,6 +33,7 @@ from django.utils import timezone
 from urllib3.exceptions import ReadTimeoutError
 
 from app import pending_actions
+from app import image_origins
 from django.contrib.gis.db.models.fields import GeometryField
 
 from app.cogeo import assure_cogeo
@@ -47,8 +49,9 @@ from .project import Project
 from django.utils.translation import gettext_lazy as _, gettext
 
 from functools import partial
-import subprocess
 from app.classes.console import Console
+from app.utils.s3_utils import get_s3_client, list_s3_objects, download_s3_file, get_s3_object_metadata, append_s3_bucket_prefix
+from app.utils.file_utils import ensure_path_exists, remove_path_from_path, get_all_files_in_dir
 
 logger = logging.getLogger('app.logger')
 
@@ -56,11 +59,13 @@ class TaskInterruptedException(Exception):
     pass
 
 def task_directory_path(taskId, projectId):
-    return 'project/{0}/task/{1}/'.format(projectId, taskId)
+    #return 'project/{0}/task/{1}/'.format(projectId, taskId)
+    return '{0}/{1}/'.format(projectId, taskId)
 
 
 def full_task_directory_path(taskId, projectId, *args):
     return os.path.join(settings.MEDIA_ROOT, task_directory_path(taskId, projectId), *args)
+    # return os.path.join(task_directory_path(taskId, projectId), *args)
 
 
 def assets_directory_path(taskId, projectId, filename):
@@ -234,6 +239,14 @@ class Task(models.Model):
         (pending_actions.RESTART, 'RESTART'),
         (pending_actions.RESIZE, 'RESIZE'),
         (pending_actions.IMPORT, 'IMPORT'),
+        (pending_actions.IMPORT_FROM_S3, 'IMPORT_FROM_S3'),
+        (pending_actions.IMPORT_FROM_S3_WITH_RESIZE, 'IMPORT_FROM_S3_WITH_RESIZE'),
+        (pending_actions.UPLOAD_TO_S3, 'UPLOAD_TO_S3'),
+    )
+
+    IMAGE_ORIGINS = (
+        (image_origins.USER_UPLOAD, 'USER_UPLOAD'),
+        (image_origins.S3, 'S3'),
     )
 
     TASK_PROGRESS_LAST_VALUE = 0.85
@@ -274,6 +287,14 @@ class Task(models.Model):
                                         help_text=_("Value between 0 and 1 indicating the running progress (estimated) of this task"),
                                         verbose_name=_("Running Progress"),
                                         blank=True)
+    downloading_s3_progress = models.FloatField(default=0.0,
+                                        help_text=_("Value between 0 and 1 indicating the downloading images from s3 progress (estimated) of this task"),
+                                        verbose_name=_("Downloading Images from S3 Progress"),
+                                        blank=True)
+    uploading_s3_progress = models.FloatField(default=0.0,
+                                        help_text=_("Value between 0 and 1 indicating the uploading images to s3 progress (estimated) of this task"),
+                                        verbose_name=_("Uploading Images to S3 Progress"),
+                                        blank=True)
     import_url = models.TextField(null=False, default="", blank=True, help_text=_("URL this task is imported from (only for imported tasks)"), verbose_name=_("Import URL"))
     images_count = models.IntegerField(null=False, blank=True, default=0, help_text=_("Number of images associated with this task"), verbose_name=_("Images Count"))
     partial = models.BooleanField(default=False, help_text=_("A flag indicating whether this task is currently waiting for information or files to be uploaded before being considered for processing."), verbose_name=_("Partial"))
@@ -282,7 +303,10 @@ class Task(models.Model):
     tags = models.TextField(db_index=True, default="", blank=True, help_text=_("Task tags"), verbose_name=_("Tags"))
     orthophoto_bands = fields.JSONField(default=list, blank=True, help_text=_("List of orthophoto bands"), verbose_name=_("Orthophoto Bands"))
     size = models.FloatField(default=0.0, blank=True, help_text=_("Size of the task on disk in megabytes"), verbose_name=_("Size"))
-    
+    s3_images = fields.JSONField(default=list, blank=True, help_text=_("List s3 buckets with images"), verbose_name=_("S3 buckets images"))
+    image_origin = models.IntegerField(choices=IMAGE_ORIGINS, default=image_origins.USER_UPLOAD, null=False, blank=False, help_text=_("From where the image come."), verbose_name=_("Image Origin"))
+    upload_in_progress = models.BooleanField(default=False, help_text=_("A flag indicating whether this task is in upload progress"), verbose_name=_("Upload In Progress"))
+
     class Meta:
         verbose_name = _("Task")
         verbose_name_plural = _("Tasks")
@@ -292,7 +316,7 @@ class Task(models.Model):
 
         # To help keep track of changes to the project id
         self.__original_project_id = self.project.id
-        
+
         self.console = Console(self.data_path("console_output.txt"))
 
     def __str__(self):
@@ -330,7 +354,7 @@ class Task(models.Model):
             self.__original_project_id = self.project.id
 
         # Manually validate the fields we want,
-        # since Django's clean_fields() method obliterates 
+        # since Django's clean_fields() method obliterates
         # our foreign keys without explanation :/
         errors = {}
         for f in self._meta.fields:
@@ -416,7 +440,7 @@ class Task(models.Model):
                 points = j.get('point_cloud_statistics', {}).get('stats', {}).get('statistic', [{}])[0].get('count')
             else:
                 points = j.get('reconstruction_statistics', {}).get('reconstructed_points_count')
-                        
+
             return {
                 'pointcloud':{
                     'points': points,
@@ -460,7 +484,7 @@ class Task(models.Model):
             return task
         except Exception as e:
             logger.warning("Cannot duplicate task: {}".format(str(e)))
-        
+
         return False
 
     def write_backup_file(self):
@@ -476,7 +500,7 @@ class Task(models.Model):
                 'potree_scene': self.potree_scene,
                 'tags': self.tags
             }))
-    
+
     def read_backup_file(self):
         """Set this tasks fields based on the backup file (but don't save)"""
         backup_file = self.data_path("backup.json")
@@ -498,13 +522,33 @@ class Task(models.Model):
                 logger.warning("Cannot read backup file: %s" % str(e))
 
     def get_task_backup_stream(self):
+        self.download_all_s3_images()
         self.write_backup_file()
         zip_dir = self.task_path("")
-        paths = [{'n': os.path.relpath(os.path.join(dp, f), zip_dir), 'fs': os.path.join(dp, f)} for dp, dn, filenames in os.walk(zip_dir) for f in filenames]
+        paths = [
+            {
+                'n': os.path.relpath(os.path.join(dp, f), zip_dir),
+                'fs': os.path.join(dp, f)
+            } for dp, dn, filenames in os.walk(zip_dir) for f in filenames
+        ]
         if len(paths) == 0:
             raise FileNotFoundError("No files available for export")
-        return zipfly.ZipStream(paths)
-    
+
+        def on_streamed_backup():
+            logger.info("streamou o zip de backup")
+
+        return zipfly.ZipStream(paths, on_streamed_backup)
+
+    def is_asset_a_zip(self, asset):
+        if not (asset in self.ASSETS_MAP):
+            return False
+
+        value = self.ASSETS_MAP[asset]
+        return (
+            isinstance(value, dict) and
+            'deferred_path' in value and
+            'deferred_compress_dir' in value)
+
     def get_asset_file_or_stream(self, asset):
         """
         Get a stream to an asset
@@ -621,6 +665,59 @@ class Task(models.Model):
         self.pending_action = None
         self.save()
 
+    def handle_s3_import(self):
+        logger.info("donwloading images from s3")
+        self.downloading_s3_progress = 0.0
+        self.save()
+
+        class DownloadProgressCallback(object):
+            def __init__(self, task: Task, downloaded_images, total_size):
+                self._size = total_size
+                self._downloaded_bytes = 0.0
+                self._task = task
+                self._downloaded_images = downloaded_images
+
+            def __call__(self, bytes_transferred):
+                self._downloaded_bytes += bytes_transferred
+                progress = self._downloaded_bytes / self._size if self._size > 0 else 0
+                self._task._update_download_progress(self._downloaded_images, progress)
+                logger.info('Download from S3 percent {}%'.format(self._task.downloading_s3_progress * 100))
+
+        try:
+            self._remove_root_images()
+            s3_client = get_s3_client()
+            downloaded_images = []
+
+            if not s3_client:
+                logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
+            else:
+                fotos_s3_dir = self._create_task_s3_download_dir()
+
+                for image in self.s3_images:
+                    bucket, image_path = image.replace('s3://', '').split('/', 1)
+                    image_index = self.s3_images.index(image)
+                    original_image_filename = image_path.rsplit('/')[-1]
+                    destiny_image_filename = '{}/{}-{}'.format(fotos_s3_dir, image_index, original_image_filename)
+
+                    s3_object = get_s3_object_metadata(bucket=bucket, key=image_path, s3_client=s3_client)
+                    total_size = s3_object['ContentLength']
+                    download_s3_file(
+                        image_path,
+                        destiny_image_filename,
+                        s3_client,
+                        bucket,
+                        Callback=DownloadProgressCallback(self, downloaded_images, total_size)
+                    )
+                    downloaded_images.append(destiny_image_filename)
+
+            self.images_count = len(downloaded_images)
+            self.pending_action = pending_actions.RESIZE if self.pending_action == pending_actions.IMPORT_FROM_S3_WITH_RESIZE else None
+            self.update_size()
+            self.save()
+        except Exception as e:
+            self.set_failure(str(e))
+            raise NodeServerError(e)
+
     def process(self):
         """
         This method contains the logic for processing tasks asynchronously
@@ -630,6 +727,15 @@ class Task(models.Model):
         """
 
         try:
+            if self.upload_in_progress:
+                return
+
+            if self.pending_action == pending_actions.UPLOAD_TO_S3:
+                self.upload_and_cache_assets()
+
+            if self.pending_action in [pending_actions.IMPORT_FROM_S3, pending_actions.IMPORT_FROM_S3_WITH_RESIZE]:
+                self.handle_s3_import()
+
             if self.pending_action == pending_actions.IMPORT:
                 self.handle_import()
 
@@ -733,7 +839,12 @@ class Task(models.Model):
 
                 elif self.pending_action == pending_actions.RESTART:
                     logger.info("Restarting {}".format(self))
+
                     if self.processing_node:
+                        if self.image_origin == image_origins.S3:
+                            self.pending_action = pending_actions.IMPORT_FROM_S3
+                            self.save()
+                            self.handle_s3_import()
 
                         # Check if the UUID is still valid, as processing nodes purge
                         # results after a set amount of time, the UUID might have been eliminated.
@@ -750,6 +861,7 @@ class Task(models.Model):
 
                         if uuid_still_exists:
                             # Good to go
+
                             try:
                                 self.processing_node.restart_task(self.uuid, self.options)
                             except (NodeServerError, NodeResponseError) as e:
@@ -878,7 +990,7 @@ class Task(models.Model):
                         else:
                             # FAILED, CANCELED
                             self.save()
-                            
+
                             if self.status == status_codes.FAILED:
                                 from app.plugins import signals as plugin_signals
                                 plugin_signals.task_failed.send_robust(sender=self.__class__, task_id=self.id)
@@ -909,7 +1021,7 @@ class Task(models.Model):
             zip_h.extractall(assets_dir)
 
         logger.info("Extracted all.zip for {}".format(self))
-        
+
         os.remove(zip_path)
 
         # Check if this looks like a backup file, in which case we need to move the files
@@ -919,7 +1031,7 @@ class Task(models.Model):
             logger.info("Restoring from backup")
             try:
                 tmp_dir = os.path.join(settings.FILE_UPLOAD_TEMP_DIR, f"{self.id}.backup")
-                
+
                 shutil.move(assets_dir, tmp_dir)
                 shutil.rmtree(self.task_path(""))
                 shutil.move(tmp_dir, self.task_path(""))
@@ -969,12 +1081,14 @@ class Task(models.Model):
         self.potree_scene = {}
         self.running_progress = 1.0
         self.status = status_codes.COMPLETED
+        self.pending_action = pending_actions.UPLOAD_TO_S3
+        self._remove_root_images()
 
         if is_backup:
             self.read_backup_file()
         else:
             self.console += gettext("Done!") + "\n"
-        
+
         self.save()
 
         from app.plugins import signals as plugin_signals
@@ -992,7 +1106,7 @@ class Task(models.Model):
 
     def get_map_items(self):
         types = []
-        if 'orthophoto.tif' in self.available_assets: 
+        if 'orthophoto.tif' in self.available_assets:
             types.append('orthophoto')
             types.append('plant')
         if 'dsm.tif' in self.available_assets: types.append('dsm')
@@ -1075,7 +1189,6 @@ class Task(models.Model):
         if commit:
             self.save()
 
-    
     def update_epsg_field(self, commit=False):
         """
         Updates the epsg field with the correct value
@@ -1152,7 +1265,7 @@ class Task(models.Model):
         self.status = status_codes.FAILED
         self.pending_action = None
         self.save()
-        
+
     def find_all_files_matching(self, regex):
         directory = full_task_directory_path(self.id, self.project.id)
         return [os.path.join(directory, f) for f in os.listdir(directory) if
@@ -1244,42 +1357,35 @@ class Task(models.Model):
             else:
                 raise
 
+    def scan_s3_assets(self):
+        return [obj['Key'] for obj in list_s3_objects(self.task_path())]
+
     def scan_images(self):
-        tp = self.task_path()
-        try:
-            return [e.name for e in os.scandir(tp) if e.is_file()]
-        except:
-            return []
+        return [e.name for e in self._entry_root_images()]
 
     def get_image_path(self, filename):
         p = self.task_path(filename)
         return path_traversal_check(p, self.task_path())
-    
-    def handle_images_upload(self, files):
+
+    def handle_images_upload(self, files: list[dict[str, str]]):
         uploaded = {}
         for file in files:
-            name = file.name
-            if name is None:
+            if file is None:
                 continue
 
+            name = file['name']
+
             tp = self.task_path()
-            if not os.path.exists(tp):
-                os.makedirs(tp, exist_ok=True)
+            ensure_path_exists(tp)
 
             dst_path = self.get_image_path(name)
+            shutil.copyfile(file['path'], dst_path)
 
-            with open(dst_path, 'wb+') as fd:
-                if isinstance(file, InMemoryUploadedFile):
-                    for chunk in file.chunks():
-                        fd.write(chunk)
-                else:
-                    with open(file.temporary_file_path(), 'rb') as f:
-                        shutil.copyfileobj(f, fd)
-            
             uploaded[name] = os.path.getsize(dst_path)
+
         return uploaded
 
-    def update_size(self, commit=False):
+    def update_size(self, commit=False, clear_quota=True):
         try:
             total_bytes = 0
             for dirpath, _, filenames in os.walk(self.task_path()):
@@ -1290,6 +1396,127 @@ class Task(models.Model):
             self.size = (total_bytes / 1024 / 1024)
             if commit: self.save()
 
-            self.project.owner.profile.clear_used_quota_cache()
+            if clear_quota:
+                self.project.owner.profile.clear_used_quota_cache()
         except Exception as e:
             logger.warn("Cannot update size for task {}: {}".format(self, str(e)))
+
+    def _create_task_s3_download_dir(self):
+        fotos_s3_dir = self.task_path()
+        if not os.path.exists(fotos_s3_dir):
+            os.makedirs(fotos_s3_dir, exist_ok=True)
+        return fotos_s3_dir
+
+    def upload_and_cache_assets(self, reset_pending_action=False):
+        initial_pending_action = self.pending_action
+
+        files_uploadeds = self._upload_assets_to_s3()
+        for file in files_uploadeds:
+            worker_cache_files_tasks.download_and_add_to_cache.delay(file, False)
+
+        self.pending_action = initial_pending_action if reset_pending_action else None
+        self.save()
+
+    def _upload_assets_to_s3(self):
+        s3_bucket = settings.S3_BUCKET
+        files_to_upload = [f for f in self._get_all_assets_files() if os.path.exists(f)]
+        files_uploadeds = []
+        self.uploading_s3_progress = 0.0
+        self.save()
+
+        if not s3_bucket:
+            logger.error('Could not upload any image to s3, because is missing some s3 configuration variable')
+            return
+
+        class UploadProgressCallback(object):
+            def __init__(self, task: Task, uploaded_images, total_size, total_images):
+                self._size = total_size
+                self._uploaded_bytes = 0.0
+                self._task = task
+                self._uploaded_images = uploaded_images
+                self._total_images = total_images
+
+            def __call__(self, bytes_transferred):
+                self._uploaded_bytes += bytes_transferred
+                progress = self._uploaded_bytes / self._size if self._size > 0 else 0
+                self._task._update_upload_progress(self._uploaded_images, self._total_images, progress)
+                logger.info('Upload to S3 percent {}%'.format(self._task.uploading_s3_progress * 100))
+
+        try:
+            s3_client = get_s3_client()
+
+            if not s3_client:
+                logger.error('Could not upload any image to s3, because is missing some s3 configuration variable')
+                return
+
+            for file_to_upload in files_to_upload:
+                file_size = os.path.getsize(file_to_upload)
+                s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
+                s3_client.upload_file(file_to_upload, s3_bucket, s3_key, Callback=UploadProgressCallback(self, files_uploadeds, file_size, len(files_to_upload)))
+                files_uploadeds.append(append_s3_bucket_prefix(file_to_upload))
+        except Exception as e:
+            raise NodeServerError(e)
+
+        return files_uploadeds
+
+    def _get_all_assets_files(self):
+        task_path = self.task_path()
+
+        return get_all_files_in_dir(task_path)
+
+    def _remove_assets(self):
+        task_path = self.task_path()
+
+        if task_path[-1] == '/':
+            task_path = task_path[0:-1]
+
+        shutil.rmtree(task_path)
+
+    def _remove_root_images(self):
+        for e in self._entry_root_images():
+            os.remove(e.path)
+
+    def _entry_root_images(self):
+        tp = self.task_path()
+
+        if not os.path.exists(tp):
+            return []
+
+        try:
+            return [e for e in os.scandir(tp) if e.is_file()]
+        except:
+            return []
+
+    def _update_download_progress(self, downloaded_images, progress):
+        self.downloading_s3_progress = self._calculate_progress_of_images(downloaded_images, len(self.s3_images), progress)
+        self.save()
+
+    def _update_upload_progress(self, uploaded_images, total_images, progress):
+        self.uploading_s3_progress = self._calculate_progress_of_images(uploaded_images, total_images, progress)
+        self.save()
+
+    def _calculate_progress_of_images(self, succeded_images, total_images, progress):
+        percent_per_image = 1.0 / total_images
+        percent_success = len(succeded_images) * percent_per_image
+        percent_current_progress = progress * percent_per_image
+        return percent_success + percent_current_progress
+
+    def download_all_s3_images(self):
+        task_path = self.task_path()
+        logger.info('will download images with "{}"'.format(task_path))
+        s3_images = list_s3_objects(task_path)
+        s3_client = get_s3_client()
+
+        if not s3_client:
+            logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
+            return
+
+        logger.info('will download images: "{}"'.format(str([image['Key'] for image in s3_images])))
+
+        for image in s3_images:
+            image_key = image['Key']
+            logger.info('start download image: "{}"'.format(image_key))
+
+            download_s3_file(image_key, image_key, s3_client)
+            logger.info('downloaded image: "{}"'.format(image_key))
+

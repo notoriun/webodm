@@ -675,6 +675,10 @@ class TaskListItem extends React.Component {
 
       if (task.pending_action === pendingActions.RESIZE){
           progress = task.resize_progress * 100;
+      }else if (task.pending_action === pendingActions.IMPORT_FROM_S3 || task.pending_action === pendingActions.IMPORT_FROM_S3_WITH_RESIZE){
+          progress = task.downloading_s3_progress * 100;
+      }else if (task.pending_action === pendingActions.UPLOAD_TO_S3){
+          progress = task.uploading_s3_progress * 100;
       }else if (task.status === null){
           progress = task.upload_progress * 100;
       }else if (task.status === statusCodes.RUNNING){

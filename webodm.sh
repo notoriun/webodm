@@ -148,6 +148,10 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --podman)
+    use_podman=true
+    shift # past argument
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -192,6 +196,7 @@ usage(){
   echo "	--settings	Path to a settings.py file to enable modifications of system settings (default: None)"
   echo "	--worker-memory	Maximum amount of memory allocated for the worker process (default: unlimited)"
   echo "	--worker-cpus	Maximum number of CPUs allocated for the worker process (default: all)"
+  echo "	--podman	Use podman instead docker, for containers manager"
   
   exit
 }
@@ -266,14 +271,28 @@ if [[ $gpu = true ]]; then
 fi
 
 docker_compose="docker-compose"
+
+if [[ $use_podman = true ]]; then
+	docker_compose="podman-compose"
+fi
 check_docker_compose(){
 	dc_msg_ok="\033[92m\033[1m OK\033[0m\033[39m"
 
 	# Check if docker-compose exists
-	hash "docker-compose" 2>/dev/null || not_found=true
+	if [[ $use_podman = true ]]; then
+		hash "podman-compose" 2>/dev/null || not_found=true
+	else
+		hash "docker-compose" 2>/dev/null || not_found=true
+	fi
 	if [[ $not_found ]]; then
 		# Check if compose plugin is installed
-		if ! docker compose > /dev/null 2>&1; then
+		if [[ $use_podman = true ]]; then
+			has_new_compose=$(podman compose > /dev/null 2>&1)
+		else
+			has_new_compose=$(docker compose > /dev/null 2>&1)
+		fi
+		
+		if ! $has_new_compose; then
 
 			if [ "${platform}" = "Linux" ] && [ -z "$1" ] && [ ! -z "$HOME" ]; then
 				echo -e "Checking for docker compose... \033[93mnot found, we'll attempt to install it\033[39m"
@@ -292,10 +311,18 @@ check_docker_compose(){
 				return 1
 			fi
 		else
-			docker_compose="docker compose"
+			if [[ $use_podman = true ]]; then
+				docker_compose="podman compose"
+			else
+				docker_compose="docker compose"
+			fi
 		fi
 	else
-		docker_compose="docker-compose"
+		if [[ $use_podman = true ]]; then
+			docker_compose="podman-compose"
+		else
+			docker_compose="docker-compose"
+		fi
 	fi
 
 	if [ -z "$1" ]; then

@@ -1,5 +1,10 @@
 # Byte-compiled / optimized / DLL files
+__pycache__/*
 __pycache__/
+__pycache__
+**/__pycache__/*
+**/__pycache__/
+**/__pycache__
 *.py[cod]
 *$py.class
 *.pyc
@@ -107,3 +112,6 @@ package-lock.json
 dpkg/build
 dpkg/deb
 .secret_key
+
+appmedia
+database

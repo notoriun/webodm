@@ -9,13 +9,21 @@ from django.utils.translation import gettext_lazy as _
 class ContoursException(Exception):
     pass
 
-def calc_contours(dem, epsg, interval, output_format, simplify, zfactor = 1):
+def calc_contours(task_id, dem, epsg, interval, output_format, simplify, zfactor = 1):
     import os
     import subprocess
     import tempfile
     import shutil
     import glob
     from webodm import settings
+
+    from app.models import Task
+    from app.classes.task_assets_manager import TaskAssetsManager
+
+
+    task = Task.objects.get(pk=task_id)
+    asset_manager = TaskAssetsManager(task)
+    downloaded_dem = asset_manager.download_asset_to_temp(dem)
 
     ext = ""
     if output_format == "GeoJSON":
@@ -38,7 +46,7 @@ def calc_contours(dem, epsg, interval, output_format, simplify, zfactor = 1):
         return {'error': 'Cannot find ogr2ogr'}
     
     contours_file = f"contours.gpkg"
-    p = subprocess.Popen([gdal_contour_bin, "-q", "-a", "level", "-3d", "-f", "GPKG", "-i", str(interval), dem, contours_file], cwd=tmpdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen([gdal_contour_bin, "-q", "-a", "level", "-3d", "-f", "GPKG", "-i", str(interval), downloaded_dem, contours_file], cwd=tmpdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
 
     out = out.decode('utf-8').strip()
@@ -104,7 +112,7 @@ class TaskContoursGenerate(TaskView):
             simplify = float(request.data.get('simplify', 0.01))
             zfactor = float(request.data.get('zfactor', 1))
 
-            celery_task_id = run_function_async(calc_contours, dem, epsg, interval, format, simplify, zfactor).task_id
+            celery_task_id = run_function_async(calc_contours, pk, dem, epsg, interval, format, simplify, zfactor).task_id
             return Response({'celery_task_id': celery_task_id}, status=status.HTTP_200_OK)
         except ContoursException as e:
             return Response({'error': str(e)}, status=status.HTTP_200_OK)

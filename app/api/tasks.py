@@ -7,13 +7,11 @@ import shutil
 from wsgiref.util import FileWrapper
 
 import mimetypes
-import gc
 
-from shutil import copyfileobj, move
+from shutil import copyfileobj
 from django.core.exceptions import ObjectDoesNotExist, SuspiciousFileOperation, ValidationError
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db import transaction
-from django.http import FileResponse
 from django.http import HttpResponse
 from rest_framework import status, serializers, viewsets, filters, exceptions, permissions, parsers
 from rest_framework.decorators import action
@@ -21,165 +19,29 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app import models, pending_actions
+from app import models, pending_actions, image_origins
+from app.classes.task_assets_manager import TaskAssetsManager
+from app.utils.file_utils import get_file_name
+from app.utils.request_files_utils import save_request_file
+from app.security import path_traversal_check
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
 from .common import get_and_check_project, get_asset_download_filename
 from .tags import TagsField
-from app.security import path_traversal_check
 from django.utils.translation import gettext_lazy as _
 from webodm import settings
 from rest_framework.permissions import AllowAny
 from PIL import Image
-from PIL.ExifTags import TAGS, GPSTAGS
-import json
-import ffmpeg
 import re
-import xml.etree.ElementTree as ET
 import piexif
 
 logger = logging.getLogger('app.logger')
 
 Image.MAX_IMAGE_PIXELS = None
 
-def create_dzi(image_path, output_dir):
-    """
-    Converte uma imagem para o formato DZI e salva no diretório especificado.
-    """
-    image = Image.open(image_path)
-    img_width, img_height = image.size
 
-    max_level = int(image.size[0].bit_length())
-
-    dzi_dir = os.path.join(output_dir)
-    files_dir = os.path.join(dzi_dir, "metadata_files")
-    tile_size=512
-    overlap = 1
-
-
-    for level in range(max_level + 1):
-        level_dir = os.path.join(files_dir, str(level))
-        if not os.path.exists(level_dir):
-            os.makedirs(level_dir, exist_ok=True)
-
-        scale = 2 ** (max_level - level)
-        new_width = max(img_width // scale, 1)
-        new_height = max(img_height // scale, 1)
-        resized_image = image.resize((new_width, new_height), Image.LANCZOS)
-
-        for x in range(0, resized_image.width, tile_size):
-            for y in range(0, resized_image.height, tile_size):
-                box = (x, y, x + tile_size + overlap, y + tile_size + overlap)
-                tile = resized_image.crop(box)
-                tile.save(os.path.join(level_dir, f"{x // tile_size}_{y // tile_size}.jpg"))
-                tile.close()
-                gc.collect()
-
-        resized_image.close()
-        gc.collect()
-
-    # Criar arquivo XML DZI
-    root = ET.Element("Image", TileSize=str(tile_size), Overlap=str(overlap), Format="jpg", xmlns="http://schemas.microsoft.com/deepzoom/2008")
-    ET.SubElement(root, "Size", Width=str(img_width), Height=str(img_height))
-    tree = ET.ElementTree(root)
-    path_metadata = os.path.join(dzi_dir, "metadata.dzi")
-    with open(path_metadata, 'wb') as f:
-            f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
-            tree.write(f, encoding='utf-8', xml_declaration=False)
-    image.close()
-    gc.collect()
-
-    return os.path.join(dzi_dir, "metadata.dzi")
-
-def convert_to_degrees(value, ref):
-    def to_degrees(val):
-        d = float(val[0])
-        m = float(val[1])
-        s = float(val[2])
-        return d + (m / 60.0) + (s / 3600.0)
-
-    degrees = to_degrees(value)
-    if ref in ['S', 'W']:
-        degrees = -degrees
-    return degrees
-
-
-
-def get_lat_lon_alt(exif_data):
-    gps_info = exif_data.get('GPSInfo')
-    if not gps_info:
-        return None
-
-    def get_if_exist(data, key):
-        return data[key] if key in data else None
-
-    lat = get_if_exist(gps_info, GPSTAGS.get(2))  # GPSLatitude
-    lat_ref = get_if_exist(gps_info, GPSTAGS.get(1))  # GPSLatitudeRef
-    lon = get_if_exist(gps_info, GPSTAGS.get(4))  # GPSLongitude
-    lon_ref = get_if_exist(gps_info, GPSTAGS.get(3))  # GPSLongitudeRef
-    alt = get_if_exist(gps_info, GPSTAGS.get(6))  # GPSAltitude
-    alt_ref = get_if_exist(gps_info, GPSTAGS.get(5))  # GPSAltitudeRef
-
-    if lat and lon and lat_ref and lon_ref:
-        lat = convert_to_degrees(lat, lat_ref)
-        lon = convert_to_degrees(lon, lon_ref)
-
-        if alt:
-            alt = float(alt)
-            if alt_ref and alt_ref != 0:
-                alt = -alt
-
-        return lat, lon, alt
-    return None
-
-def get_video_gps(file_path):
-    try:
-        probe = ffmpeg.probe(file_path)
-        tags = probe.get('format', {}).get('tags', {})
-        location = tags.get('location')
-        if location:
-            # Remove a barra no final da string, se houver
-            location = location.rstrip('/')
-            logger.info(f"Localização: {location}")
-
-            # Definir a expressão regular para capturar latitude e longitude
-            match = re.match(r'([+-]?\d+\.\d+),?\s?([+-]?\d+\.\d+)', location)
-            if not match:
-                raise ValueError("Formato inválido para a string de localização")
-
-            # Extrair latitude e longitude da correspondência
-            lat_str, lon_str = match.groups()
-
-            # Converter para float
-            latitude = float(lat_str)
-            longitude = float(lon_str)
-            return latitude, longitude
-    except ffmpeg.Error as e:
-        print(e)
-        logger.error(f"Erro ao processar o arquivo de vídeo: {str(e)}")
-        return None
-    return None
-
-def get_exif_data(image):
-    exif_data = {}
-    info = image._getexif()
-    if info:
-        for tag, value in info.items():
-            decoded = TAGS.get(tag, tag)
-            if decoded == "GPSInfo":
-                gps_data = {}
-                for t in value:
-                    sub_decoded = GPSTAGS.get(t, t)
-                    gps_data[sub_decoded] = value[t]
-                exif_data[decoded] = gps_data
-            else:
-                exif_data[decoded] = value
-
-    return exif_data
-
-
-def flatten_files(request_files):
+def flatten_files(request_files) -> list[UploadedFile]:
     # MultiValueDict in, flat array of files out
     return [file for filesList in map(
         lambda key: request_files.getlist(key),
@@ -203,6 +65,15 @@ def is_360_photo(image_path):
         # print(f"Erro ao verificar metadados da imagem: {str(e)}")
         logger.error(f"Erro ao verificar metadados da imagem: {str(e)}")
         return False
+
+def save_request_files(request_files: list[UploadedFile]):
+    saved_paths: list[dict[str, str]] = []
+
+    for file in request_files:
+        saved_path = save_request_file(file)
+        saved_paths.append(saved_path)
+
+    return saved_paths
 
 class TaskIDsSerializer(serializers.BaseSerializer):
     permission_classes = [AllowAny]
@@ -251,7 +122,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Task
         exclude = ('orthophoto_extent', 'dsm_extent', 'dtm_extent', )
-        read_only_fields = ('processing_time', 'status', 'last_error', 'created_at', 'pending_action', 'available_assets', 'size', )
+        read_only_fields = ('processing_time', 'status', 'last_error', 'created_at', 'pending_action', 'available_assets', 'size', 's3_images', 'image_origin', 'upload_in_progress')
 
 class TaskViewSet(viewsets.ViewSet):
     """
@@ -357,7 +228,7 @@ class TaskViewSet(viewsets.ViewSet):
         task.partial = False
         task.images_count = len(task.scan_images())
 
-        if task.images_count < 1:
+        if task.images_count < 1 and len(task.s3_images) < 1 and not task.upload_in_progress:
             raise exceptions.ValidationError(detail=_("You need to upload at least 1 file before commit"))
 
         task.update_size()
@@ -366,325 +237,15 @@ class TaskViewSet(viewsets.ViewSet):
 
         serializer = TaskSerializer(task)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    def upload_images(self, task, files):
-        if len(files) <= 1:
-            raise exceptions.ValidationError(detail=_("Cannot create task, you need at least 2 images"))
-
-        with transaction.atomic():
-            task.handle_images_upload(files)
-            task.images_count = len(task.scan_images())
-            task.update_size()
-            task.save()
-            worker_tasks.process_task.delay(task.id)
-        return {'success': True, 'uploaded': [file.name for file in files]}
-
-    def upload_fotos(self, task, files):
-        logger.info(f"upload_fotos - Task {task.id}")
-        errors = [] # usada para gravar os arquivos que não foram processados
-        
-        # Garantir que o diretório assets/fotos existe
-        fotos_dir = task.assets_path("fotos")
-        logger.info(f"Garantindo que {fotos_dir} existe")
-        if not os.path.exists(fotos_dir):
-            logger.info(f"Criando {fotos_dir}")
-            os.makedirs(fotos_dir, exist_ok=True)
-
-        # Carregar o metadata.json existente, se existir
-        metadata_path = os.path.join(fotos_dir, 'metadata.json')
-        try:
-            if os.path.exists(metadata_path):
-                with open(metadata_path, 'r') as metadata_file:
-                    metadata = json.load(metadata_file)
-            else:
-                metadata = {}
-        except Exception as e:
-            print(e)
-            logger.error(f"Erro ao carregar metadata.json: {str(e)}")
-            errors.append(str(e))
-            metadata = {}
-
-        uploaded_files = []
-
-        # Identificar o índice inicial para novos arquivos
-        existing_files = os.listdir(fotos_dir)
-        max_index = 0
-        for file in existing_files:
-            if file.startswith("foto_") and file.endswith(".jpg"):
-                index = int(file.split('_')[1].split('.')[0])
-                if index > max_index:
-                    max_index = index
-
-        # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
-
-        for idx, file in enumerate(files):
-            try:
-                # Manter o arquivo aberto e acessar diretamente os dados de memória
-                if isinstance(file, InMemoryUploadedFile):
-                    logger.info(f"Processando {file.name}")
-                    image = Image.open(file)
-                    exif_data = get_exif_data(image)
-                    lat_lon_alt = get_lat_lon_alt(exif_data)
-
-                    if not lat_lon_alt:
-                        logger.error(f"Metadados GPS não encontrados para {file.name}")
-                        errors.append(f"Metadados GPS não encontrados para {file.name}")
-                        continue
-
-                    filename = f"foto_{max_index + idx + 1}.jpg"
-                    dst_path = os.path.join(fotos_dir, filename)
-
-                    # Gravar o arquivo no diretório de destino
-                    logger.info(f"Salvando {filename} em {dst_path}")
-                    with open(dst_path, 'wb+') as fd:
-                        for chunk in file.chunks():
-                            fd.write(chunk)
-                            
-                else:
-                    # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
-                    with open(file.temporary_file_path(), 'rb') as f:
-                        logger.info(f"Processando {file.name}")
-                        image = Image.open(f)
-                        exif_data = get_exif_data(image)
-                        lat_lon_alt = get_lat_lon_alt(exif_data)
-
-                        if not lat_lon_alt:
-                            logger.error(f"Metadados GPS não encontrados para {file.name}")
-                            errors.append(f"Metadados GPS não encontrados para {file.name}")
-                            continue
-
-                        filename = f"foto_{max_index + idx + 1}.jpg"
-                        dst_path = os.path.join(fotos_dir, filename)
-
-                        # Gravar o arquivo no diretório de destino
-                        logger.info(f"Salvando {filename} em {dst_path}")
-                        with open(dst_path, 'wb+') as fd:
-                            f.seek(0)
-                            shutil.copyfileobj(f, fd)
-
-                # Adicionar a informação em available_assets
-                asset_info = f"fotos/{filename}"
-                if asset_info not in task.available_assets:
-                    task.available_assets.append(asset_info)
-
-                # Adicionar informações de metadados
-                metadata[filename] = {'latitude': lat_lon_alt[0], 'longitude': lat_lon_alt[1], 'altitude': lat_lon_alt[2] or 0}
-                uploaded_files.append(file.name)
-
-            except Exception as e:
-                print(e)
-                logger.error(f"Erro ao processar {file.name}: {str(e)}")
-                errors.append(str(e))
-                continue
-
-        # Atualizar o arquivo metadata.json
-        logger.info(f"Salvando metadata.json em {metadata_path}")
-        with open(metadata_path, 'w') as metadata_file:
-            json.dump(metadata, metadata_file)
-
-        # Adicionar metadata.json em available_assets
-        logger.info(f"Adicionando {len(uploaded_files)} arquivos a available_assets")
-        metadata_asset = 'fotos/metadata.json'
-        if metadata_asset not in task.available_assets:
-            task.available_assets.append(metadata_asset)
-
-        task.images_count = len(task.scan_images())
-        task.save()
-        #
-        success = len(uploaded_files) > 0
-        logger.info(f"Sucesso: {success}")
-        return {'success': success, 'uploaded': uploaded_files , 'errors': errors}
-
-    def upload_videos(self, task, files):
-        logger.info(f"upload_videos - Task {task.id}")
-        errors = []
-        
-        
-        # Garantir que o diretório assets/videos existe
-        videos_dir = task.assets_path("videos")
-        if not os.path.exists(videos_dir):
-            os.makedirs(videos_dir, exist_ok=True)
-
-        # Carregar o metadata.json existente, se existir
-        logger.info(f"Carregando metadata.json de {videos_dir}")
-        metadata_path = os.path.join(videos_dir, 'metadata.json')
-        if os.path.exists(metadata_path):
-            with open(metadata_path, 'r') as metadata_file:
-                metadata = json.load(metadata_file)
-        else:
-            metadata = {}
-
-        uploaded_files = []
-
-        # Identificar o índice inicial para novos arquivos
-        existing_files = os.listdir(videos_dir)
-        max_index = 0
-        for file in existing_files:
-            if file.startswith("video_") and file.endswith(".mp4"):
-                index = int(file.split('_')[1].split('.')[0])
-                if index > max_index:
-                    max_index = index
-
-        # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
-        for idx, file in enumerate(files):
-            try:
-                filename = f"video_{max_index + idx + 1}.mp4"
-                dst_path = os.path.join(videos_dir, filename)
-
-                # Gravar o arquivo no diretório de destino
-                with open(dst_path, 'wb+') as fd:
-                    if isinstance(file, InMemoryUploadedFile):
-                        for chunk in file.chunks():
-                            fd.write(chunk)
-                    else:
-                        with open(file.temporary_file_path(), 'rb') as f:
-                            shutil.copyfileobj(f, fd)
-
-                # Extrair metadados GPS do vídeo
-                lat_lon = get_video_gps(dst_path)
-                if lat_lon:
-                    logger.info(f"Metadados GPS encontrados para {file.name}: {lat_lon}")
-                    metadata[filename] = {'latitude': lat_lon[0], 'longitude': lat_lon[1]}
-                    # Adicionar a informação em available_assets
-                    asset_info = f"videos/{filename}"
-                    if asset_info not in task.available_assets:
-                        task.available_assets.append(asset_info)
-                    uploaded_files.append(file.name)
-                else:
-                    logger.error(f"Metadados GPS não encontrados para {file.name}")
-                    errors.append(f"Metadados GPS não encontrados para {file.name}")
-                    os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
-
-            except Exception as e:
-                logger.error(f"Erro ao processar {file.name}: {str(e)}")
-                errors.append(str(e))
-                os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
-                continue
-
-        # Atualizar o arquivo metadata.json
-        logger.info(f"Salvando metadata.json em {metadata_path}")
-        with open(metadata_path, 'w') as metadata_file:
-            json.dump(metadata, metadata_file)
-
-        # Adicionar metadata.json em available_assets
-        metadata_asset = 'videos/metadata.json'
-        if metadata_asset not in task.available_assets:
-            task.available_assets.append(metadata_asset)
-
-        task.images_count = len(task.scan_images())
-        task.save()
-        
-        success = len(uploaded_files) > 0
-        
-        return {'success': success, 'uploaded': uploaded_files , 'errors': errors}
-
-
-    def upload_foto360(self, task, files):
-        logger.info("upload_foto360 {task.id} " )
-    
-        for file in files:
-            
-            # Salvar o arquivo temporariamente para verificar os metadados
-            temp_path = os.path.join('/tmp', file.name)
-            with open(temp_path, 'wb+') as temp_file:
-                for chunk in file.chunks():
-                    temp_file.write(chunk)
-            
-            #if not is_360_photo(temp_path):
-            #    os.remove(temp_path)
-            #    raise ValidationError("O arquivo não é uma foto 360")
-            
-            # Garantir que o diretório assets existe
-            assets_dir = task.assets_path("")
-            if not os.path.exists(assets_dir):
-                os.makedirs(assets_dir, exist_ok=True)
-
-            # Salvar o arquivo na pasta assets com o nome foto360.jpg
-            dst_path = task.assets_path("foto360.jpg")
-            logger.info(f"Salvando {file.name} em {dst_path}")
-            with open(dst_path, 'wb+') as fd:
-                for chunk in file.chunks():
-                    fd.write(chunk)
-
-            # Remover o arquivo temporário
-            logger.info(f"Removendo o temporario {temp_path}")
-            os.remove(temp_path)
-
-            # Adicionar "foto360.jpg" ao campo available_assets
-            if "foto360.jpg" not in task.available_assets:
-                task.available_assets.append("foto360.jpg")
-
-            task.images_count = len(task.scan_images())
-            task.save()
-            
-        success = os.path.exists(dst_path) and os.path.getsize(dst_path) > 0
-        
-        logger.info(f"Sucesso: {success}")  
-        return {'success': success, 'uploaded': {'foto360.jpg': os.path.getsize(dst_path)}}
-
-
-
-    def upload_foto_giga(self, task, files):
-        logger.info("upload_foto_giga")
-        
-        uploaded_files = []
-        errors = []
-
-        # Definir o diretório uma vez
-        foto_giga_dir = os.path.join(task.assets_path("foto_giga"))
-
-        # Remover o diretório se existir e criar novamente
-        if os.path.exists(foto_giga_dir):
-            shutil.rmtree(foto_giga_dir)
-        os.makedirs(foto_giga_dir, exist_ok=True)
-
-        # Limpar available_assets relacionado a foto_giga
-        task.available_assets = [asset for asset in task.available_assets if not ("foto_giga" in asset or "metadata.dzi")]
-
-        for idx, file in enumerate(files):
-            try:
-                filename = f"foto_giga_{idx + 1}.jpg"
-                dst_path = os.path.join(foto_giga_dir, filename)
-
-                # Gravar o arquivo no diretório de destino
-                with open(dst_path, 'wb+') as fd:
-                    if isinstance(file, InMemoryUploadedFile):
-                        for chunk in file.chunks():
-                            fd.write(chunk)
-                    else:
-                        with open(file.temporary_file_path(), 'rb') as f:
-                            shutil.copyfileobj(f, fd)
-
-                # Criar arquivos DZI
-                logger.info(f"Convertendo {filename} para DZI")
-                create_dzi(dst_path, foto_giga_dir)
-                
-                uploaded_files.append(file.name)
-
-            except Exception as e:
-                logger.error(f"Erro ao processar o arquivo {file.name}: {e}")
-                errors.append(f"Erro ao processar o arquivo {file.name}: {e}")
-                continue
-
-        # Atualizar available_assets após o processamento
-        asset_info = f"foto_giga/metadata.dzi"
-        if asset_info not in task.available_assets:
-            task.available_assets.append(asset_info)
-
-        # Atualizar images_count e salvar a tarefa
-        task.images_count = len(task.scan_images())
-        task.save()
-
-        success = len(uploaded_files) > 0
-
-        return {'success': success, 'uploaded': uploaded_files , 'errors': errors}
-
 
     @action(detail=True, methods=['post'])
     def upload(self, request, pk=None, project_pk=None, type=""):
         project = get_and_check_project(request, project_pk, ('change_project', ))
         files = flatten_files(request.FILES)
-        if len(files) == 0:
+        s3_images = request.data.get('images_download_s3', '')
+        valid_s3_images = self._sanitize_s3_images(s3_images)
+
+        if len(files) == 0 and len(valid_s3_images) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
         try:
@@ -693,30 +254,43 @@ class TaskViewSet(viewsets.ViewSet):
             raise exceptions.NotFound()
 
         try:
-
             upload_type = request.data.get('type', 'orthophoto')
-
-            if upload_type == 'foto':
-                response = self.upload_fotos(task, files)
-            elif upload_type == 'video':
-                response = self.upload_videos(task, files)
-            elif upload_type == 'foto360':
-                response = self.upload_foto360(task, files)
-            elif upload_type == 'foto_giga':
-                response = self.upload_foto_giga(task, files)
-            else:  # Default to 'orthophoto'
-                response = self.upload_images(task, files)
+            files_paths = save_request_files(files)
 
             # Atualizar outros parâmetros como nó de processamento, nome da tarefa, etc.
             serializer = TaskSerializer(task, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
+            celery_task_id = worker_tasks.task_upload_file.delay(
+                pk,
+                files_paths,
+                valid_s3_images,
+                upload_type).task_id
+            response = {'celery_task_id': celery_task_id}
         except Exception as e:
-            print(e)
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path="set-s3-images")
+    def set_s3_images(self, request, pk=None, project_pk=None):
+        """
+        Set s3 images to download on task proccess
+        """
+        get_and_check_project(request, project_pk, ('change_project', ))
+        try:
+            task = self.queryset.get(pk=pk, project=project_pk)
+        except (ObjectDoesNotExist, ValidationError):
+            raise exceptions.NotFound()
+
+        imagesParam: str = request.data.get('images', '')
+        images = imagesParam.split(',')
+        task.s3_images += [image.strip() for image in images if len(image.strip()) > 0]
+        task.pending_action = pending_actions.IMPORT_FROM_S3_WITH_RESIZE if task.pending_action == pending_actions.RESIZE else pending_actions.IMPORT_FROM_S3
+        task.image_origin = image_origins.S3
+        task.save()
+        return Response({'success': True, 'setted': task.s3_images}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None, project_pk=None):
@@ -796,6 +370,12 @@ class TaskViewSet(viewsets.ViewSet):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
+    def _sanitize_s3_images(self, s3_images_param: str):
+        return [
+            image.strip()
+            for image in s3_images_param.split(',')
+            if image.strip().startswith('s3://')
+        ]
 
 class TaskNestedView(APIView):
     queryset = models.Task.objects.all().defer('orthophoto_extent', 'dtm_extent', 'dsm_extent', )
@@ -814,35 +394,8 @@ class TaskNestedView(APIView):
         return task
 
 
-def download_file_response(request, filePath, content_disposition, download_filename=None):
-    filename = os.path.basename(filePath)
-    if download_filename is None:
-        download_filename = filename
-    filesize = os.stat(filePath).st_size
-    file = open(filePath, "rb")
-
-    # More than 100mb, normal http response, otherwise stream
-    # Django docs say to avoid streaming when possible
-    stream = filesize > 1e8 or request.GET.get('_force_stream', False)
-    if stream:
-        response = FileResponse(file)
-    else:
-        response = HttpResponse(FileWrapper(file),
-                                content_type=(mimetypes.guess_type(filename)[0] or "application/zip"))
-
-    response['Content-Type'] = mimetypes.guess_type(filename)[0] or "application/zip"
-    response['Content-Disposition'] = "{}; filename={}".format(content_disposition, download_filename)
-    response['Content-Length'] = filesize
-
-    # For testing
-    if stream:
-        response['_stream'] = 'yes'
-
-    return response
-
-
 def download_file_stream(request, stream, content_disposition, download_filename=None):
-    response = HttpResponse(FileWrapper(stream),
+    response = HttpResponse(stream,
                             content_type=(mimetypes.guess_type(download_filename)[0] or "application/zip"))
 
     response['Content-Type'] = mimetypes.guess_type(download_filename)[0] or "application/zip"
@@ -864,14 +417,24 @@ class TaskDownloads(TaskNestedView):
         Downloads a task asset (if available)
         """
         task = self.get_and_check_task(request, pk)
+        asset_manager = TaskAssetsManager(task)
 
         # Verificar se é um pedido para DZI
         if asset.startswith("foto_giga") and asset.endswith(".dzi"):
-            dzi_file_path = task.assets_path(asset)
-            if not os.path.exists(dzi_file_path):
+            asset_stream = asset_manager.get_asset_stream(asset)
+
+            if not asset_stream:
                 raise exceptions.NotFound(_("Asset does not exist"))
 
-            return download_file_response(request, dzi_file_path, 'inline')
+            content_disposition = 'inline; filename={}'.format(os.path.basename(asset))
+            return download_file_stream(request, asset_stream, content_disposition, get_file_name(asset))
+
+        download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
+
+        if task.is_asset_a_zip(asset):
+            celery_task_id = worker_tasks.generate_zip_from_asset.delay(pk, asset).task_id
+
+            return Response({'celery_task_id': celery_task_id, 'filename': download_filename}, status=status.HTTP_200_OK)
 
         # Check and download
         try:
@@ -879,16 +442,12 @@ class TaskDownloads(TaskNestedView):
         except FileNotFoundError:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        is_stream = not isinstance(asset_fs, str)
-        if not is_stream and not os.path.isfile(asset_fs):
+        asset_stream = asset_manager.get_asset_stream(asset_fs)
+        if not asset_stream:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        download_filename = request.GET.get('filename', get_asset_download_filename(task, asset))
-
-        if is_stream:
-            return download_file_stream(request, asset_fs, 'attachment', download_filename=download_filename)
-        else:
-            return download_file_response(request, asset_fs, 'attachment', download_filename=download_filename)
+        content_disposition = 'attachment; filename={}'.format(download_filename)
+        return download_file_stream(request, asset_stream, content_disposition, get_file_name(asset))
 
 """
 Raw access to the task's asset folder resources
@@ -907,10 +466,14 @@ class TaskAssets(TaskNestedView):
         except SuspiciousFileOperation:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        if (not os.path.exists(asset_path)) or os.path.isdir(asset_path):
+        asset_manager = TaskAssetsManager(task)
+        asset = asset_manager.get_asset_stream(asset_path)
+
+        if not asset:
             raise exceptions.NotFound(_("Asset does not exist"))
 
-        return download_file_response(request, asset_path, 'inline')
+        content_disposition = 'inline; filename={}'.format(os.path.basename(asset_path))
+        return download_file_stream(request, asset, content_disposition, get_file_name(unsafe_asset_path))
 
 """
 Task backup endpoint
@@ -924,13 +487,13 @@ class TaskBackup(TaskNestedView):
 
         # Check and download
         try:
-            asset_fs = task.get_task_backup_stream()
+            celery_task_id = worker_tasks.generate_backup_zip.delay(pk).task_id
         except FileNotFoundError:
             raise exceptions.NotFound(_("Asset does not exist"))
 
         download_filename = request.GET.get('filename', get_asset_download_filename(task, "backup.zip"))
 
-        return download_file_stream(request, asset_fs, 'attachment', download_filename=download_filename)
+        return Response({'celery_task_id': celery_task_id, 'filename': download_filename}, status=status.HTTP_200_OK)
 
 """
 Task assets import

@@ -1,4 +1,4 @@
-def calc_volume(input_dem, pts=None, pts_epsg=None, geojson_polygon=None, decimals=4,
+def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=None, decimals=4,
                 base_method="triangulate", custom_base_z=None):
     try:
         import os
@@ -11,23 +11,31 @@ def calc_volume(input_dem, pts=None, pts_epsg=None, geojson_polygon=None, decima
         import json
         import warnings
 
+        from app.models import Task
+        from app.classes.task_assets_manager import TaskAssetsManager
+
+
+        task = Task.objects.get(pk=task_id)
+        asset_manager = TaskAssetsManager(task)
+        downloaded_dem = asset_manager.download_asset_to_temp(input_dem)
+
         osr.UseExceptions()
         warnings.filterwarnings("ignore", module='scipy.optimize')
 
-        if not os.path.isfile(input_dem):
-            raise IOError(f"{input_dem} does not exist")
+        if not os.path.isfile(downloaded_dem):
+            raise IOError(f"{downloaded_dem} does not exist")
 
         crs = None
-        with rasterio.open(input_dem) as d:
+        with rasterio.open(downloaded_dem) as d:
             if d.crs is None:
-                raise ValueError(f"{input_dem} does not have a CRS")
+                raise ValueError(f"{downloaded_dem} does not have a CRS")
             crs = osr.SpatialReference()
             crs.ImportFromEPSG(d.crs.to_epsg())
-        
+
         if pts is None and pts_epsg is None and geojson_polygon is not None:
             # Read GeoJSON points
             pts = read_polygon(geojson_polygon)
-            return calc_volume(input_dem, pts=pts, pts_epsg=4326, decimals=decimals, base_method=base_method, custom_base_z=custom_base_z)
+            return calc_volume(task_id, downloaded_dem, pts=pts, pts_epsg=4326, decimals=decimals, base_method=base_method, custom_base_z=custom_base_z)
         
         # Convert to DEM crs
         src_crs = osr.SpatialReference()
@@ -50,7 +58,7 @@ def calc_volume(input_dem, pts=None, pts_epsg=None, geojson_polygon=None, decima
         # Remove last point (loop close)
         dem_pts = dem_pts[:-1]
         
-        with rasterio.open(input_dem) as d:
+        with rasterio.open(downloaded_dem) as d:
             px_w = d.transform[0]
             px_h = d.transform[4]
 
