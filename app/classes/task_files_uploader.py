@@ -35,6 +35,9 @@ class TaskFilesUploader:
 
     def upload_files(self, local_files_to_upload: list[dict[str, str]], s3_files_to_upload: list[str], upload_type: str):
         try:
+            self.task.status = None
+            self.task.last_error = None
+            self.task.pending_action = None
             self.task_upload_in_progress(True)
             files_paths = [file['path'] for file in local_files_to_upload]
             s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
