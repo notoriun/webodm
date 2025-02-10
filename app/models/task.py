@@ -792,7 +792,7 @@ class Task(models.Model):
                 logger.warning("Cannot read backup file: %s" % str(e))
 
     def get_task_backup_stream(self):
-        self.download_all_s3_images()
+        self._download_all_s3_images()
         self.write_backup_file()
         zip_dir = self.task_path("")
         paths = [
@@ -1924,9 +1924,8 @@ class Task(models.Model):
         self.s3_assets.append(asset)
 
     def _upload_assets_to_s3(self):
-        # @TODO Remover arquivos temporarios e do s3 do upload
         s3_bucket = settings.S3_BUCKET
-        files_to_upload = [f for f in self._get_all_assets_files() if os.path.exists(f)]
+        files_to_upload = self._all_assets_needs_upload_to_s3()
         files_uploadeds = []
         self.uploading_s3_progress = 0.0
         self.save()
@@ -2032,7 +2031,7 @@ class Task(models.Model):
         percent_current_progress = progress * percent_per_image
         return percent_success + percent_current_progress
 
-    def download_all_s3_images(self):
+    def _download_all_s3_images(self):
         task_path = self.task_path()
         logger.info('will download images with "{}"'.format(task_path))
         s3_images = list_s3_objects(task_path)
@@ -2056,3 +2055,12 @@ class Task(models.Model):
 
             download_s3_file(image_key, image_key, s3_client)
             logger.info('downloaded image: "{}"'.format(image_key))
+
+    def _all_assets_needs_upload_to_s3(self):
+        root_assets = [e.path for e in self._entry_root_images()]
+        assets_dont_upload = root_assets + self.s3_assets
+        return [
+            f
+            for f in self._get_all_assets_files()
+            if not (f in assets_dont_upload) and os.path.exists(f)
+        ]

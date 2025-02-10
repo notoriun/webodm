@@ -167,9 +167,9 @@ class TaskFilesUploader:
         if metadata_asset not in self.task.available_assets:
             self.task.available_assets.append(metadata_asset)
 
+        self.task.append_s3_assets(s3_fotos)
         self.task.upload_and_cache_assets(True)
         self.task.images_count = len(self.task.scan_s3_assets())
-        self.task.append_s3_assets(s3_fotos)
         self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
@@ -231,9 +231,9 @@ class TaskFilesUploader:
         if metadata_asset not in self.task.available_assets:
             self.task.available_assets.append(metadata_asset)
 
+        self.task.append_s3_assets(s3_videos)
         self.task.upload_and_cache_assets(True)
         self.task.images_count = len(self.task.scan_s3_assets())
-        self.task.append_s3_assets(s3_videos)
         self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
@@ -257,11 +257,11 @@ class TaskFilesUploader:
             if "foto360.jpg" not in self.task.available_assets:
                 self.task.available_assets.append("foto360.jpg")
 
-            self.task.upload_and_cache_assets(True)
-            self.task.images_count = len(self.task.scan_s3_assets())
-
             if filepath in s3_files:
                 self.task.append_s3_asset(file_uploaded)
+
+            self.task.upload_and_cache_assets(True)
+            self.task.images_count = len(self.task.scan_s3_assets())
 
             self.task.save()
 
