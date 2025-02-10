@@ -7,15 +7,19 @@ from webodm import settings
 from time import sleep
 from contextlib import contextmanager
 
-cache_files_queue_key = 's3_cache_files_queue'
-cache_files_lock_key = 's3_cache_files_lock'
+cache_files_queue_key = "s3_cache_files_queue"
+cache_files_lock_key = "s3_cache_files_lock"
 
 
 def set_files_in_cache(files: list[str]):
     redis_cache = _get_redis_cache()
 
     files_cache_str = json.dumps(files)
-    redis_cache.set(cache_files_queue_key, files_cache_str, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1)
+    redis_cache.set(
+        cache_files_queue_key,
+        files_cache_str,
+        timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1,
+    )
 
 
 def get_files_in_cache() -> list[str]:
@@ -64,7 +68,7 @@ def get_current_cache_size():
             current_size += file_stat.st_size
         except OSError:
             pass
-    
+
     return current_size
 
 
@@ -82,16 +86,18 @@ def get_files_with_old_accessed_first():
 def refresh_cache():
     redis_cache = _get_redis_cache()
 
-    redis_cache.touch(cache_files_queue_key, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1)
+    redis_cache.touch(
+        cache_files_queue_key, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1
+    )
 
 
 @contextmanager
-def s3_cache_lock(timeout=10):
+def cache_lock(key: str, timeout=10):
     redis_cache = _get_redis_cache()
 
     try:
         while True:
-            acquired = redis_cache.add(cache_files_lock_key, 'locked', timeout=timeout)
+            acquired = redis_cache.add(key, "locked", timeout=timeout)
 
             if not acquired:
                 sleep(1)
@@ -100,7 +106,12 @@ def s3_cache_lock(timeout=10):
                 break
     finally:
         if acquired:
-            redis_cache.delete(cache_files_lock_key)
+            redis_cache.delete(key)
+
+
+def s3_cache_lock(timeout=10):
+    return cache_lock(cache_files_lock_key, timeout)
+
 
 def _get_redis_cache():
-    return caches['s3_images_cache']
+    return caches["s3_images_cache"]

@@ -6,6 +6,10 @@ services:
       - "35729:35729"
     volumes:
       - .:/webodm
+    env_file:
+      - ./.env
   worker:
     volumes:
       - .:/webodm
+    env_file:
+      - ./.env

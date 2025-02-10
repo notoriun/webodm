@@ -9,16 +9,21 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 from app.models import Task
-from app.utils.s3_utils import get_s3_object, list_s3_objects, download_s3_file, get_s3_client
+from app.utils.s3_utils import (
+    get_s3_object,
+    download_s3_file,
+    get_s3_client,
+    convert_task_path_to_s3,
+)
 from app.utils.file_utils import ensure_path_exists, get_file_name
-from nodeodm import status_codes
+from worker.utils.redis_file_cache import cache_lock
 from webodm import settings
 from rest_framework import exceptions
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
-logger = logging.getLogger('app.logger')
+logger = logging.getLogger("app.logger")
 
 
 class TaskFilesUploader:
@@ -33,30 +38,35 @@ class TaskFilesUploader:
 
         return self._task_loaded
 
-    def upload_files(self, local_files_to_upload: list[dict[str, str]], s3_files_to_upload: list[str], upload_type: str):
+    def upload_files(
+        self,
+        local_files_to_upload: list[dict[str, str]],
+        s3_files_to_upload: list[str],
+        upload_type: str,
+    ):
         try:
             self.task.status = None
             self.task.last_error = None
             self.task.pending_action = None
             self.task_upload_in_progress(True)
-            files_paths = [file['path'] for file in local_files_to_upload]
+            local_files_path = [file["path"] for file in local_files_to_upload]
             s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
-            all_files_to_upload = files_paths + s3_downloaded_files
-            
-            if upload_type == 'foto':
-                response = self._upload_fotos(all_files_to_upload)
-            elif upload_type == 'video':
-                response = self._upload_videos(all_files_to_upload)
-            elif upload_type == 'foto360':
-                response = self._upload_foto360(all_files_to_upload)
-            elif upload_type == 'foto_giga':
-                response = self._upload_foto_giga(all_files_to_upload)
+
+            if upload_type == "foto":
+                response = self._upload_fotos(local_files_path, s3_downloaded_files)
+            elif upload_type == "video":
+                response = self._upload_videos(local_files_path, s3_downloaded_files)
+            elif upload_type == "foto360":
+                response = self._upload_foto360(local_files_path, s3_downloaded_files)
+            elif upload_type == "foto_giga":
+                response = self._upload_foto_giga(local_files_path, s3_downloaded_files)
             else:  # Default to 'orthophoto'
                 response = self._upload_images(
-                    [{
-                        'path': filepath,
-                        'name': get_file_name(filepath)
-                    } for filepath in s3_downloaded_files] + local_files_to_upload
+                    local_files_to_upload,
+                    [
+                        {"path": filepath, "name": get_file_name(filepath)}
+                        for filepath in s3_downloaded_files
+                    ],
                 )
 
             self.task_upload_in_progress(False)
@@ -67,56 +77,65 @@ class TaskFilesUploader:
             self.task_upload_in_progress(False)
             raise e
 
+    def task_upload_in_progress(self, in_progress):
+        self.task.upload_in_progress = in_progress
+        self.task.save()
+
     def _refresh_task(self):
         self._task_loaded = Task.objects.get(pk=self._task_id)
 
-    def _upload_images(self, files: list[str]):
+    def _upload_images(self, local_files: list[str], s3_files: list[str]):
+        logger.info("Upload images")
+        files = local_files + s3_files
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
         uploaded = self.task.handle_images_upload(files)
+        result = {}
+
+        for filename, value in uploaded.items():
+            result[filename] = value["size"]
+
+            if value["origin_path"] in s3_files:
+                self.task.append_s3_asset(value["destiny_path"])
+
         self.task.images_count = len(self.task.scan_images())
         self.task.save()
 
-        return {'success': True, 'uploaded': uploaded }
+        return {"success": True, "uploaded": result}
 
-    def _upload_fotos(self, files: list[str]):
+    def _upload_fotos(self, local_files: list[str], s3_files: list[str]):
         # Garantir que o diretório assets/fotos existe
-        logger.info('upload fotos')
+        logger.info("Upload fotos")
         fotos_dir = self.task.assets_path("fotos")
         ensure_path_exists(fotos_dir)
 
         # Carregar o metadata.json existente, se existir
-        metadata_path = os.path.join(fotos_dir, 'metadata.json')
+        metadata_path = os.path.join(fotos_dir, "metadata.json")
         metadata = self._read_metadata_json(metadata_path)
-        logger.info(f'lido metadados {metadata}')
 
         uploaded_files = []
 
         # Identificar o índice inicial para novos arquivos
-        foto_prefix = os.path.join(fotos_dir, "foto_")
-        existing_files_index = self._list_file_indexes_with(foto_prefix, ".jpg")
-        max_index = existing_files_index[-1] if len(existing_files_index) > 0 else 0
-        logger.info(f'obtido index max: {max_index}')
+        max_index = self._get_file_index(metadata, "foto_", ".jpg")
 
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
+        files = local_files + s3_files
+        s3_fotos = []
 
         for idx, filepath in enumerate(files):
             try:
-                logger.info(f'abrindo {filepath} no PIL')
                 # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
                 image = Image.open(filepath)
                 exif_data = get_exif_data(image)
                 lat_lon_alt = get_lat_lon_alt(exif_data)
-                logger.info(f'obtido lat lon: {lat_lon_alt}')
-
 
                 if not lat_lon_alt:
                     continue
 
                 filename = f"foto_{max_index + idx + 1}.jpg"
                 dst_path = os.path.join(fotos_dir, filename)
-                logger.info('saving file uploaded on: {}'.format(dst_path))
+                logger.info("saving file uploaded on: {}".format(dst_path))
 
                 # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
@@ -127,90 +146,107 @@ class TaskFilesUploader:
                     self.task.available_assets.append(asset_info)
 
                 # Adicionar informações de metadados
-                metadata[filename] = {'latitude': lat_lon_alt[0], 'longitude': lat_lon_alt[1], 'altitude': lat_lon_alt[2] or 0}
+                metadata[filename] = {
+                    "latitude": lat_lon_alt[0],
+                    "longitude": lat_lon_alt[1],
+                    "altitude": lat_lon_alt[2] or 0,
+                }
                 uploaded_files.append(get_file_name(filepath))
+
+                if filepath in s3_files:
+                    s3_fotos.append(dst_path)
             except Exception as e:
                 logger.error(str(e))
                 continue
 
         # Atualizar o arquivo metadata.json
-        with open(metadata_path, 'w') as metadata_file:
-            json.dump(metadata, metadata_file)
+        self._update_metadata_json(metadata_path, metadata)
 
         # Adicionar metadata.json em available_assets
-        metadata_asset = 'fotos/metadata.json'
+        metadata_asset = "fotos/metadata.json"
         if metadata_asset not in self.task.available_assets:
             self.task.available_assets.append(metadata_asset)
 
+        self.task.append_s3_assets(s3_fotos)
         self.task.upload_and_cache_assets(True)
         self.task.images_count = len(self.task.scan_s3_assets())
         self.task.save()
 
-        return {'success': True, 'uploaded': uploaded_files}
+        return {"success": True, "uploaded": uploaded_files}
 
-    def _upload_videos(self, files: list[str]):
+    def _upload_videos(self, local_files: list[str], s3_files: list[str]):
+        logger.info("Upload videos")
         # Garantir que o diretório assets/videos existe
         videos_dir = self.task.assets_path("videos")
         ensure_path_exists(videos_dir)
 
         # Carregar o metadata.json existente, se existir
-        metadata_path = os.path.join(videos_dir, 'metadata.json')
+        metadata_path = os.path.join(videos_dir, "metadata.json")
         metadata = self._read_metadata_json(metadata_path)
 
         uploaded_files = []
 
         # Identificar o índice inicial para novos arquivos
-        video_prefix = os.path.join(videos_dir, "video_")
-        existing_files_index = self._list_file_indexes_with(video_prefix, ".mp4")
-        max_index = existing_files_index[-1] if len(existing_files_index) > 0 else 0
+        max_index = self._get_file_index(metadata, "video_", ".mp4")
 
         # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
+        files = local_files + s3_files
+        s3_videos = []
+
         for idx, filepath in enumerate(files):
             try:
+                # Extrair metadados GPS do vídeo
+                lat_lon = get_video_gps(filepath)
+
+                if not lat_lon:
+                    continue
+
                 filename = f"video_{max_index + idx + 1}.mp4"
                 dst_path = os.path.join(videos_dir, filename)
 
                 # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
 
-                # Extrair metadados GPS do vídeo
-                lat_lon = get_video_gps(dst_path)
-                if lat_lon:
-                    metadata[filename] = {'latitude': lat_lon[0], 'longitude': lat_lon[1]}
-                    # Adicionar a informação em available_assets
-                    asset_info = f"videos/{filename}"
-                    if asset_info not in self.task.available_assets:
-                        self.task.available_assets.append(asset_info)
-                    uploaded_files.append(get_file_name(filepath))
-                else:
-                    os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
+                metadata[filename] = {
+                    "latitude": lat_lon[0],
+                    "longitude": lat_lon[1],
+                }
+                # Adicionar a informação em available_assets
+                asset_info = f"videos/{filename}"
+                if asset_info not in self.task.available_assets:
+                    self.task.available_assets.append(asset_info)
+                uploaded_files.append(get_file_name(filepath))
 
+                if filepath in s3_files:
+                    s3_videos.append(dst_path)
             except Exception as e:
                 logger.error(str(e))
                 continue
 
         # Atualizar o arquivo metadata.json
-        with open(metadata_path, 'w') as metadata_file:
-            json.dump(metadata, metadata_file)
+        self._update_metadata_json(metadata_path, metadata)
 
         # Adicionar metadata.json em available_assets
-        metadata_asset = 'videos/metadata.json'
+        metadata_asset = "videos/metadata.json"
         if metadata_asset not in self.task.available_assets:
             self.task.available_assets.append(metadata_asset)
 
+        self.task.append_s3_assets(s3_videos)
         self.task.upload_and_cache_assets(True)
         self.task.images_count = len(self.task.scan_s3_assets())
         self.task.save()
 
-        return {'success': True, 'uploaded': uploaded_files}
+        return {"success": True, "uploaded": uploaded_files}
 
-    def _upload_foto360(self, files: list[str]):
+    def _upload_foto360(self, local_files: list[str], s3_files: list[str]):
+        logger.info("Upload foto360")
         # Garantir que o diretório assets existe
         assets_dir = self.task.assets_path()
         ensure_path_exists(assets_dir)
-    
+        files = local_files + s3_files
+
         filepath = files[0] if len(files) > 0 else None
-        file_uploaded = None
+        file_uploaded_size = 0
 
         if filepath:
             # Salvar o arquivo na pasta assets com o nome foto360.jpg
@@ -221,16 +257,24 @@ class TaskFilesUploader:
             if "foto360.jpg" not in self.task.available_assets:
                 self.task.available_assets.append("foto360.jpg")
 
-        self.task.upload_and_cache_assets(True)
-        self.task.images_count = len(self.task.scan_s3_assets())
-        self.task.save()
+            if filepath in s3_files:
+                self.task.append_s3_asset(file_uploaded)
 
-        return {'success': True, 'uploaded': {'foto360.jpg': os.path.getsize(file_uploaded)}}
+            self.task.upload_and_cache_assets(True)
+            self.task.images_count = len(self.task.scan_s3_assets())
 
-    def _upload_foto_giga(self, files: list[str]):
+            self.task.save()
+
+            file_uploaded_size = os.path.getsize(file_uploaded)
+
+        return {"success": True, "uploaded": {"foto360.jpg": file_uploaded_size}}
+
+    def _upload_foto_giga(self, local_files: list[str], s3_files: list[str]):
+        logger.info("Upload foto giga")
         uploaded_files = []
 
         # Salvar os novos arquivos na pasta assets/foto_giga com nomes sequenciais
+        files = local_files + s3_files
         for idx, filepath in enumerate(files):
             try:
                 filename = f"foto_giga_{idx + 1}.jpg"
@@ -252,18 +296,23 @@ class TaskFilesUploader:
 
                 # Adicionar a informação em available_assets
                 asset_info = f"foto_giga/metadata.dzi"
-                self.task.available_assets = [asset for asset in self.task.available_assets if not ("foto_giga" in asset or "metadata.dzi" in asset)]
+                self.task.available_assets = [
+                    asset
+                    for asset in self.task.available_assets
+                    if not ("foto_giga" in asset or "metadata.dzi" in asset)
+                ]
                 self.task.save()
                 if asset_info not in self.task.available_assets:
                     self.task.available_assets.append(asset_info)
 
                 try:
-                    os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
+                    os.remove(
+                        dst_path
+                    )  # Remover o arquivo se não contiver metadados GPS
                 except:
                     pass
 
                 uploaded_files.append(get_file_name(filepath))
-
             except Exception as e:
                 continue
 
@@ -271,58 +320,102 @@ class TaskFilesUploader:
         self.task.images_count = len(self.task.scan_s3_assets())
         self.task.save()
 
-        return {'success': True, 'uploaded': uploaded_files}
+        return {"success": True, "uploaded": uploaded_files}
 
-    def _read_metadata_json(self, metadata_path):
+    def _read_metadata_json(self, metadata_path: str, use_cache_lock=True):
+        s3_key = convert_task_path_to_s3(metadata_path)
+        s3_metadata = self._read_s3_metadata_json(s3_key)
+        local_metadata = self._read_local_metadata_json(metadata_path, use_cache_lock)
+
+        merged_metadata = merge_metadatas(local_metadata, s3_metadata)
+        logger.info(f"Readed metadata: {merged_metadata}")
+
+        return merged_metadata
+
+    def _update_metadata_json(self, metadata_path: str, new_metadata: dict):
+        with cache_lock(metadata_path):
+            current_metadata = self._read_metadata_json(
+                metadata_path, use_cache_lock=False
+            )
+            metadata = merge_metadatas(current_metadata, new_metadata)
+
+            with open(metadata_path, "w") as metadata_file:
+                file_data = json.dumps(metadata)
+                metadata_file.write(file_data)
+
+        logger.info(f"Updated metadata with: {metadata}")
+        return metadata
+
+    def _read_s3_metadata_json(self, metadata_key: str) -> dict[str, any]:
         try:
-            metadata_object = get_s3_object(metadata_path)
+            metadata_object = get_s3_object(metadata_key)
             if metadata_object:
-                metadata = json.load(metadata_object['Body'])
+                metadata_str = metadata_object["Body"].read().decode("utf-8")
+                metadata = json.loads(metadata_str)
             else:
                 metadata = {}
         except Exception as e:
             print(e)
             metadata = {}
-        
+
         return metadata
-    
-    def _list_file_indexes_with(self, prefix, suffix):
-        existing_files = list_s3_objects(prefix)
-        files_indexes = []
 
-        for file in existing_files:
-            filename = file['Key']
-            if filename.endswith(suffix):
-                index = int(filename.split(prefix)[1].split(suffix)[0])
-                files_indexes.append(index)
+    def _read_local_metadata_json(
+        self, metadata_path: str, use_cache_lock: bool
+    ) -> dict[str, any]:
+        if not os.path.exists(metadata_path):
+            return {}
 
-        files_indexes.sort()
+        def load_metadata_file():
+            with open(metadata_path) as metadata_file:
+                metadata = metadata_file.read()
+                return json.loads(metadata)
 
-        return files_indexes
-    
-    def _download_files_from_s3(self, s3_images):
+        try:
+            if use_cache_lock:
+                with cache_lock(metadata_path):
+                    return load_metadata_file()
+            else:
+                return load_metadata_file()
+        except Exception as e:
+            print(e)
+            return {}
+
+    def _download_files_from_s3(self, s3_images: list[str]):
         downloaded_s3_images = []
         s3_client = get_s3_client()
 
         if not s3_client:
-            logger.error('Could not download any image from s3, because is missing some s3 configuration variable')
+            logger.error(
+                "Could not download any image from s3, because is missing some s3 configuration variable"
+            )
             return []
 
         for image in s3_images:
             try:
-                s3_image_name = image.split('/')[-1]
-                destiny_path = tempfile.mktemp(f'_{s3_image_name}', dir=settings.MEDIA_TMP)
+                s3_image_name = image.split("/")[-1]
+                destiny_path = tempfile.mktemp(
+                    f"_{s3_image_name}", dir=settings.MEDIA_TMP
+                )
                 download_s3_file(image, destiny_path, s3_client)
                 downloaded_s3_images.append(destiny_path)
             except Exception as e:
-                raise Exception(f"Error at download '{image}', maybe not found or not have permission. \nOriginal error: {str(e)}")
+                for downloaded_file in downloaded_s3_images:
+                    os.remove(downloaded_file)
+                raise Exception(
+                    f"Error at download '{image}', maybe not found or not have permission. \nOriginal error: {str(e)}"
+                )
 
-        logger.info(f'downloaded files {downloaded_s3_images}')
+        logger.info(f"downloaded files {downloaded_s3_images}")
         return downloaded_s3_images
-    
-    def task_upload_in_progress(self, in_progress):
-        self.task.upload_in_progress = in_progress
-        self.task.save()
+
+    def _get_file_index(self, metadata: dict[str, any], prefix: str, suffix: str):
+        existing_files_index = [
+            int(k.split(prefix)[1].split(suffix)[0])
+            for k in metadata
+            if k.startswith(prefix) and k.endswith(suffix)
+        ]
+        return existing_files_index[-1] if len(existing_files_index) > 0 else 0
 
 
 def get_exif_data(image):
@@ -344,7 +437,7 @@ def get_exif_data(image):
 
 
 def get_lat_lon_alt(exif_data):
-    gps_info = exif_data.get('GPSInfo')
+    gps_info = exif_data.get("GPSInfo")
     if not gps_info:
         return None
 
@@ -379,7 +472,7 @@ def convert_to_degrees(value, ref):
         return d + (m / 60.0) + (s / 3600.0)
 
     degrees = to_degrees(value)
-    if ref in ['S', 'W']:
+    if ref in ["S", "W"]:
         degrees = -degrees
     return degrees
 
@@ -387,14 +480,14 @@ def convert_to_degrees(value, ref):
 def get_video_gps(file_path):
     try:
         probe = ffmpeg.probe(file_path)
-        tags = probe.get('format', {}).get('tags', {})
-        location = tags.get('location')
+        tags = probe.get("format", {}).get("tags", {})
+        location = tags.get("location")
         if location:
             # Remove a barra no final da string, se houver
-            location = location.rstrip('/')
+            location = location.rstrip("/")
 
             # Definir a expressão regular para capturar latitude e longitude
-            match = re.match(r'([+-]\d+\.\d+)([+-]\d+\.\d+)', location)
+            match = re.match(r"([+-]\d+\.\d+)([+-]\d+\.\d+)", location)
             if not match:
                 raise ValueError("Formato inválido para a string de localização")
 
@@ -422,9 +515,8 @@ def create_dzi(image_path, output_dir):
 
     dzi_dir = os.path.join(output_dir)
     files_dir = os.path.join(dzi_dir, "metadata_files")
-    tile_size=512
+    tile_size = 512
     overlap = 1
-
 
     for level in range(max_level + 1):
         level_dir = os.path.join(files_dir, str(level))
@@ -440,7 +532,9 @@ def create_dzi(image_path, output_dir):
             for y in range(0, resized_image.height, tile_size):
                 box = (x, y, x + tile_size + overlap, y + tile_size + overlap)
                 tile = resized_image.crop(box)
-                tile.save(os.path.join(level_dir, f"{x // tile_size}_{y // tile_size}.jpg"))
+                tile.save(
+                    os.path.join(level_dir, f"{x // tile_size}_{y // tile_size}.jpg")
+                )
                 tile.close()
                 gc.collect()
 
@@ -448,14 +542,40 @@ def create_dzi(image_path, output_dir):
         gc.collect()
 
     # Criar arquivo XML DZI
-    root = ET.Element("Image", TileSize=str(tile_size), Overlap=str(overlap), Format="jpg", xmlns="http://schemas.microsoft.com/deepzoom/2008")
+    root = ET.Element(
+        "Image",
+        TileSize=str(tile_size),
+        Overlap=str(overlap),
+        Format="jpg",
+        xmlns="http://schemas.microsoft.com/deepzoom/2008",
+    )
     ET.SubElement(root, "Size", Width=str(img_width), Height=str(img_height))
     tree = ET.ElementTree(root)
     path_metadata = os.path.join(dzi_dir, "metadata.dzi")
-    with open(path_metadata, 'wb') as f:
-            f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
-            tree.write(f, encoding='utf-8', xml_declaration=False)
+    with open(path_metadata, "wb") as f:
+        f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
+        tree.write(f, encoding="utf-8", xml_declaration=False)
     image.close()
     gc.collect()
 
     return os.path.join(dzi_dir, "metadata.dzi")
+
+
+def merge_metadatas(metadata1: dict[str, any], metadata2: dict[str, any]):
+    result: dict[str, any] = {}
+
+    for key1 in metadata1:
+        result[key1] = metadata1[key1]
+
+    for key2 in metadata2:
+        if not (key2 in result):
+            result[key2] = metadata2[key2]
+        else:
+            if not isinstance(result[key2], dict) or not isinstance(
+                metadata2[key2], dict
+            ):
+                result[key2] = metadata2[key2]
+            else:
+                result[key2] = merge_metadatas(result[key2], metadata2[key2])
+
+    return result

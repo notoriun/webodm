@@ -284,6 +284,7 @@ check_docker_compose(){
 	else
 		hash "docker-compose" 2>/dev/null || not_found=true
 	fi
+
 	if [[ $not_found ]]; then
 		# Check if compose plugin is installed
 		if [[ $use_podman = true ]]; then
@@ -360,7 +361,11 @@ check_command(){
 }
 
 environment_check(){
-	check_command "docker" "https://www.docker.com/"
+	if [[ $use_podman = true ]]; then
+		check_command "podman" "https://www.podman.io/"
+	else
+		check_command "docker" "https://www.docker.com/"
+	fi
 	check_docker_compose
 }
 
