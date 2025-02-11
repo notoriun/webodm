@@ -65,6 +65,8 @@ from app.utils.file_utils import (
     ensure_path_exists,
     remove_path_from_path,
     get_all_files_in_dir,
+    get_file_name,
+    ensure_sep_at_end,
 )
 
 logger = logging.getLogger("app.logger")
@@ -1217,6 +1219,8 @@ class Task(models.Model):
                             self.save()
                             self.handle_s3_import()
 
+                        self._try_download_root_images_from_s3()
+
                         # Check if the UUID is still valid, as processing nodes purge
                         # results after a set amount of time, the UUID might have been eliminated.
                         uuid_still_exists = False
@@ -2064,3 +2068,38 @@ class Task(models.Model):
             for f in self._get_all_assets_files()
             if not (f in assets_dont_upload) and os.path.exists(f)
         ]
+
+    def _list_s3_root_images(self):
+        s3_key = convert_task_path_to_s3(self.task_path())
+        root_images = []
+
+        for s3_obj in list_s3_objects(s3_key):
+            obj_key = s3_obj["Key"]
+            obj_filename = get_file_name(obj_key)
+            obj_root_key = ensure_sep_at_end(s3_key) + obj_filename
+
+            if obj_root_key == obj_key:
+                root_images.append(obj_key)
+
+        return root_images
+
+    def _try_download_root_images_from_s3(self):
+        s3_images = self._list_s3_root_images()
+
+        if len(s3_images) == 0:
+            return
+
+        task_path = ensure_sep_at_end(self.task_path())
+        ensure_path_exists(task_path)
+
+        s3_client = get_s3_client()
+        for key in s3_images:
+            image_name = get_file_name(key)
+            dst_path = task_path + image_name
+
+            try:
+                download_s3_file(key, dst_path, s3_client)
+            except Exception as e:
+                logger.error(
+                    f"Error on download root files from s3. Original error: {str(e)}"
+                )
