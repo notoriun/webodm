@@ -17,6 +17,7 @@ from app.utils.file_utils import (
     ensure_sep_at_end,
     remove_sep_from_start,
 )
+from django.utils.translation import gettext_lazy as _
 
 
 logger = logging.getLogger("app.logger")
@@ -146,7 +147,10 @@ def open_cog_reader(url: str):
                 yield source
 
         worker_cache_files_tasks.download_and_add_to_cache.delay(url)
-    except RasterioIOError:
+    except RasterioIOError as e:
+        logger.error(
+            f'open_cog_reader: RasterioIOError, maybe not found key "{url}" on S3. Original error: {str(e)}'
+        )
         raise exceptions.NotFound(_("Unable to read the data from S3"))
     except Exception as e:
         logger.error(str(e))
@@ -217,7 +221,13 @@ def get_s3_object_metadata(key: str, bucket=settings.S3_BUCKET, s3_client=None):
     if not valid_s3_client:
         return None
 
-    return valid_s3_client.head_object(Bucket=bucket, Key=key)
+    try:
+        return valid_s3_client.head_object(Bucket=bucket, Key=key)
+    except Exception as e:
+        logger.error(
+            f"Failed to get object properties of key '{key}'. Original error: {str(e)}"
+        )
+        return None
 
 
 def convert_task_path_to_s3(task_path: str):
