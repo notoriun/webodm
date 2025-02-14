@@ -60,6 +60,7 @@ from app.utils.s3_utils import (
     get_s3_object_metadata,
     append_s3_bucket_prefix,
     convert_task_path_to_s3,
+    get_object_checksum,
 )
 from app.utils.file_utils import (
     ensure_path_exists,
@@ -1905,8 +1906,7 @@ class Task(models.Model):
 
     def _create_task_s3_download_dir(self):
         fotos_s3_dir = self.task_path()
-        if not os.path.exists(fotos_s3_dir):
-            os.makedirs(fotos_s3_dir, exist_ok=True)
+        ensure_path_exists(fotos_s3_dir)
         return fotos_s3_dir
 
     def upload_and_cache_assets(self, reset_pending_action=False):
@@ -1977,6 +1977,14 @@ class Task(models.Model):
                 if not self._need_upload_asset(file_to_upload, s3_key, s3_client):
                     logger.info(
                         f"Asset '{file_to_upload}' already saved on s3, no need reupload."
+                    )
+                    self._update_upload_progress(
+                        files_uploadeds, len(files_to_upload), 1
+                    )
+                    logger.info(
+                        "Upload to S3 percent {}%".format(
+                            self.uploading_s3_progress * 100
+                        )
                     )
                 else:
                     logger.info(
@@ -2122,16 +2130,7 @@ class Task(models.Model):
                 )
 
     def _need_upload_asset(self, asset: str, s3_key: str, s3_client):
-        obj_metadata = get_s3_object_metadata(s3_key, s3_client=s3_client)
-
-        if (
-            not obj_metadata
-            or "DeleteMarker" in obj_metadata
-            or not ("Metadata" in obj_metadata)
-            or not ("Checksumsha256" in obj_metadata["Metadata"])
-        ):
-            return True
-
+        object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
         current_checksum = calculate_sha256(asset)
 
-        return current_checksum != obj_metadata["Metadata"]["Checksumsha256"]
+        return current_checksum != object_checksum
