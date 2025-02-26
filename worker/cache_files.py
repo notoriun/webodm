@@ -10,6 +10,7 @@ from app.utils.file_utils import (
     get_file_name,
     get_all_files_in_dir,
     human_readable_size,
+    calculate_sha256,
 )
 from worker.utils.redis_file_cache import (
     get_max_cache_size,
@@ -52,7 +53,9 @@ def download_and_add_to_cache(file: str, overide_local_file=True):
             filepath = os.path.join(file_dir, filename)
 
             logger.info(f"check if has {file} in cache")
-            if has_file_in_cache(filepath):
+            if has_file_in_cache(filepath) and _s3_file_is_equals_to_cache_file(
+                s3_path, filepath
+            ):
                 return
 
             file_size = s3_object["ContentLength"]
@@ -229,3 +232,12 @@ def _check_cache_has_space(space_need: int):
             remove_file_from_cache(file_to_remove)
 
     return True
+
+
+def _s3_file_is_equals_to_cache_file(s3_key: str, cache_filepath: str):
+    from app.utils.s3_utils import get_object_checksum
+
+    object_checksum = get_object_checksum(s3_key)
+    current_checksum = calculate_sha256(cache_filepath)
+
+    return current_checksum == object_checksum

@@ -60,6 +60,7 @@ from app.utils.s3_utils import (
     get_s3_object_metadata,
     append_s3_bucket_prefix,
     convert_task_path_to_s3,
+    get_object_checksum,
 )
 from app.utils.file_utils import (
     ensure_path_exists,
@@ -67,6 +68,7 @@ from app.utils.file_utils import (
     get_all_files_in_dir,
     get_file_name,
     ensure_sep_at_end,
+    calculate_sha256,
 )
 
 logger = logging.getLogger("app.logger")
@@ -1036,7 +1038,7 @@ class Task(models.Model):
                     s3_object = get_s3_object_metadata(
                         bucket=bucket, key=image_path, s3_client=s3_client
                     )
-                    total_size = s3_object["ContentLength"]
+                    total_size = s3_object["ContentLength"] if s3_object else 0
                     download_s3_file(
                         image_path,
                         destiny_image_filename,
@@ -1904,8 +1906,7 @@ class Task(models.Model):
 
     def _create_task_s3_download_dir(self):
         fotos_s3_dir = self.task_path()
-        if not os.path.exists(fotos_s3_dir):
-            os.makedirs(fotos_s3_dir, exist_ok=True)
+        ensure_path_exists(fotos_s3_dir)
         return fotos_s3_dir
 
     def upload_and_cache_assets(self, reset_pending_action=False):
@@ -1961,7 +1962,7 @@ class Task(models.Model):
                 )
 
         try:
-            logger.info("Starting upload to S3 of files {}".format(files_to_upload))
+            logger.info("Starting upload assets to S3...")
             s3_client = get_s3_client()
 
             if not s3_client:
@@ -1971,19 +1972,43 @@ class Task(models.Model):
                 return
 
             for file_to_upload in files_to_upload:
-                file_size = os.path.getsize(file_to_upload)
                 s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
-                s3_client.upload_file(
-                    file_to_upload,
-                    s3_bucket,
-                    s3_key,
-                    Callback=UploadProgressCallback(
-                        self, files_uploadeds, file_size, len(files_to_upload)
-                    ),
-                )
+
+                if not self._need_upload_asset(file_to_upload, s3_key, s3_client):
+                    logger.info(
+                        f"Asset '{file_to_upload}' already saved on s3, no need reupload."
+                    )
+                    self._update_upload_progress(
+                        files_uploadeds, len(files_to_upload), 1
+                    )
+                    logger.info(
+                        "Upload to S3 percent {}%".format(
+                            self.uploading_s3_progress * 100
+                        )
+                    )
+                else:
+                    logger.info(
+                        f"Asset '{file_to_upload}' not saved on s3, uploading..."
+                    )
+                    file_size = os.path.getsize(file_to_upload)
+                    checksum = calculate_sha256(file_to_upload)
+                    s3_client.upload_file(
+                        file_to_upload,
+                        s3_bucket,
+                        s3_key,
+                        Callback=UploadProgressCallback(
+                            self, files_uploadeds, file_size, len(files_to_upload)
+                        ),
+                        ExtraArgs={
+                            "Metadata": {
+                                "Checksumsha256": checksum,
+                            }
+                        },
+                    )
+
                 files_uploadeds.append(append_s3_bucket_prefix(file_to_upload))
 
-            logger.info("Uploaded files {} to S3".format(files_to_upload))
+            logger.info(f"Uploaded {len(files_uploadeds)} files to S3!")
         except Exception as e:
             raise NodeServerError(e)
 
@@ -2103,3 +2128,9 @@ class Task(models.Model):
                 logger.error(
                     f"Error on download root files from s3. Original error: {str(e)}"
                 )
+
+    def _need_upload_asset(self, asset: str, s3_key: str, s3_client):
+        object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
+        current_checksum = calculate_sha256(asset)
+
+        return current_checksum != object_checksum
