@@ -391,6 +391,8 @@ class TaskFilesUploader:
             )
             return []
 
+        ensure_path_exists(settings.MEDIA_TMP)
+
         for image in s3_images:
             try:
                 s3_image_name = image.split("/")[-1]
