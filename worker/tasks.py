@@ -335,10 +335,16 @@ def generate_zip_from_asset(self, task_id, asset):
         logger.info(f"Start generate zip from {asset}")
 
         task = Task.objects.get(pk=task_id)
-        asset_zip = task.ASSETS_MAP[asset]
-        zip_dir = os.path.abspath(task.assets_path(asset_zip["deferred_compress_dir"]))
+        asset_zip: dict[str, str] = task.ASSETS_MAP.get(asset, None)
+
+        if not asset_zip:
+            raise Exception(f"asset '{asset}' nao encontrado!")
+
+        zip_dir = os.path.abspath(
+            task.assets_path(asset_zip.get("deferred_compress_dir"))
+        )
         result = _generate_zip_from_dir(
-            task, zip_dir, asset_zip["deferred_exclude_files"]
+            task, zip_dir, asset_zip.get("deferred_exclude_files", tuple())
         )
 
         if settings.TESTING:
