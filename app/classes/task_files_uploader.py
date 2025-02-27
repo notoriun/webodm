@@ -169,7 +169,6 @@ class TaskFilesUploader:
 
         self.task.append_s3_assets(s3_fotos)
         self.task.upload_and_cache_assets(True)
-        self.task.images_count = len(self.task.scan_s3_assets())
         self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
@@ -233,7 +232,6 @@ class TaskFilesUploader:
 
         self.task.append_s3_assets(s3_videos)
         self.task.upload_and_cache_assets(True)
-        self.task.images_count = len(self.task.scan_s3_assets())
         self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
@@ -261,7 +259,6 @@ class TaskFilesUploader:
                 self.task.append_s3_asset(file_uploaded)
 
             self.task.upload_and_cache_assets(True)
-            self.task.images_count = len(self.task.scan_s3_assets())
 
             self.task.save()
 
@@ -317,7 +314,6 @@ class TaskFilesUploader:
                 continue
 
         self.task.upload_and_cache_assets(True)
-        self.task.images_count = len(self.task.scan_s3_assets())
         self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
