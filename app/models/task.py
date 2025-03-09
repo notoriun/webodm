@@ -1313,6 +1313,13 @@ class Task(models.Model):
                     else:
                         current_lines_count = len(self.console.output().split("\n"))
 
+                    # Not exists task on pyodm node, maybe the node crashed, so restart
+                    if not self.processing_node.task_exists(self.uuid):
+                        self.pending_action = pending_actions.RESTART
+                        self.last_error = None
+                        self.save()
+                        return
+
                     info = self.processing_node.get_task_info(
                         self.uuid, current_lines_count
                     )

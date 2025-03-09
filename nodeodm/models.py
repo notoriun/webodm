@@ -17,20 +17,79 @@ from django.db.models import signals
 from datetime import timedelta
 import logging
 
-logger = logging.getLogger('app.logger')
+logger = logging.getLogger("app.logger")
+
 
 class ProcessingNode(models.Model):
-    hostname = models.CharField(verbose_name=_("Hostname"), max_length=255, help_text=_("Hostname or IP address where the node is located (can be an internal hostname as well). If you are using Docker, this is never 127.0.0.1 or localhost. Find the IP address of your host machine by running ifconfig on Linux or by checking your network settings."))
-    port = models.PositiveIntegerField(verbose_name=_("Port"), help_text=_("Port that connects to the node's API"))
-    api_version = models.CharField(verbose_name=_("API Version"), max_length=32, null=True, help_text=_("API version used by the node"))
-    last_refreshed = models.DateTimeField(verbose_name=_("Last Refreshed"), null=True, help_text=_("When was the information about this node last retrieved?"))
-    queue_count = models.PositiveIntegerField(verbose_name=_("Queue Count"), default=0, help_text=_("Number of tasks currently being processed by this node (as reported by the node itself)"))
-    available_options = fields.JSONField(verbose_name=_("Available Options"), default=dict, help_text=_("Description of the options that can be used for processing"))
-    token = models.CharField(verbose_name=_("Token"), max_length=1024, blank=True, default="", help_text=_("Token to use for authentication. If the node doesn't have authentication, you can leave this field blank."))
-    max_images = models.PositiveIntegerField(verbose_name=_("Max Images"), help_text=_("Maximum number of images accepted by this node."), blank=True, null=True)
-    engine_version = models.CharField(verbose_name=_("Engine Version"), max_length=32, null=True, help_text=_("Engine version used by the node."))
-    label = models.CharField(verbose_name=_("Label"), max_length=255, default="", blank=True, help_text=_("Optional label for this node. When set, this label will be shown instead of the hostname:port name."))
-    engine = models.CharField(verbose_name=_("Engine"), max_length=255, null=True, help_text=_("Engine used by the node."))
+    hostname = models.CharField(
+        verbose_name=_("Hostname"),
+        max_length=255,
+        help_text=_(
+            "Hostname or IP address where the node is located (can be an internal hostname as well). If you are using Docker, this is never 127.0.0.1 or localhost. Find the IP address of your host machine by running ifconfig on Linux or by checking your network settings."
+        ),
+    )
+    port = models.PositiveIntegerField(
+        verbose_name=_("Port"), help_text=_("Port that connects to the node's API")
+    )
+    api_version = models.CharField(
+        verbose_name=_("API Version"),
+        max_length=32,
+        null=True,
+        help_text=_("API version used by the node"),
+    )
+    last_refreshed = models.DateTimeField(
+        verbose_name=_("Last Refreshed"),
+        null=True,
+        help_text=_("When was the information about this node last retrieved?"),
+    )
+    queue_count = models.PositiveIntegerField(
+        verbose_name=_("Queue Count"),
+        default=0,
+        help_text=_(
+            "Number of tasks currently being processed by this node (as reported by the node itself)"
+        ),
+    )
+    available_options = fields.JSONField(
+        verbose_name=_("Available Options"),
+        default=dict,
+        help_text=_("Description of the options that can be used for processing"),
+    )
+    token = models.CharField(
+        verbose_name=_("Token"),
+        max_length=1024,
+        blank=True,
+        default="",
+        help_text=_(
+            "Token to use for authentication. If the node doesn't have authentication, you can leave this field blank."
+        ),
+    )
+    max_images = models.PositiveIntegerField(
+        verbose_name=_("Max Images"),
+        help_text=_("Maximum number of images accepted by this node."),
+        blank=True,
+        null=True,
+    )
+    engine_version = models.CharField(
+        verbose_name=_("Engine Version"),
+        max_length=32,
+        null=True,
+        help_text=_("Engine version used by the node."),
+    )
+    label = models.CharField(
+        verbose_name=_("Label"),
+        max_length=255,
+        default="",
+        blank=True,
+        help_text=_(
+            "Optional label for this node. When set, this label will be shown instead of the hostname:port name."
+        ),
+    )
+    engine = models.CharField(
+        verbose_name=_("Engine"),
+        max_length=255,
+        null=True,
+        help_text=_("Engine used by the node."),
+    )
 
     class Meta:
         verbose_name = _("Processing Node")
@@ -40,7 +99,7 @@ class ProcessingNode(models.Model):
         if self.label != "":
             return self.label
         else:
-            return '{}:{}'.format(self.hostname, self.port)
+            return "{}:{}".format(self.hostname, self.port)
 
     @staticmethod
     def find_best_available_node():
@@ -48,15 +107,46 @@ class ProcessingNode(models.Model):
         Attempts to find an available node (seen in the last 5 minutes, and with lowest queue count)
         :return: ProcessingNode | None
         """
-        return ProcessingNode.objects.filter(last_refreshed__gte=timezone.now() - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)) \
-                                     .order_by('queue_count').first()
+        return (
+            ProcessingNode.objects.filter(
+                last_refreshed__gte=timezone.now()
+                - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+            )
+            .order_by("queue_count")
+            .first()
+        )
+
+    @staticmethod
+    def find_maybe_offline_nodes():
+        """
+        Attempts to find maybe offline nodes (not updated in the last 5 minutes)
+        :return: list[ProcessingNode]
+        """
+        return ProcessingNode.objects.filter(
+            last_refreshed__lte=timezone.now()
+            - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+        ).order_by("last_refreshed")
 
     def is_online(self):
         if settings.NODE_OPTIMISTIC_MODE:
             return True
 
-        return self.last_refreshed is not None and \
-               self.last_refreshed >= timezone.now() - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+        return (
+            self.last_refreshed is not None
+            and self.last_refreshed
+            >= timezone.now() - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+        )
+
+    def confirm_is_offline(self):
+        if self.is_online():
+            return False
+
+        try:
+            api_client = self.api_client()
+            info = api_client.info()
+            return info is None
+        except exceptions.OdmError:
+            return True
 
     def update_node_info(self):
         """
@@ -90,10 +180,10 @@ class ProcessingNode(models.Model):
         """
         :returns available options in JSON string format
         """
-        kwargs = dict(indent=4, separators=(',', ": ")) if pretty else dict() 
+        kwargs = dict(indent=4, separators=(",", ": ")) if pretty else dict()
         return json.dumps(self.available_options, **kwargs)
 
-    def options_list_to_dict(self, options = []):
+    def options_list_to_dict(self, options=[]):
         """
         Convers options formatted as a list ([{'name': optionName, 'value': optionValue}, ...])
         to a dictionary {optionName: optionValue, ...}
@@ -103,7 +193,7 @@ class ProcessingNode(models.Model):
         opts = {}
         if options is not None:
             for o in options:
-                opts[o['name']] = o['value']
+                opts[o["name"]] = o["value"]
 
         return opts
 
@@ -119,7 +209,8 @@ class ProcessingNode(models.Model):
 
         :returns UUID of the newly created task
         """
-        if len(images) < 1: raise exceptions.NodeServerError("Need at least 1 file")
+        if len(images) < 1:
+            raise exceptions.NodeServerError("Need at least 1 file")
 
         api_client = self.api_client()
 
@@ -130,8 +221,8 @@ class ProcessingNode(models.Model):
 
     def get_task_info(self, uuid, with_output=None):
         """
-        Gets information about this task, such as name, creation date, 
-        processing time, status, command line options and number of 
+        Gets information about this task, such as name, creation date,
+        processing time, status, command line options and number of
         images being processed.
         """
         api_client = self.api_client()
@@ -169,15 +260,19 @@ class ProcessingNode(models.Model):
         task = api_client.get_task(uuid)
         return task.remove()
 
-    def download_task_assets(self, uuid, destination, progress_callback, parallel_downloads=16):
+    def download_task_assets(
+        self, uuid, destination, progress_callback, parallel_downloads=16
+    ):
         """
         Downloads a task asset
         """
         api_client = self.api_client()
         task = api_client.get_task(uuid)
-        return task.download_zip(destination, progress_callback, parallel_downloads=parallel_downloads)
+        return task.download_zip(
+            destination, progress_callback, parallel_downloads=parallel_downloads
+        )
 
-    def restart_task(self, uuid, options = None):
+    def restart_task(self, uuid, options=None):
         """
         Restarts a task that was previously canceled or that had failed to process
         """
@@ -191,11 +286,28 @@ class ProcessingNode(models.Model):
         super(ProcessingNode, self).delete(using, keep_parents)
 
         from app.plugins import signals as plugin_signals
-        plugin_signals.processing_node_removed.send_robust(sender=self.__class__, processing_node_id=pnode_id)
+
+        plugin_signals.processing_node_removed.send_robust(
+            sender=self.__class__, processing_node_id=pnode_id
+        )
+
+    def task_exists(self, uuid):
+        try:
+            api_client = self.api_client()
+            task = api_client.get_task(uuid)
+            task_info = task.info(None)
+            return not (task_info is None)
+        except exceptions.NodeResponseError as e:
+            if str(e) == f"{uuid} not found":
+                return False
+
+            raise e
 
 
 # First time a processing node is created, automatically try to update
-@receiver(signals.post_save, sender=ProcessingNode, dispatch_uid="update_processing_node_info")
+@receiver(
+    signals.post_save, sender=ProcessingNode, dispatch_uid="update_processing_node_info"
+)
 def auto_update_node_info(sender, instance, created, **kwargs):
     if created:
         try:
@@ -204,6 +316,7 @@ def auto_update_node_info(sender, instance, created, **kwargs):
             pass
         except Exception as e:
             logger.warning("auto_update_node_info: " + str(e))
+
 
 class ProcessingNodeUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey(ProcessingNode, on_delete=models.CASCADE)
