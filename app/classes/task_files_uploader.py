@@ -92,13 +92,16 @@ class TaskFilesUploader:
 
         uploaded = self.task.handle_images_upload(files)
         result = {}
+        s3_assets = []
 
         for filename, value in uploaded.items():
             result[filename] = value["size"]
 
             if value["origin_path"] in s3_files:
-                self.task.append_s3_asset(value["destiny_path"])
+                s3_assets.append(value["destiny_path"])
 
+        self.task.refresh_from_db()
+        self.task.append_s3_assets(s3_assets)
         self.task.images_count = len(self.task.scan_images())
         self.task.save()
 
@@ -122,6 +125,7 @@ class TaskFilesUploader:
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
         files = local_files + s3_files
         s3_fotos = []
+        assets_uploaded = []
 
         for idx, filepath in enumerate(files):
             try:
@@ -140,10 +144,8 @@ class TaskFilesUploader:
                 # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
 
-                # Adicionar a informação em available_assets
-                asset_info = f"fotos/{filename}"
-                if asset_info not in self.task.available_assets:
-                    self.task.available_assets.append(asset_info)
+                # Guardar asset para o available_assets
+                assets_uploaded.append(f"fotos/{filename}")
 
                 # Adicionar informações de metadados
                 metadata[filename] = {
@@ -163,10 +165,10 @@ class TaskFilesUploader:
         self._update_metadata_json(metadata_path, metadata)
 
         # Adicionar metadata.json em available_assets
-        metadata_asset = "fotos/metadata.json"
-        if metadata_asset not in self.task.available_assets:
-            self.task.available_assets.append(metadata_asset)
+        assets_uploaded.append("fotos/metadata.json")
 
+        self.task.refresh_from_db()
+        self._concat_to_available_assets(assets_uploaded)
         self.task.append_s3_assets(s3_fotos)
         self.task.upload_and_cache_assets(True)
         self.task.save()
@@ -191,6 +193,7 @@ class TaskFilesUploader:
         # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
         files = local_files + s3_files
         s3_videos = []
+        assets_uploaded = []
 
         for idx, filepath in enumerate(files):
             try:
@@ -210,10 +213,10 @@ class TaskFilesUploader:
                     "latitude": lat_lon[0],
                     "longitude": lat_lon[1],
                 }
-                # Adicionar a informação em available_assets
-                asset_info = f"videos/{filename}"
-                if asset_info not in self.task.available_assets:
-                    self.task.available_assets.append(asset_info)
+
+                # Guardar path para available_assets
+                assets_uploaded.append(f"videos/{filename}")
+
                 uploaded_files.append(get_file_name(filepath))
 
                 if filepath in s3_files:
@@ -226,10 +229,10 @@ class TaskFilesUploader:
         self._update_metadata_json(metadata_path, metadata)
 
         # Adicionar metadata.json em available_assets
-        metadata_asset = "videos/metadata.json"
-        if metadata_asset not in self.task.available_assets:
-            self.task.available_assets.append(metadata_asset)
+        assets_uploaded.append("videos/metadata.json")
 
+        self.task.refresh_from_db()
+        self._concat_to_available_assets(assets_uploaded)
         self.task.append_s3_assets(s3_videos)
         self.task.upload_and_cache_assets(True)
         self.task.save()
@@ -251,6 +254,8 @@ class TaskFilesUploader:
             file_uploaded = self.task.assets_path("foto360.jpg")
             shutil.copyfile(filepath, file_uploaded)
 
+            self.task.refresh_from_db()
+
             # Adicionar "foto360.jpg" ao campo available_assets
             if "foto360.jpg" not in self.task.available_assets:
                 self.task.available_assets.append("foto360.jpg")
@@ -268,55 +273,46 @@ class TaskFilesUploader:
 
     def _upload_foto_giga(self, local_files: list[str], s3_files: list[str]):
         logger.info("Upload foto giga")
-        uploaded_files = []
 
-        # Salvar os novos arquivos na pasta assets/foto_giga com nomes sequenciais
-        files = local_files + s3_files
-        for idx, filepath in enumerate(files):
-            try:
-                filename = f"foto_giga_{idx + 1}.jpg"
-                # Garantir que o diretório assets/foto_giga existe
-                foto_giga_dir = os.path.join(self.task.assets_path("foto_giga"))
+        # Salvar o novo arquivo na pasta assets/foto_giga
+        filepath = (local_files + s3_files)[0]
+        try:
+            filename = "foto_giga_1.jpg"
+            # Garantir que o diretório assets/foto_giga existe
+            foto_giga_dir = os.path.join(self.task.assets_path("foto_giga"))
 
-                if os.path.exists(foto_giga_dir):
-                    shutil.rmtree(foto_giga_dir)
+            if os.path.exists(foto_giga_dir):
+                shutil.rmtree(foto_giga_dir)
 
-                ensure_path_exists(foto_giga_dir)
+            ensure_path_exists(foto_giga_dir)
 
-                dst_path = os.path.join(foto_giga_dir, filename)
+            dst_path = os.path.join(foto_giga_dir, filename)
 
-                # Gravar o arquivo no diretório de destino
-                shutil.copyfile(filepath, dst_path)
+            # Gravar o arquivo no diretório de destino
+            shutil.copyfile(filepath, dst_path)
 
-                # Criar arquivos DZI
-                create_dzi(dst_path, foto_giga_dir)
+            # Criar arquivos DZI
+            create_dzi(dst_path, foto_giga_dir)
 
-                # Adicionar a informação em available_assets
-                asset_info = f"foto_giga/metadata.dzi"
-                self.task.available_assets = [
-                    asset
-                    for asset in self.task.available_assets
-                    if not ("foto_giga" in asset or "metadata.dzi" in asset)
-                ]
-                self.task.save()
-                if asset_info not in self.task.available_assets:
-                    self.task.available_assets.append(asset_info)
+            os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
+        except Exception as e:
+            pass
 
-                try:
-                    os.remove(
-                        dst_path
-                    )  # Remover o arquivo se não contiver metadados GPS
-                except:
-                    pass
-
-                uploaded_files.append(get_file_name(filepath))
-            except Exception as e:
-                continue
+        # Adicionar a informação em available_assets
+        self.task.refresh_from_db()
+        asset_info = f"foto_giga/metadata.dzi"
+        self.task.available_assets = [
+            asset
+            for asset in self.task.available_assets
+            if not ("foto_giga" in asset or "metadata.dzi" in asset)
+        ]
+        if asset_info not in self.task.available_assets:
+            self.task.available_assets.append(asset_info)
 
         self.task.upload_and_cache_assets(True)
         self.task.save()
 
-        return {"success": True, "uploaded": uploaded_files}
+        return {"success": True, "uploaded": [get_file_name(filepath)]}
 
     def _read_metadata_json(self, metadata_path: str, use_cache_lock=True):
         s3_key = convert_task_path_to_s3(metadata_path)
@@ -414,6 +410,13 @@ class TaskFilesUploader:
             if k.startswith(prefix) and k.endswith(suffix)
         ]
         return existing_files_index[-1] if len(existing_files_index) > 0 else 0
+
+    def _concat_to_available_assets(self, assets: list[str]):
+        self.task.available_assets = [
+            asset
+            for asset in (self.task.available_assets + assets)
+            if asset not in self.task.available_assets
+        ]
 
 
 def get_exif_data(image):

@@ -1525,6 +1525,7 @@ class Task(models.Model):
                     "Populated extent field with {} for {}".format(raster_path, self)
                 )
 
+        self.refresh_from_db()
         self.update_available_assets_field()
         self.update_epsg_field()
         self.update_orthophoto_bands_field()
@@ -1933,7 +1934,9 @@ class Task(models.Model):
     def append_s3_asset(self, asset: str):
         if not isinstance(self.s3_assets, list):
             self.s3_assets = []
-        self.s3_assets.append(asset)
+
+        if asset not in self.s3_assets:
+            self.s3_assets.append(asset)
 
     def _upload_assets_to_s3(self):
         s3_bucket = settings.S3_BUCKET

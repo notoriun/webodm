@@ -222,21 +222,27 @@ def watch_has_offline_nodes():
 
     logger.info("Start watch if has offline nodes")
 
-    offline_nodes = (
-        node
+    offline_nodes_id = [
+        node.pk
         for node in ProcessingNode.find_maybe_offline_nodes()
         if node.confirm_is_offline()
-    )
-    tasks_updated = Task.objects.filter(processing_node__in=offline_nodes).update(
+    ]
+
+    if len(offline_nodes_id) == 0:
+        logger.info("Not found offline nodes")
+        return
+
+    tasks_updated = Task.objects.filter(processing_node__in=offline_nodes_id).update(
         status=None,
         auto_processing_node=True,
         processing_node=None,
         pending_action=pending_actions.RESTART,
         last_error=None,
     )
+    ProcessingNode.objects.filter(pk__in=offline_nodes_id).delete()
 
     logger.info(
-        f"Found {tasks_updated} tasks with offline node, and updated to restart without node, for processing choose a new one"
+        f"Removed nodes {offline_nodes_id}.\nFound {tasks_updated} tasks with offline node, and updated to restart without node, for processing choose a new one"
     )
 
 
