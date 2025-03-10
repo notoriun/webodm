@@ -58,8 +58,11 @@ def human_readable_size(size_in_bytes: int):
 
 
 def calculate_sha256(path: str):
-    sha256 = hashlib.sha256()
-    with open(path, "rb") as f:
-        while chunk := f.read(8192):
-            sha256.update(chunk)
-    return base64.b64encode(sha256.digest()).decode("utf-8")
+    try:
+        sha256 = hashlib.sha256()
+        with open(path, "rb") as f:
+            while chunk := f.read(8192):
+                sha256.update(chunk)
+        return base64.b64encode(sha256.digest()).decode("utf-8")
+    except:
+        return None

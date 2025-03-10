@@ -990,7 +990,8 @@ class Task(models.Model):
                 )
                 pass
 
-        self.pending_action = None
+        if self.pending_action != pending_actions.UPLOAD_TO_S3:
+            self.pending_action = None
         self.save()
 
     def handle_s3_import(self):
@@ -1076,6 +1077,9 @@ class Task(models.Model):
 
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
                 self.upload_and_cache_assets()
+                self.pending_action = None
+                self.save()
+                return
 
             if self.pending_action in [
                 pending_actions.IMPORT_FROM_S3,
@@ -1313,6 +1317,13 @@ class Task(models.Model):
                     else:
                         current_lines_count = len(self.console.output().split("\n"))
 
+                    # Not exists task on pyodm node, maybe the node crashed, so restart
+                    if not self.processing_node.task_exists(self.uuid):
+                        self.pending_action = pending_actions.RESTART
+                        self.last_error = None
+                        self.save()
+                        return
+
                     info = self.processing_node.get_task_info(
                         self.uuid, current_lines_count
                     )
@@ -1518,6 +1529,7 @@ class Task(models.Model):
                     "Populated extent field with {} for {}".format(raster_path, self)
                 )
 
+        self.refresh_from_db()
         self.update_available_assets_field()
         self.update_epsg_field()
         self.update_orthophoto_bands_field()
@@ -1909,15 +1921,10 @@ class Task(models.Model):
         ensure_path_exists(fotos_s3_dir)
         return fotos_s3_dir
 
-    def upload_and_cache_assets(self, reset_pending_action=False):
-        initial_pending_action = self.pending_action
-
+    def upload_and_cache_assets(self):
         files_uploadeds = self._upload_assets_to_s3()
         for file in files_uploadeds:
             worker_cache_files_tasks.download_and_add_to_cache.delay(file, False)
-
-        self.pending_action = initial_pending_action if reset_pending_action else None
-        self.save()
 
     def append_s3_assets(self, assets: list[str]):
         for asset in assets:
@@ -1926,7 +1933,9 @@ class Task(models.Model):
     def append_s3_asset(self, asset: str):
         if not isinstance(self.s3_assets, list):
             self.s3_assets = []
-        self.s3_assets.append(asset)
+
+        if asset not in self.s3_assets:
+            self.s3_assets.append(asset)
 
     def _upload_assets_to_s3(self):
         s3_bucket = settings.S3_BUCKET
@@ -1972,9 +1981,16 @@ class Task(models.Model):
                 return
 
             for file_to_upload in files_to_upload:
-                s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
+                if not os.path.exists(file_to_upload):
+                    continue
 
-                if not self._need_upload_asset(file_to_upload, s3_key, s3_client):
+                s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
+                checksum = calculate_sha256(file_to_upload)
+
+                if not checksum:
+                    continue
+
+                if not self._need_upload_asset(checksum, s3_key, s3_client):
                     logger.info(
                         f"Asset '{file_to_upload}' already saved on s3, no need reupload."
                     )
@@ -1990,8 +2006,11 @@ class Task(models.Model):
                     logger.info(
                         f"Asset '{file_to_upload}' not saved on s3, uploading..."
                     )
-                    file_size = os.path.getsize(file_to_upload)
-                    checksum = calculate_sha256(file_to_upload)
+                    try:
+                        file_size = os.path.getsize(file_to_upload)
+                    except:
+                        continue
+
                     s3_client.upload_file(
                         file_to_upload,
                         s3_bucket,
@@ -2087,7 +2106,9 @@ class Task(models.Model):
 
     def _all_assets_needs_upload_to_s3(self):
         root_assets = [e.path for e in self._entry_root_images()]
-        assets_dont_upload = root_assets + self.s3_assets
+        assets_dont_upload = root_assets + (
+            self.s3_assets if isinstance(self.s3_assets, list) else []
+        )
         return [
             f
             for f in self._get_all_assets_files()
@@ -2129,8 +2150,7 @@ class Task(models.Model):
                     f"Error on download root files from s3. Original error: {str(e)}"
                 )
 
-    def _need_upload_asset(self, asset: str, s3_key: str, s3_client):
+    def _need_upload_asset(self, current_checksum: str, s3_key: str, s3_client):
         object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
-        current_checksum = calculate_sha256(asset)
 
         return current_checksum != object_checksum
