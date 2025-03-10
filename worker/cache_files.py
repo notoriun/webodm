@@ -237,7 +237,10 @@ def _check_cache_has_space(space_need: int):
 def _s3_file_is_equals_to_cache_file(s3_key: str, cache_filepath: str):
     from app.utils.s3_utils import get_object_checksum
 
-    object_checksum = get_object_checksum(s3_key)
     current_checksum = calculate_sha256(cache_filepath)
+    if not current_checksum:
+        return False
+
+    object_checksum = get_object_checksum(s3_key)
 
     return current_checksum == object_checksum

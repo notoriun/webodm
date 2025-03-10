@@ -1981,9 +1981,16 @@ class Task(models.Model):
                 return
 
             for file_to_upload in files_to_upload:
-                s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
+                if not os.path.exists(file_to_upload):
+                    continue
 
-                if not self._need_upload_asset(file_to_upload, s3_key, s3_client):
+                s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
+                checksum = calculate_sha256(file_to_upload)
+
+                if not checksum:
+                    continue
+
+                if not self._need_upload_asset(checksum, s3_key, s3_client):
                     logger.info(
                         f"Asset '{file_to_upload}' already saved on s3, no need reupload."
                     )
@@ -1999,8 +2006,11 @@ class Task(models.Model):
                     logger.info(
                         f"Asset '{file_to_upload}' not saved on s3, uploading..."
                     )
-                    file_size = os.path.getsize(file_to_upload)
-                    checksum = calculate_sha256(file_to_upload)
+                    try:
+                        file_size = os.path.getsize(file_to_upload)
+                    except:
+                        continue
+
                     s3_client.upload_file(
                         file_to_upload,
                         s3_bucket,
@@ -2096,7 +2106,9 @@ class Task(models.Model):
 
     def _all_assets_needs_upload_to_s3(self):
         root_assets = [e.path for e in self._entry_root_images()]
-        assets_dont_upload = root_assets + self.s3_assets
+        assets_dont_upload = root_assets + (
+            self.s3_assets if isinstance(self.s3_assets, list) else []
+        )
         return [
             f
             for f in self._get_all_assets_files()
@@ -2138,8 +2150,7 @@ class Task(models.Model):
                     f"Error on download root files from s3. Original error: {str(e)}"
                 )
 
-    def _need_upload_asset(self, asset: str, s3_key: str, s3_client):
+    def _need_upload_asset(self, current_checksum: str, s3_key: str, s3_client):
         object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
-        current_checksum = calculate_sha256(asset)
 
         return current_checksum != object_checksum

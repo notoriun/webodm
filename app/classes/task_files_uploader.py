@@ -395,7 +395,10 @@ class TaskFilesUploader:
                 downloaded_s3_images.append(destiny_path)
             except Exception as e:
                 for downloaded_file in downloaded_s3_images:
-                    os.remove(downloaded_file)
+                    try:
+                        os.remove(downloaded_file)
+                    except:
+                        pass
                 raise Exception(
                     f"Error at download '{image}', maybe not found or not have permission. \nOriginal error: {str(e)}"
                 )
