@@ -990,7 +990,8 @@ class Task(models.Model):
                 )
                 pass
 
-        self.pending_action = None
+        if self.pending_action != pending_actions.UPLOAD_TO_S3:
+            self.pending_action = None
         self.save()
 
     def handle_s3_import(self):
@@ -1076,6 +1077,9 @@ class Task(models.Model):
 
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
                 self.upload_and_cache_assets()
+                self.pending_action = None
+                self.save()
+                return
 
             if self.pending_action in [
                 pending_actions.IMPORT_FROM_S3,
@@ -1917,15 +1921,10 @@ class Task(models.Model):
         ensure_path_exists(fotos_s3_dir)
         return fotos_s3_dir
 
-    def upload_and_cache_assets(self, reset_pending_action=False):
-        initial_pending_action = self.pending_action
-
+    def upload_and_cache_assets(self):
         files_uploadeds = self._upload_assets_to_s3()
         for file in files_uploadeds:
             worker_cache_files_tasks.download_and_add_to_cache.delay(file, False)
-
-        self.pending_action = initial_pending_action if reset_pending_action else None
-        self.save()
 
     def append_s3_assets(self, assets: list[str]):
         for asset in assets:
