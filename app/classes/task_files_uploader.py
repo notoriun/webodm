@@ -62,11 +62,7 @@ class TaskFilesUploader:
                 response = self._upload_foto_giga(local_files_path, s3_downloaded_files)
             else:  # Default to 'orthophoto'
                 response = self._upload_images(
-                    local_files_to_upload,
-                    [
-                        {"path": filepath, "name": get_file_name(filepath)}
-                        for filepath in s3_downloaded_files
-                    ],
+                    local_files_to_upload, s3_downloaded_files, s3_files_to_upload
                 )
 
             self.task_upload_in_progress(False)
@@ -84,9 +80,16 @@ class TaskFilesUploader:
     def _refresh_task(self):
         self._task_loaded = Task.objects.get(pk=self._task_id)
 
-    def _upload_images(self, local_files: list[str], s3_files: list[str]):
+    def _upload_images(
+        self,
+        local_files: list[dict[str, str]],
+        s3_files: list[str],
+        s3_images_with_bucket: list[str],
+    ):
         logger.info("Upload images")
-        files = local_files + s3_files
+        files = local_files + [
+            {"path": filepath, "name": get_file_name(filepath)} for filepath in s3_files
+        ]
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
 
@@ -103,6 +106,7 @@ class TaskFilesUploader:
         self.task.refresh_from_db()
         self.task.append_s3_assets(s3_assets)
         self.task.images_count = len(self.task.scan_images())
+        self.task.s3_images += s3_images_with_bucket
         self.task.save()
 
         return {"success": True, "uploaded": result}

@@ -58,7 +58,7 @@ def download_and_add_to_cache(file: str, overide_local_file=True):
             ):
                 return
 
-            file_size = s3_object["ContentLength"]
+            file_size = s3_object.get("ContentLength", 0)
             logger.info(f"the {file} has {file_size} B")
 
             logger.info(f"check can add {file} to cache")

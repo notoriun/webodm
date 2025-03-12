@@ -215,7 +215,7 @@ def has_s3_prefix(path: str):
     return path.startswith(s3_prefix)
 
 
-def get_s3_object_metadata(key: str, bucket=settings.S3_BUCKET, s3_client=None):
+def get_s3_object_metadata(key: str, bucket=settings.S3_BUCKET, s3_client=None) -> dict:
     valid_s3_client = _get_valid_s3_client(s3_client)
 
     if not valid_s3_client:
@@ -249,7 +249,6 @@ def convert_task_path_to_s3(task_path: str):
 
 
 def _get_valid_s3_client(unsafe_s3_client):
-    logger.info(f"unsafe s3 client: {unsafe_s3_client}")
     if (
         isinstance(unsafe_s3_client, BaseClient)
         and unsafe_s3_client.meta.service_model.service_name == "s3"
@@ -257,7 +256,6 @@ def _get_valid_s3_client(unsafe_s3_client):
         return unsafe_s3_client
 
     s3_client = get_s3_client()
-    logger.info(f"generated new client: {s3_client}")
 
     if not s3_client:
         logger.error(
