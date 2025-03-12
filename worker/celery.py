@@ -35,7 +35,7 @@ app.conf.beat_schedule = {
         "options": {"expires": 2, "retry": False},
     },
     "watch-has-offline-nodes": {
-        "task": "worker.tasks.watch_has_offline_nodes",
+        "task": "worker.tasks.manage_processing_nodes",
         "schedule": 5,
         "options": {"expires": 2, "retry": False},
     },
