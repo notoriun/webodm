@@ -23,7 +23,6 @@ from django.contrib.gis.gdal import GDALRaster
 from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.postgres import fields
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.exceptions import ValidationError, SuspiciousFileOperation
 from django.db import models
 from django.db import transaction
@@ -534,6 +533,13 @@ class Task(models.Model):
         help_text=_("List s3 buckets with assets"),
         verbose_name=_("S3 assets buckets"),
     )
+    node_connection_retry = models.IntegerField(
+        null=False,
+        default=0,
+        blank=False,
+        help_text=_("Current node connection retry"),
+        verbose_name="Current node connection retry",
+    )
 
     class Meta:
         verbose_name = _("Task")
@@ -1039,17 +1045,19 @@ class Task(models.Model):
                     s3_object = get_s3_object_metadata(
                         bucket=bucket, key=image_path, s3_client=s3_client
                     )
-                    total_size = s3_object["ContentLength"] if s3_object else 0
-                    download_s3_file(
-                        image_path,
-                        destiny_image_filename,
-                        s3_client,
-                        bucket,
-                        Callback=DownloadProgressCallback(
-                            self, downloaded_images, total_size
-                        ),
-                    )
-                    downloaded_images.append(destiny_image_filename)
+                    total_size = s3_object.get("ContentLength", 0) if s3_object else 0
+
+                    if total_size:
+                        download_s3_file(
+                            image_path,
+                            destiny_image_filename,
+                            s3_client,
+                            bucket,
+                            Callback=DownloadProgressCallback(
+                                self, downloaded_images, total_size
+                            ),
+                        )
+                        downloaded_images.append(destiny_image_filename)
 
             self.images_count = len(downloaded_images)
             self.pending_action = (
@@ -1114,6 +1122,7 @@ class Task(models.Model):
                                 self.processing_node, self
                             )
                         )
+                        self.node_connection_retry = 0
                         self.save()
 
                 # Processing node assigned, but is offline and no errors
@@ -1127,10 +1136,7 @@ class Task(models.Model):
                                 self.processing_node, self
                             )
                         )
-                        self.uuid = ""
-                        self.processing_node = None
-                        self.status = None
-                        self.save()
+                        self.remove_from_your_node()
 
                     elif self.status == status_codes.RUNNING:
                         # Task was running and processing node went offline
@@ -1151,6 +1157,12 @@ class Task(models.Model):
                     and self.status is None
                 ):
                     logger.info("Processing... {}".format(self))
+
+                    if len(self.scan_images()) == 0 and len(self.s3_images) > 0:
+                        self.pending_action = pending_actions.IMPORT_FROM_S3
+                        self.save()
+                        self.handle_s3_import()
+                        self._try_download_root_images_from_s3()
 
                     images_path = self.task_path()
                     images = [os.path.join(images_path, i) for i in self.scan_images()]
@@ -1177,11 +1189,8 @@ class Task(models.Model):
                             images, self.name, self.options, callback
                         )
                     except NodeConnectionError as e:
-                        # If we can't create a task because the node is offline
-                        # We want to fail instead of trying again
-                        raise NodeServerError(
-                            gettext("Connection error: %(error)s") % {"error": str(e)}
-                        )
+                        self._increase_node_connection_retry()
+                        return
 
                     # Refresh task object before committing change
                     self.refresh_from_db()
@@ -1231,12 +1240,14 @@ class Task(models.Model):
                         # results after a set amount of time, the UUID might have been eliminated.
                         uuid_still_exists = False
 
+                        if self.processing_node.confirm_is_offline():
+                            self.remove_from_your_node()
+                            return
+
                         if self.uuid:
-                            try:
-                                info = self.processing_node.get_task_info(self.uuid)
-                                uuid_still_exists = info.uuid == self.uuid
-                            except OdmError:
-                                pass
+                            uuid_still_exists = self.processing_node.task_exists(
+                                self.uuid
+                            )
 
                         need_to_reprocess = False
 
@@ -1439,6 +1450,7 @@ class Task(models.Model):
                     self, str(e)
                 )
             )
+            self._increase_node_connection_retry()
         except TaskInterruptedException as e:
             # Task was interrupted during image resize / upload
             logger.warning("{} interrupted".format(self, str(e)))
@@ -1916,11 +1928,6 @@ class Task(models.Model):
         except Exception as e:
             logger.warn("Cannot update size for task {}: {}".format(self, str(e)))
 
-    def _create_task_s3_download_dir(self):
-        fotos_s3_dir = self.task_path()
-        ensure_path_exists(fotos_s3_dir)
-        return fotos_s3_dir
-
     def upload_and_cache_assets(self):
         files_uploadeds = self._upload_assets_to_s3()
         for file in files_uploadeds:
@@ -1936,6 +1943,37 @@ class Task(models.Model):
 
         if asset not in self.s3_assets:
             self.s3_assets.append(asset)
+
+    def remove_from_your_node(self):
+        if self.processing_node:
+            try:
+                if self.uuid and self.processing_node.task_exists(self.uuid):
+                    task_node = self.processing_node
+                    task_id = self.uuid
+
+                self.status = None
+                self.auto_processing_node = True
+                self.processing_node = None
+                self.pending_action = pending_actions.RESTART
+                self.last_error = None
+                self.uuid = ""
+                self.node_connection_retry = 0
+                self.save()
+
+                if task_node:
+                    task_node.cancel_task(task_id)
+                    task_node.remove_task(task_id)
+
+                return True
+            except OdmError:
+                pass
+
+        return False
+
+    def _create_task_s3_download_dir(self):
+        fotos_s3_dir = self.task_path()
+        ensure_path_exists(fotos_s3_dir)
+        return fotos_s3_dir
 
     def _upload_assets_to_s3(self):
         s3_bucket = settings.S3_BUCKET
@@ -2154,3 +2192,14 @@ class Task(models.Model):
         object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
 
         return current_checksum != object_checksum
+
+    def _increase_node_connection_retry(self):
+        self.node_connection_retry += 1
+
+        if self.node_connection_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+            self.remove_from_your_node()
+
+        try:
+            self.save()
+        except Exception as e:
+            logger.warning(f"Failed on save node_connection_retry. Original error: {e}")

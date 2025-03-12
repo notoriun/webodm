@@ -13,7 +13,7 @@ from webodm import settings
 import json
 from pyodm import Node
 from pyodm import exceptions
-from django.db.models import signals
+from django.db.models import signals, Q
 from datetime import timedelta
 import logging
 
@@ -107,14 +107,19 @@ class ProcessingNode(models.Model):
         Attempts to find an available node (seen in the last 5 minutes, and with lowest queue count)
         :return: ProcessingNode | None
         """
-        return (
-            ProcessingNode.objects.filter(
-                last_refreshed__gte=timezone.now()
-                - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
-            )
-            .order_by("queue_count")
-            .first()
-        )
+        offline_nodes = []
+        nodes_query = ProcessingNode.objects.filter(
+            last_refreshed__gte=timezone.now()
+            - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+        ).order_by("queue_count")
+
+        next_node = nodes_query.first()
+
+        while next_node and next_node.confirm_is_offline():
+            offline_nodes.append(next_node.pk)
+            next_node = nodes_query.exclude(pk__in=offline_nodes).first()
+
+        return next_node
 
     @staticmethod
     def find_maybe_offline_nodes():
@@ -123,8 +128,11 @@ class ProcessingNode(models.Model):
         :return: list[ProcessingNode]
         """
         return ProcessingNode.objects.filter(
-            last_refreshed__lte=timezone.now()
-            - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+            Q(
+                last_refreshed__lte=timezone.now()
+                - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+            )
+            | Q(last_refreshed__isnull=True)
         ).order_by("last_refreshed")
 
     def is_online(self):

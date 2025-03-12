@@ -214,6 +214,7 @@ class TaskViewSet(viewsets.ViewSet):
         task.pending_action = pending_action
         task.partial = False  # Otherwise this will not be processed
         task.last_error = None
+        task.node_connection_retry = 0
         task.save()
 
         # Process task right away
@@ -358,6 +359,21 @@ class TaskViewSet(viewsets.ViewSet):
         return Response(
             {"success": True, "setted": task.s3_images}, status=status.HTTP_200_OK
         )
+
+    @action(detail=True, methods=["post"], url_path="clear-s3-images")
+    def clear_s3_images(self, request, pk=None, project_pk=None):
+        """
+        Set s3 images to download on task proccess
+        """
+        get_and_check_project(request, project_pk, ("change_project",))
+        try:
+            task = self.queryset.get(pk=pk, project=project_pk)
+        except (ObjectDoesNotExist, ValidationError):
+            raise exceptions.NotFound()
+
+        task.s3_images = []
+        task.save()
+        return Response({"success": True}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def duplicate(self, request, pk=None, project_pk=None):
