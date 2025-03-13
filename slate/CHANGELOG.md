@@ -1,5 +1,12 @@
 # Changelog
 
+## Versão 1.0.13
+
+*13-03-25*
+
+- Corrige erro ao enviar arquivos (assets) para S3
+
+
 ## Version 1.4.0
 
 *November 24, 2016*
