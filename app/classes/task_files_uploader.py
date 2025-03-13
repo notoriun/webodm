@@ -95,16 +95,11 @@ class TaskFilesUploader:
 
         uploaded = self.task.handle_images_upload(files)
         result = {}
-        s3_assets = []
 
         for filename, value in uploaded.items():
             result[filename] = value["size"]
 
-            if value["origin_path"] in s3_files:
-                s3_assets.append(value["destiny_path"])
-
         self.task.refresh_from_db()
-        self.task.append_s3_assets(s3_assets)
         self.task.images_count = len(self.task.scan_images())
         self.task.s3_images += s3_images_with_bucket
         self.task.save()
@@ -128,7 +123,6 @@ class TaskFilesUploader:
 
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
         files = local_files + s3_files
-        s3_fotos = []
         assets_uploaded = []
 
         for idx, filepath in enumerate(files):
@@ -143,7 +137,7 @@ class TaskFilesUploader:
 
                 filename = f"foto_{max_index + idx + 1}.jpg"
                 dst_path = os.path.join(fotos_dir, filename)
-                logger.info("saving file uploaded on: {}".format(dst_path))
+                logger.info("Saving file uploaded on: {}".format(dst_path))
 
                 # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
@@ -158,9 +152,6 @@ class TaskFilesUploader:
                     "altitude": lat_lon_alt[2] or 0,
                 }
                 uploaded_files.append(get_file_name(filepath))
-
-                if filepath in s3_files:
-                    s3_fotos.append(dst_path)
             except Exception as e:
                 logger.error(str(e))
                 continue
@@ -173,7 +164,6 @@ class TaskFilesUploader:
 
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.append_s3_assets(s3_fotos)
         self.task.upload_and_cache_assets()
         self.task.save()
 
@@ -196,7 +186,6 @@ class TaskFilesUploader:
 
         # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
         files = local_files + s3_files
-        s3_videos = []
         assets_uploaded = []
 
         for idx, filepath in enumerate(files):
@@ -222,9 +211,6 @@ class TaskFilesUploader:
                 assets_uploaded.append(f"videos/{filename}")
 
                 uploaded_files.append(get_file_name(filepath))
-
-                if filepath in s3_files:
-                    s3_videos.append(dst_path)
             except Exception as e:
                 logger.error(str(e))
                 continue
@@ -237,7 +223,6 @@ class TaskFilesUploader:
 
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.append_s3_assets(s3_videos)
         self.task.upload_and_cache_assets()
         self.task.save()
 
@@ -263,9 +248,6 @@ class TaskFilesUploader:
             # Adicionar "foto360.jpg" ao campo available_assets
             if "foto360.jpg" not in self.task.available_assets:
                 self.task.available_assets.append("foto360.jpg")
-
-            if filepath in s3_files:
-                self.task.append_s3_asset(file_uploaded)
 
             self.task.upload_and_cache_assets()
 
@@ -345,16 +327,19 @@ class TaskFilesUploader:
     def _read_s3_metadata_json(self, metadata_key: str) -> dict[str, any]:
         try:
             metadata_object = get_s3_object(metadata_key)
-            if metadata_object:
-                metadata_str = metadata_object["Body"].read().decode("utf-8")
-                metadata = json.loads(metadata_str)
-            else:
-                metadata = {}
-        except Exception as e:
-            print(e)
-            metadata = {}
+            if not metadata_object:
+                return {}
 
-        return metadata
+            object_body = metadata_object.get("Body", None)
+
+            if not object_body:
+                return {}
+
+            metadata_str = object_body.read().decode("utf-8")
+            return json.loads(metadata_str)
+        except Exception as e:
+            logger.warning(f"S3 Metadata read error: {e}")
+            return {}
 
     def _read_local_metadata_json(
         self, metadata_path: str, use_cache_lock: bool
@@ -374,7 +359,7 @@ class TaskFilesUploader:
             else:
                 return load_metadata_file()
         except Exception as e:
-            print(e)
+            logger.warning(f"Local Metadata read error: {e}")
             return {}
 
     def _download_files_from_s3(self, s3_images: list[str]):
