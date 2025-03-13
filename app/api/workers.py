@@ -10,6 +10,7 @@ from django.http import FileResponse
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 
+
 class CheckTask(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -17,28 +18,30 @@ class CheckTask(APIView):
         res = TestSafeAsyncResult(celery_task_id)
 
         if not res.ready():
-            return Response({'ready': False}, status=status.HTTP_200_OK)
+            return Response({"ready": False}, status=status.HTTP_200_OK)
         else:
             result = res.get()
 
-            if result.get('error', None) is not None:
+            if result.get("error", None) is not None:
                 msg = self.on_error(result)
-                return Response({'ready': True, 'error': msg})
+                return Response({"ready": True, "error": msg})
 
             if self.error_check(result) is not None:
                 msg = self.on_error(result)
-                return Response({'ready': True, 'error': msg})
+                return Response({"ready": True, "error": msg})
 
-            return Response({'ready': True})
+            return Response({"ready": True})
 
     def on_error(self, result):
-        return result['error']
+        return result["error"]
 
     def error_check(self, result):
         pass
 
+
 class TaskResultOutputError(Exception):
     pass
+
 
 class GetTaskResult(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -47,13 +50,18 @@ class GetTaskResult(APIView):
         res = TestSafeAsyncResult(celery_task_id)
         if res.ready():
             result = res.get()
-            file = result.get('file', None) # File path
-            output = result.get('output', None) # String/object
+
+            if result.get("error", None) is not None:
+                msg = self.on_error(result)
+                return Response({"ready": True, "error": msg})
+
+            file = result.get("file", None)  # File path
+            output = result.get("output", None)  # String/object
         else:
-            return Response({'error': 'Task not ready'})
+            return Response({"error": "Task not ready"})
 
         if file is not None:
-            filename = request.query_params.get('filename', os.path.basename(file))
+            filename = request.query_params.get("filename", os.path.basename(file))
             filesize = os.stat(file).st_size
 
             f = open(file, "rb")
@@ -64,23 +72,29 @@ class GetTaskResult(APIView):
             if stream:
                 response = FileResponse(f)
             else:
-                response = HttpResponse(FileWrapper(f),
-                                        content_type=(mimetypes.guess_type(filename)[0] or "application/zip"))
+                response = HttpResponse(
+                    FileWrapper(f),
+                    content_type=(
+                        mimetypes.guess_type(filename)[0] or "application/zip"
+                    ),
+                )
 
-            response['Content-Type'] = mimetypes.guess_type(filename)[0] or "application/zip"
-            response['Content-Disposition'] = "attachment; filename={}".format(filename)
-            response['Content-Length'] = filesize
+            response["Content-Type"] = (
+                mimetypes.guess_type(filename)[0] or "application/zip"
+            )
+            response["Content-Disposition"] = "attachment; filename={}".format(filename)
+            response["Content-Length"] = filesize
 
             return response
         elif output is not None:
             try:
                 output = self.handle_output(output, result, **kwargs)
             except TaskResultOutputError as e:
-                return Response({'error': str(e)})
+                return Response({"error": str(e)})
 
-            return Response({'output': output})
+            return Response({"output": output})
         else:
-            return Response({'error': 'Invalid task output (cannot find valid key)'})
+            return Response({"error": "Invalid task output (cannot find valid key)"})
 
     def handle_output(self, output, result, **kwargs):
         return output

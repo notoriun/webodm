@@ -527,12 +527,6 @@ class Task(models.Model):
         help_text=_("A flag indicating whether this task is in upload progress"),
         verbose_name=_("Upload In Progress"),
     )
-    s3_assets = fields.JSONField(
-        default=list,
-        blank=True,
-        help_text=_("List s3 buckets with assets"),
-        verbose_name=_("S3 assets buckets"),
-    )
     node_connection_retry = models.IntegerField(
         null=False,
         default=0,
@@ -1758,6 +1752,10 @@ class Task(models.Model):
 
     def find_all_files_matching(self, regex):
         directory = full_task_directory_path(self.id, self.project.id)
+
+        if not os.path.exists(directory):
+            return []
+
         return [
             os.path.join(directory, f)
             for f in os.listdir(directory)
@@ -1932,17 +1930,6 @@ class Task(models.Model):
         files_uploadeds = self._upload_assets_to_s3()
         for file in files_uploadeds:
             worker_cache_files_tasks.download_and_add_to_cache.delay(file, False)
-
-    def append_s3_assets(self, assets: list[str]):
-        for asset in assets:
-            self.append_s3_asset(asset)
-
-    def append_s3_asset(self, asset: str):
-        if not isinstance(self.s3_assets, list):
-            self.s3_assets = []
-
-        if asset not in self.s3_assets:
-            self.s3_assets.append(asset)
 
     def remove_from_your_node(self):
         if self.processing_node:
@@ -2143,10 +2130,7 @@ class Task(models.Model):
             logger.info('downloaded image: "{}"'.format(image_key))
 
     def _all_assets_needs_upload_to_s3(self):
-        root_assets = [e.path for e in self._entry_root_images()]
-        assets_dont_upload = root_assets + (
-            self.s3_assets if isinstance(self.s3_assets, list) else []
-        )
+        assets_dont_upload = [e.path for e in self._entry_root_images()]
         return [
             f
             for f in self._get_all_assets_files()

@@ -148,7 +148,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Task
-        exclude = ("orthophoto_extent", "dsm_extent", "dtm_extent", "s3_assets")
+        exclude = ("orthophoto_extent", "dsm_extent", "dtm_extent")
         read_only_fields = (
             "processing_time",
             "status",
