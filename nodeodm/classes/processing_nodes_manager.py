@@ -17,6 +17,9 @@ class ProcessingNodesManager:
     def improve_processing_nodes_performance(self):
         self._logger.info("Start improve processing nodes performance")
 
+        if not self._has_more_than_one_node():
+            return
+
         self._remove_offline_nodes()
         self._update_queued_tasks_to_free_node()
 
@@ -146,3 +149,6 @@ class ProcessingNodesManager:
 
     def _remove_task_from_your_node(self, task: Task):
         return task.remove_from_your_node()
+
+    def _has_more_than_one_node(self):
+        return ProcessingNode.objects.all().count() > 1
