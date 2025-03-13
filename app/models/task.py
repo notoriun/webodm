@@ -1485,6 +1485,7 @@ class Task(models.Model):
                 logger.warning("Cannot restore from backup: %s" % str(e))
                 raise NodeServerError("Cannot restore from backup")
 
+        self.refresh_from_db()
         # Populate *_extent fields
         extent_fields = [
             (
@@ -1535,7 +1536,6 @@ class Task(models.Model):
                     "Populated extent field with {} for {}".format(raster_path, self)
                 )
 
-        self.refresh_from_db()
         self.update_available_assets_field()
         self.update_epsg_field()
         self.update_orthophoto_bands_field()
