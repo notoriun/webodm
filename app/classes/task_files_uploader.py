@@ -262,16 +262,17 @@ class TaskFilesUploader:
 
                 # Salvar o arquivo na pasta assets com o nome foto360.jpg
                 filename = f"foto_360_{max_index + idx + 1}.jpg"
+                thumb_filename = f"foto_360_{max_index + idx + 1}_thumb.jpg"
                 dst_path = os.path.join(fotos_360_dir, filename)
                 logger.info("Saving file uploaded on: {}".format(dst_path))
 
                 # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
-                thumb = self._create_thumbnail(dst_path)
+                self._create_thumbnail(dst_path)                              
 
                 # Guardar asset para o available_assets
-                assets_uploaded.append(f"fotos_360/{filename}")
-                assets_uploaded.append(thumb)
+                assets_uploaded.append(f"fotos_360/{filename}")                
+                assets_uploaded.append(f"fotos_360/{thumb_filename}")
 
                 # Adicionar informações de metadados
                 metadata[filename] = {
