@@ -57,7 +57,7 @@ class TaskFilesUploader:
             elif upload_type == "video":
                 response = self._upload_videos(local_files_path, s3_downloaded_files)
             elif upload_type == "foto360":
-                response = self._upload_foto360(local_files_path, s3_downloaded_files)
+                response = self.upload_foto360(local_files_path, s3_downloaded_files)
             elif upload_type == "foto_giga":
                 response = self._upload_foto_giga(local_files_path, s3_downloaded_files)
             else:  # Default to 'orthophoto'
@@ -228,34 +228,62 @@ class TaskFilesUploader:
 
         return {"success": True, "uploaded": uploaded_files}
 
-    def _upload_foto360(self, local_files: list[str], s3_files: list[str]):
+    def upload_foto360(self, local_files: list[str], s3_files: list[str]):
         logger.info("Upload foto360")
         # Garantir que o diretório assets existe
-        assets_dir = self.task.assets_path()
-        ensure_path_exists(assets_dir)
+        fotos_360_dir = self.task.assets_path("fotos_360")
+        ensure_path_exists(fotos_360_dir)
         files = local_files + s3_files
 
-        filepath = files[0] if len(files) > 0 else None
-        file_uploaded_size = 0
+        # Carregar o metadata.json existente, se existir
+        metadata_path = os.path.join(fotos_360_dir, "metadata.json")
+        metadata = self._read_metadata_json(metadata_path)
 
-        if filepath:
-            # Salvar o arquivo na pasta assets com o nome foto360.jpg
-            file_uploaded = self.task.assets_path("foto360.jpg")
-            shutil.copyfile(filepath, file_uploaded)
+        # Identificar o índice inicial para novos arquivos
+        max_index = self._get_file_index(metadata, "foto_360_", ".jpg")
+        assets_uploaded = []
+        uploaded_files = {}
 
-            self.task.refresh_from_db()
+        # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
+        for idx, filepath in enumerate(files):
+            try:
+                # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
+                image = Image.open(filepath)
+                exif_data = get_exif_data(image)
+                lat_lon_alt = get_lat_lon_alt(exif_data)
 
-            # Adicionar "foto360.jpg" ao campo available_assets
-            if "foto360.jpg" not in self.task.available_assets:
-                self.task.available_assets.append("foto360.jpg")
+                if not lat_lon_alt:
+                    continue
 
-            self.task.upload_and_cache_assets()
+                # Salvar o arquivo na pasta assets com o nome foto360.jpg
+                filename = f"foto_360_{max_index + idx + 1}.jpg"
+                dst_path = os.path.join(fotos_360_dir, filename)
+                shutil.copyfile(filepath, dst_path)
 
-            self.task.save()
+                # Adicionar informações de metadados
+                metadata[filename] = {
+                    "latitude": lat_lon_alt[0],
+                    "longitude": lat_lon_alt[1],
+                    "altitude": lat_lon_alt[2] or 0,
+                }
 
-            file_uploaded_size = os.path.getsize(file_uploaded)
+                uploaded_files[get_file_name(filepath)] = os.path.getsize(dst_path)
+            except Exception as e:
+                logger.warning(f"Upload foto 360 error: {e}")
+                continue
 
-        return {"success": True, "uploaded": {"foto360.jpg": file_uploaded_size}}
+        # Atualizar o arquivo metadata.json
+        self._update_metadata_json(metadata_path, metadata)
+
+        # Adicionar metadata.json em available_assets
+        assets_uploaded.append("fotos_360/metadata.json")
+
+        self.task.refresh_from_db()
+        self._concat_to_available_assets(assets_uploaded)
+        self.task.upload_and_cache_assets()
+        self.task.save()
+
+        return {"success": True, "uploaded": uploaded_files}
 
     def _upload_foto_giga(self, local_files: list[str], s3_files: list[str]):
         logger.info("Upload foto giga")
