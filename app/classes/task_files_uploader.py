@@ -151,9 +151,10 @@ class TaskFilesUploader:
                     "longitude": lat_lon_alt[1],
                     "altitude": lat_lon_alt[2] or 0,
                 }
+
                 uploaded_files.append(get_file_name(filepath))
             except Exception as e:
-                logger.error(str(e))
+                logger.error(f"Upload foto error: {e}")
                 continue
 
         # Atualizar o arquivo metadata.json
@@ -229,22 +230,24 @@ class TaskFilesUploader:
         return {"success": True, "uploaded": uploaded_files}
 
     def upload_foto360(self, local_files: list[str], s3_files: list[str]):
-        logger.info("Upload foto360")
         # Garantir que o diretório assets existe
+        logger.info("Upload foto360")
         fotos_360_dir = self.task.assets_path("fotos_360")
         ensure_path_exists(fotos_360_dir)
-        files = local_files + s3_files
 
         # Carregar o metadata.json existente, se existir
         metadata_path = os.path.join(fotos_360_dir, "metadata.json")
         metadata = self._read_metadata_json(metadata_path)
 
-        # Identificar o índice inicial para novos arquivos
-        max_index = self._get_file_index(metadata, "foto_360_", ".jpg")
-        assets_uploaded = []
         uploaded_files = {}
 
+        # Identificar o índice inicial para novos arquivos
+        max_index = self._get_file_index(metadata, "foto_360_", ".jpg")
+
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
+        files = local_files + s3_files
+        assets_uploaded = []
+
         for idx, filepath in enumerate(files):
             try:
                 # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
@@ -258,7 +261,13 @@ class TaskFilesUploader:
                 # Salvar o arquivo na pasta assets com o nome foto360.jpg
                 filename = f"foto_360_{max_index + idx + 1}.jpg"
                 dst_path = os.path.join(fotos_360_dir, filename)
+                logger.info("Saving file uploaded on: {}".format(dst_path))
+
+                # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
+
+                # Guardar asset para o available_assets
+                assets_uploaded.append(f"fotos_360/{filename}")
 
                 # Adicionar informações de metadados
                 metadata[filename] = {
@@ -269,7 +278,7 @@ class TaskFilesUploader:
 
                 uploaded_files[get_file_name(filepath)] = os.path.getsize(dst_path)
             except Exception as e:
-                logger.warning(f"Upload foto 360 error: {e}")
+                logger.error(f"Upload foto 360 error: {e}")
                 continue
 
         # Atualizar o arquivo metadata.json

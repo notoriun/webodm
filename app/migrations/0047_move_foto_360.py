@@ -15,6 +15,10 @@ def move_fotos_to_own_dir(apps, schema_editor):
     for task in tasks_with_fotos360:
         current_foto_360_path = task.assets_path("foto360.jpg")
         TaskFilesUploader(task.pk).upload_foto360([current_foto_360_path], [])
+        task.available_assets = [
+            asset for asset in task.available_assets if asset != "foto360.jpg"
+        ]
+        task.save()
 
 
 class Migration(migrations.Migration):
