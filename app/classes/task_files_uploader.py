@@ -229,7 +229,9 @@ class TaskFilesUploader:
 
         return {"success": True, "uploaded": uploaded_files}
 
-    def upload_foto360(self, local_files: list[str], s3_files: list[str]):
+    def upload_foto360(
+        self, local_files: list[str], s3_files: list[str], ignore_upload_to_s3=False
+    ):
         # Garantir que o diretório assets existe
         logger.info("Upload foto360")
         fotos_360_dir = self.task.assets_path("fotos_360")
@@ -265,9 +267,11 @@ class TaskFilesUploader:
 
                 # Gravar o arquivo no diretório de destino
                 shutil.copyfile(filepath, dst_path)
+                thumb = self._create_thumbnail(dst_path)
 
                 # Guardar asset para o available_assets
                 assets_uploaded.append(f"fotos_360/{filename}")
+                assets_uploaded.append(thumb)
 
                 # Adicionar informações de metadados
                 metadata[filename] = {
@@ -289,7 +293,8 @@ class TaskFilesUploader:
 
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.upload_and_cache_assets()
+        if not ignore_upload_to_s3:
+            self.task.upload_and_cache_assets()
         self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
@@ -446,6 +451,17 @@ class TaskFilesUploader:
             for asset in (self.task.available_assets + assets)
             if asset not in self.task.available_assets
         ]
+
+    def _create_thumbnail(self, image_path: str, tamanho=(200, 200)):
+        imagem = Image.open(image_path)
+        imagem.thumbnail(tamanho)
+
+        name, ext = os.path.splitext(image_path)
+        thumbnail_path = f"{name}_thumb{ext}"
+
+        imagem.save(thumbnail_path, format=imagem.format)
+
+        return thumbnail_path
 
 
 def get_exif_data(image):

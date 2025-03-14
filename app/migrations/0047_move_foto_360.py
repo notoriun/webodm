@@ -19,11 +19,11 @@ def move_fotos_to_own_dir(apps, schema_editor):
         project.id = migration_task.project_id
         task = app_models.Task(project=project, id=migration_task.id)
         current_foto_360_path = task.assets_path("foto360.jpg")
-        TaskFilesUploader(task.pk).upload_foto360([current_foto_360_path], [])
-        task.available_assets = [
+        TaskFilesUploader(task.pk).upload_foto360([current_foto_360_path], [], True)
+        migration_task.available_assets = [
             asset for asset in task.available_assets if asset != "foto360.jpg"
         ]
-        task.save()
+        migration_task.save()
         try:
             shutil.rmtree(current_foto_360_path)
         except Exception as e:
