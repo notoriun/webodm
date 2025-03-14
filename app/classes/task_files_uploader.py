@@ -492,7 +492,7 @@ def get_video_gps(file_path):
             location = location.rstrip("/")
 
             # Definir a expressão regular para capturar latitude e longitude
-            match = re.match(r"([+-]\d+\.\d+),?\s*([+-]\d+\.\d+)", location)
+            match = re.match(r"([+-]?\d+\.\d+),?\s*([+-]?\d+\.\d+)", location)
             if not match:
                 raise ValueError("Formato inválido para a string de localização")
 
