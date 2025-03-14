@@ -124,6 +124,7 @@ class TaskFilesUploader:
         # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
         files = local_files + s3_files
         assets_uploaded = []
+        files_error = {}
 
         for idx, filepath in enumerate(files):
             try:
@@ -133,6 +134,7 @@ class TaskFilesUploader:
                 lat_lon_alt = get_lat_lon_alt(exif_data)
 
                 if not lat_lon_alt:
+                    files_error[filepath] = "NOT_HAS_LAT_LON"
                     continue
 
                 filename = f"foto_{max_index + idx + 1}.jpg"
@@ -168,7 +170,11 @@ class TaskFilesUploader:
         self.task.upload_and_cache_assets()
         self.task.save()
 
-        return {"success": True, "uploaded": uploaded_files}
+        return {
+            "success": True,
+            "uploaded": uploaded_files,
+            "files_with_error": files_error,
+        }
 
     def _upload_videos(self, local_files: list[str], s3_files: list[str]):
         logger.info("Upload videos")
@@ -188,6 +194,7 @@ class TaskFilesUploader:
         # Salvar os novos arquivos na pasta assets/videos com nomes sequenciais
         files = local_files + s3_files
         assets_uploaded = []
+        files_error = {}
 
         for idx, filepath in enumerate(files):
             try:
@@ -195,6 +202,7 @@ class TaskFilesUploader:
                 lat_lon = get_video_gps(filepath)
 
                 if not lat_lon:
+                    files_error[filepath] = "NOT_HAS_LAT_LON"
                     continue
 
                 filename = f"video_{max_index + idx + 1}.mp4"
@@ -227,7 +235,11 @@ class TaskFilesUploader:
         self.task.upload_and_cache_assets()
         self.task.save()
 
-        return {"success": True, "uploaded": uploaded_files}
+        return {
+            "success": True,
+            "uploaded": uploaded_files,
+            "files_with_error": files_error,
+        }
 
     def upload_foto360(
         self, local_files: list[str], s3_files: list[str], ignore_upload_to_s3=False
@@ -325,7 +337,7 @@ class TaskFilesUploader:
 
             os.remove(dst_path)  # Remover o arquivo se não contiver metadados GPS
         except Exception as e:
-            pass
+            return {"success": False}
 
         # Adicionar a informação em available_assets
         self.task.refresh_from_db()
@@ -534,7 +546,7 @@ def get_video_gps(file_path):
             location = location.rstrip("/")
 
             # Definir a expressão regular para capturar latitude e longitude
-            match = re.match(r"([+-]\d+\.\d+)([+-]\d+\.\d+)", location)
+            match = re.match(r"([+-]?\d+\.\d+),?\s*([+-]?\d+\.\d+)", location)
             if not match:
                 raise ValueError("Formato inválido para a string de localização")
 
@@ -626,3 +638,9 @@ def merge_metadatas(metadata1: dict[str, any], metadata2: dict[str, any]):
                 result[key2] = merge_metadatas(result[key2], metadata2[key2])
 
     return result
+
+
+class AssetNotHasLatLonError(Exception):
+    def __init__(self, asset_path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.asset_path = asset_path
