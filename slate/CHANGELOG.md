@@ -1,5 +1,13 @@
 # Changelog
 
+## Versão 1.0.14
+
+*14-03-25*
+
+- Adiciona possibilidade de exibição de mais de um arquivo de foto 360.
+- Corrige problemas de sincronização com S3.
+
+
 ## Versão 1.0.13
 
 *13-03-25*
