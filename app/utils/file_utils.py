@@ -20,8 +20,8 @@ def remove_path_from_path(complete_path: str, path_to_remove: str):
     return complete_path.replace(path_to_remove_with_sep, "")
 
 
-def get_all_files_in_dir(dir) -> list[str]:
-    all_files = []
+def get_all_files_in_dir(dir):
+    all_files: list[str] = []
     for entry in os.scandir(dir):
         if entry.is_dir():
             all_files += get_all_files_in_dir(entry.path)
@@ -29,6 +29,10 @@ def get_all_files_in_dir(dir) -> list[str]:
             all_files.append(entry.path)
 
     return all_files
+
+
+def list_dirs_in_dir(dir: str) -> list[str]:
+    return [entry.path for entry in os.scandir(dir) if entry.is_dir()]
 
 
 def ensure_sep_at_end(path: str):
