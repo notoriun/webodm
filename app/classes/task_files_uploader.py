@@ -140,11 +140,11 @@ class TaskFilesUploader:
         # Adicionar metadata.json em available_assets
         assets_uploaded.append("fotos_360/metadata.json")
 
+        if not ignore_upload_to_s3:
+            self.task.upload_and_cache_assets()
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
         self.task.save()
-        if not ignore_upload_to_s3:
-            self.task.upload_and_cache_assets()
 
         return {"success": True, "uploaded": uploaded_files}
 
@@ -236,10 +236,10 @@ class TaskFilesUploader:
         # Adicionar metadata.json em available_assets
         assets_uploaded.append("fotos/metadata.json")
 
+        self.task.upload_and_cache_assets()
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
         self.task.save()
-        self.task.upload_and_cache_assets()
 
         return {
             "success": True,
@@ -301,10 +301,10 @@ class TaskFilesUploader:
         # Adicionar metadata.json em available_assets
         assets_uploaded.append("videos/metadata.json")
 
+        self.task.upload_and_cache_assets()
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
         self.task.save()
-        self.task.upload_and_cache_assets()
 
         return {
             "success": True,
@@ -340,6 +340,7 @@ class TaskFilesUploader:
             return {"success": False}
 
         # Adicionar a informação em available_assets
+        self.task.upload_and_cache_assets()
         self.task.refresh_from_db()
         asset_info = f"foto_giga/metadata.dzi"
         self.task.available_assets = [
@@ -351,7 +352,6 @@ class TaskFilesUploader:
             self.task.available_assets.append(asset_info)
 
         self.task.save()
-        self.task.upload_and_cache_assets()
 
         return {"success": True, "uploaded": [get_file_name(filepath)]}
 
