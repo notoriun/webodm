@@ -1,5 +1,13 @@
 # Changelog
 
+## Versão 1.0.15
+
+*17-03-25*
+
+- Corrige problemas de sincronização do cache REDIS com S3.
+- Corrige problemas de sincronização do postgres com S3 (available_assets).
+- Corrige erro de duplicação de arquivos de foto 360.
+
 ## Versão 1.0.14
 
 *14-03-25*
