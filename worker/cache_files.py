@@ -123,7 +123,7 @@ def move_file_and_add_in_cache(file_s3: str, file_to_move):
         with s3_cache_lock():
             new_cache = update_file_in_cache(filepath)
 
-        logger.info(f"new cache after move {new_cache}")
+        logger.info(f"New cache after move {new_cache}")
     except Exception as e:
         logger.error(str(e))
 
@@ -202,6 +202,81 @@ def refresh_file_cache_keys():
         pass
 
 
+@app.task()
+def seek_and_populate_redis_cache():
+    import shutil
+    import os
+    from worker.classes.local_files_redis import ProjectDirFiles
+
+    logger.info("Starting to populate redis cache...")
+
+    projects_on_media = list_media_projects()
+
+    if len(projects_on_media) == 0:
+        logger.info("Not found projects on media dir, exiting...")
+        return
+
+    logger.info(f"Found these projects on media dir: {projects_on_media}")
+
+    projects_not_exists = []
+    projects_exists: list[ProjectDirFiles] = []
+    tasks_not_exists = []
+
+    for project_path in projects_on_media:
+        projects_dir_files = get_project_dir_files(project_path)
+
+        if not projects_dir_files.exists_on_db():
+            projects_not_exists.append(project_path)
+            continue
+
+        tasks_exists = []
+
+        for task in projects_dir_files.tasks:
+            if not task.exists_on_db():
+                tasks_not_exists.append(os.path.join(project_path, task.task_id))
+            else:
+                tasks_exists.append(task)
+
+        projects_exists.append(
+            ProjectDirFiles(projects_dir_files.project_id, tasks_exists)
+        )
+
+    if len(projects_not_exists) > 0:
+        logger.info(
+            f"Not found these projects on DB {projects_not_exists}, removing paths..."
+        )
+        for project_path in projects_not_exists:
+            shutil.rmtree(project_path)
+
+    if len(tasks_not_exists) > 0:
+        logger.info(
+            f"Not found these tasks on DB {tasks_not_exists}, removing paths..."
+        )
+        for task_path in tasks_not_exists:
+            shutil.rmtree(task_path)
+
+    for project in projects_exists:
+        for file in project.all_files():
+            try:
+                file_stat = os.stat(file)
+                file_size = file_stat.st_size
+
+                can_add_to_cache = _check_cache_has_space(file_size)
+
+                if not can_add_to_cache:
+                    os.remove(file)
+                    continue
+
+                with s3_cache_lock():
+                    new_cache = update_file_in_cache(file)
+
+                logger.info(f"New cache: {new_cache}")
+            except Exception as e:
+                logger.warning(
+                    f"Error on set file({file}) on redis cache. Error: {str(e)}"
+                )
+
+
 def _check_cache_has_space(space_need: int):
     max_cache_size = get_max_cache_size()
 
@@ -244,3 +319,50 @@ def _s3_file_is_equals_to_cache_file(s3_key: str, cache_filepath: str):
     object_checksum = get_object_checksum(s3_key)
 
     return current_checksum == object_checksum
+
+
+def list_media_projects():
+    from app.utils.file_utils import list_dirs_in_dir
+
+    ignore_paths = [
+        os.path.join(settings.MEDIA_ROOT, "CACHE"),
+        os.path.join(settings.MEDIA_ROOT, "plugins"),
+        os.path.join(settings.MEDIA_ROOT, "settings"),
+        os.path.join(settings.MEDIA_ROOT, "imports"),
+        settings.MEDIA_TMP,
+    ]
+
+    try:
+        return [
+            path
+            for path in list_dirs_in_dir(settings.MEDIA_ROOT)
+            if not (path in ignore_paths)
+        ]
+    except Exception as e:
+        logger.warning(f"Error on get projects on media_dir. Error: {str(e)}")
+        return []
+
+
+def get_project_dir_files(project_path: str):
+    from app.utils.file_utils import (
+        list_dirs_in_dir,
+        get_file_name,
+        get_all_files_in_dir,
+    )
+    from worker.classes.local_files_redis import DirFiles, TaskDirFiles, ProjectDirFiles
+
+    project_tasks: list[TaskDirFiles] = []
+
+    for task_path in list_dirs_in_dir(project_path):
+        try:
+            task_id = get_file_name(task_path)
+
+            task_files = DirFiles(get_all_files_in_dir(task_path))
+
+            project_tasks.append(TaskDirFiles(task_id, task_files))
+        except Exception as e:
+            logger.warning(
+                f"Error on get file on task dir({task_path}). Error: {str(e)}"
+            )
+
+    return ProjectDirFiles(get_file_name(project_path), project_tasks)
