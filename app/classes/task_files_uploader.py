@@ -142,9 +142,9 @@ class TaskFilesUploader:
 
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
+        self.task.save()
         if not ignore_upload_to_s3:
             self.task.upload_and_cache_assets()
-        self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
 
@@ -238,8 +238,8 @@ class TaskFilesUploader:
 
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.upload_and_cache_assets()
         self.task.save()
+        self.task.upload_and_cache_assets()
 
         return {
             "success": True,
@@ -303,8 +303,8 @@ class TaskFilesUploader:
 
         self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.upload_and_cache_assets()
         self.task.save()
+        self.task.upload_and_cache_assets()
 
         return {
             "success": True,
@@ -350,8 +350,8 @@ class TaskFilesUploader:
         if asset_info not in self.task.available_assets:
             self.task.available_assets.append(asset_info)
 
-        self.task.upload_and_cache_assets()
         self.task.save()
+        self.task.upload_and_cache_assets()
 
         return {"success": True, "uploaded": [get_file_name(filepath)]}
 
