@@ -142,9 +142,7 @@ class TaskFilesUploader:
 
         if not ignore_upload_to_s3:
             self.task.upload_and_cache_assets()
-        self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.save()
 
         return {"success": True, "uploaded": uploaded_files}
 
@@ -237,9 +235,7 @@ class TaskFilesUploader:
         assets_uploaded.append("fotos/metadata.json")
 
         self.task.upload_and_cache_assets()
-        self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.save()
 
         return {
             "success": True,
@@ -302,9 +298,7 @@ class TaskFilesUploader:
         assets_uploaded.append("videos/metadata.json")
 
         self.task.upload_and_cache_assets()
-        self.task.refresh_from_db()
         self._concat_to_available_assets(assets_uploaded)
-        self.task.save()
 
         return {
             "success": True,
@@ -459,11 +453,12 @@ class TaskFilesUploader:
         return existing_files_index[-1] if len(existing_files_index) > 0 else 0
 
     def _concat_to_available_assets(self, assets: list[str]):
-        self.task.available_assets = [
-            asset
-            for asset in (self.task.available_assets + assets)
-            if asset not in self.task.available_assets
+        self.task.refresh_from_db()
+        unique_assets = [
+            asset for asset in assets if assets not in self.task.available_assets
         ]
+        self.task.available_assets += unique_assets
+        self.task.save()
 
     def _create_thumbnail(self, image_path: str, tamanho=(200, 200)):
         imagem = Image.open(image_path)
