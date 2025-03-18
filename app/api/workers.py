@@ -52,7 +52,7 @@ class GetTaskResult(APIView):
             result = res.get()
 
             if result.get("error", None) is not None:
-                msg = self.on_error(result)
+                msg = result["error"]
                 return Response({"ready": True, "error": msg})
 
             file = result.get("file", None)  # File path
