@@ -1078,7 +1078,7 @@ class Task(models.Model):
                 return
 
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
-                self.upload_and_cache_assets()
+                self._upload_all_assets_and_cache_assets()
                 self.pending_action = None
                 self.save()
                 return
@@ -1926,10 +1926,10 @@ class Task(models.Model):
         except Exception as e:
             logger.warn("Cannot update size for task {}: {}".format(self, str(e)))
 
-    def upload_and_cache_assets(self):
-        files_uploadeds = self._upload_assets_to_s3()
+    def upload_and_cache_assets(self, assets: list[str]):
+        files_uploadeds = self._upload_assets_to_s3(assets)
         for file in files_uploadeds:
-            worker_cache_files_tasks.download_and_add_to_cache.delay(file, False)
+            worker_cache_files_tasks.add_local_file_to_redis_cache.delay(file)
 
     def remove_from_your_node(self):
         if self.processing_node:
@@ -1957,14 +1957,8 @@ class Task(models.Model):
 
         return False
 
-    def _create_task_s3_download_dir(self):
-        fotos_s3_dir = self.task_path()
-        ensure_path_exists(fotos_s3_dir)
-        return fotos_s3_dir
-
-    def _upload_assets_to_s3(self):
+    def _upload_assets_to_s3(self, assets_to_upload: list[str]):
         s3_bucket = settings.S3_BUCKET
-        files_to_upload = self._all_assets_needs_upload_to_s3()
         files_uploadeds = []
         self.uploading_s3_progress = 0.0
         self.save()
@@ -2005,7 +1999,7 @@ class Task(models.Model):
                 )
                 return
 
-            for file_to_upload in files_to_upload:
+            for file_to_upload in assets_to_upload:
                 if not os.path.exists(file_to_upload):
                     continue
 
@@ -2020,7 +2014,7 @@ class Task(models.Model):
                         f"Asset '{file_to_upload}' already saved on s3, no need reupload."
                     )
                     self._update_upload_progress(
-                        files_uploadeds, len(files_to_upload), 1
+                        files_uploadeds, len(assets_to_upload), 1
                     )
                     logger.info(
                         "Upload to S3 percent {}%".format(
@@ -2041,7 +2035,7 @@ class Task(models.Model):
                         s3_bucket,
                         s3_key,
                         Callback=UploadProgressCallback(
-                            self, files_uploadeds, file_size, len(files_to_upload)
+                            self, files_uploadeds, file_size, len(assets_to_upload)
                         ),
                         ExtraArgs={
                             "Metadata": {
@@ -2057,6 +2051,15 @@ class Task(models.Model):
             raise NodeServerError(e)
 
         return files_uploadeds
+
+    def _upload_all_assets_and_cache_assets(self):
+        files_to_upload = self._all_assets_needs_upload_to_s3()
+        return self.upload_and_cache_assets(files_to_upload)
+
+    def _create_task_s3_download_dir(self):
+        fotos_s3_dir = self.task_path()
+        ensure_path_exists(fotos_s3_dir)
+        return fotos_s3_dir
 
     def _get_all_assets_files(self):
         task_path = self.task_path()
