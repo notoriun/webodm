@@ -257,24 +257,33 @@ def seek_and_populate_redis_cache():
 
     for project in projects_exists:
         for file in project.all_files():
-            try:
-                file_stat = os.stat(file)
-                file_size = file_stat.st_size
+            add_local_file_to_redis_cache.delay(file)
 
-                can_add_to_cache = _check_cache_has_space(file_size)
 
-                if not can_add_to_cache:
-                    os.remove(file)
-                    continue
+@app.task()
+def add_local_file_to_redis_cache(file_path: str):
+    import os
 
-                with s3_cache_lock():
-                    new_cache = update_file_in_cache(file)
+    logger.info(f"Starting to add {file_path} to redis cache...")
 
-                logger.info(f"New cache: {new_cache}")
-            except Exception as e:
-                logger.warning(
-                    f"Error on set file({file}) on redis cache. Error: {str(e)}"
-                )
+    try:
+        file_stat = os.stat(file_path)
+        file_size = file_stat.st_size
+
+        can_add_to_cache = _check_cache_has_space(file_size)
+
+        if not can_add_to_cache:
+            os.remove(file_path)
+            return
+
+        with s3_cache_lock():
+            new_cache = update_file_in_cache(file_path)
+
+        logger.info(f"New cache: {new_cache}")
+    except Exception as e:
+        logger.warning(
+            f"Error on set file({file_path}) on redis cache. Error: {str(e)}"
+        )
 
 
 def _check_cache_has_space(space_need: int):

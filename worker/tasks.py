@@ -199,13 +199,19 @@ def get_pending_tasks():
     # or tasks that have a pending action
     # no partial tasks allowed
     return Task.objects.filter(
-        Q(processing_node__isnull=True, auto_processing_node=True, partial=False)
+        Q(
+            processing_node__isnull=True,
+            auto_processing_node=True,
+            partial=False,
+            upload_in_progress=False,
+        )
         | Q(
             Q(status=None) | Q(status__in=[status_codes.QUEUED, status_codes.RUNNING]),
             processing_node__isnull=False,
             partial=False,
+            upload_in_progress=False,
         )
-        | Q(pending_action__isnull=False, partial=False)
+        | Q(pending_action__isnull=False, partial=False, upload_in_progress=False)
     )
 
 

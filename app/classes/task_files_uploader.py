@@ -45,9 +45,6 @@ class TaskFilesUploader:
         upload_type: str,
     ):
         try:
-            self.task.status = None
-            self.task.last_error = None
-            self.task.pending_action = None
             self.task_upload_in_progress(True)
             local_files_path = [file["path"] for file in local_files_to_upload]
             s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
@@ -69,7 +66,6 @@ class TaskFilesUploader:
 
             return response
         except Exception as e:
-            self.task.set_failure(str(e))
             self.task_upload_in_progress(False)
             raise e
 
@@ -141,7 +137,7 @@ class TaskFilesUploader:
         assets_uploaded.append("fotos_360/metadata.json")
 
         if not ignore_upload_to_s3:
-            self.task.upload_and_cache_assets()
+            self._upload_task_assets(assets_uploaded)
         self._concat_to_available_assets(assets_uploaded)
 
         return {"success": True, "uploaded": uploaded_files}
@@ -234,7 +230,7 @@ class TaskFilesUploader:
         # Adicionar metadata.json em available_assets
         assets_uploaded.append("fotos/metadata.json")
 
-        self.task.upload_and_cache_assets()
+        self._upload_task_assets(assets_uploaded)
         self._concat_to_available_assets(assets_uploaded)
 
         return {
@@ -297,7 +293,7 @@ class TaskFilesUploader:
         # Adicionar metadata.json em available_assets
         assets_uploaded.append("videos/metadata.json")
 
-        self.task.upload_and_cache_assets()
+        self._upload_task_assets(assets_uploaded)
         self._concat_to_available_assets(assets_uploaded)
 
         return {
@@ -334,9 +330,9 @@ class TaskFilesUploader:
             return {"success": False}
 
         # Adicionar a informação em available_assets
-        self.task.upload_and_cache_assets()
+        asset_info = "foto_giga/metadata.dzi"
+        self._upload_task_assets([asset_info])
         self.task.refresh_from_db()
-        asset_info = f"foto_giga/metadata.dzi"
         self.task.available_assets = [
             asset
             for asset in self.task.available_assets
@@ -470,6 +466,11 @@ class TaskFilesUploader:
         imagem.save(thumbnail_path, format=imagem.format)
 
         return thumbnail_path
+
+    def _upload_task_assets(self, assets: list[str]):
+        self.task.upload_and_cache_assets(
+            [self.task.assets_path(asset) for asset in assets]
+        )
 
 
 def get_exif_data(image):
