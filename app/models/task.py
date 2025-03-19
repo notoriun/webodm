@@ -1957,6 +1957,15 @@ class Task(models.Model):
 
         return False
 
+    def list_s3_available_assets(self):
+        s3_assets_key = convert_task_path_to_s3(self.assets_path())
+        ignore_keys = self._list_s3_root_images()
+        return [
+            remove_path_from_path(asset_key, s3_assets_key)
+            for asset_key in self.scan_s3_assets()
+            if asset_key not in ignore_keys
+        ]
+
     def _upload_assets_to_s3(self, assets_to_upload: list[str]):
         s3_bucket = settings.S3_BUCKET
         files_uploadeds = []
