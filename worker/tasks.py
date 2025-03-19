@@ -8,6 +8,7 @@ import time
 
 from threading import Event, Thread
 from celery.utils.log import get_task_logger
+from celery.exceptions import MaxRetriesExceededError
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import Q
@@ -321,14 +322,23 @@ def check_quotas():
             p.clear_quota_deadline()
 
 
-@app.task(bind=True)
+@app.task(bind=True, max_retries=10)
 def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
-    try:
-        logger.info(
-            f"Start upload files {files_to_upload} and s3 images {s3_images} of type {upload_type} to task {task_id}"
-        )
+    logger.info(
+        f"Start upload files {files_to_upload} and s3 images {s3_images} of type {upload_type} to task {task_id}"
+    )
 
-        uploader = TaskFilesUploader(task_id)
+    uploader = TaskFilesUploader(task_id)
+
+    if uploader.task_already_uploading():
+        try:
+            raise self.retry(countdown=5)
+        except MaxRetriesExceededError:
+            raise Exception(
+                f"[MAX_RETRIES_ERROR]: O upload na {str(uploader.task)} falhou. Tente novamente"
+            )
+
+    try:
         result = uploader.upload_files(files_to_upload, s3_images, upload_type)
         logger.info(f"upload task finished with result {result}")
 
