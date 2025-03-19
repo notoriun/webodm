@@ -17,10 +17,9 @@ class ProcessingNodesManager:
     def improve_processing_nodes_performance(self):
         self._logger.info("Start improve processing nodes performance")
 
-        if not self._has_more_than_one_node():
-            return
+        if self._has_more_than_one_node():
+            self._remove_offline_nodes()
 
-        self._remove_offline_nodes()
         self._update_queued_tasks_to_free_node()
 
     def _remove_offline_nodes(self):
@@ -68,11 +67,11 @@ class ProcessingNodesManager:
     def _update_queued_tasks_to_free_node(self):
         self._logger.info("Start to update node of queued tasks to a free node")
 
-        queued_tasks = self._queued_tasks()
-        queued_tasks_count = queued_tasks.count()
+        tasks_needs_other_node = self._queued_tasks_or_without_node()
+        tasks_needs_other_node_count = tasks_needs_other_node.count()
 
-        if queued_tasks_count == 0:
-            self._logger.info("Not found queued tasks")
+        if tasks_needs_other_node_count == 0:
+            self._logger.info("Any task needs a new node")
             return
 
         free_nodes = self._free_nodes()
@@ -83,12 +82,12 @@ class ProcessingNodesManager:
             return
 
         self._logger.info(
-            f"Found {free_nodes_count} free nodes and {queued_tasks_count} tasks in some queue. Reassinging.."
+            f"Found {free_nodes_count} free nodes and {tasks_needs_other_node_count} tasks in some queue. Reassinging.."
         )
 
         offline_nodes = []
 
-        for task in queued_tasks:
+        for task in tasks_needs_other_node:
             next_free_node = free_nodes.exclude(pk__in=offline_nodes).first()
 
             while next_free_node and next_free_node.confirm_is_offline():
@@ -117,8 +116,10 @@ class ProcessingNodesManager:
             )
             self._assign_task_to_node(task, next_free_node)
 
-    def _queued_tasks(self):
-        return Task.objects.filter(status=status_codes.QUEUED)
+    def _queued_tasks_or_without_node(self):
+        return Task.objects.filter(
+            Q(status=status_codes.QUEUED) | Q(processing_node__isnull=True)
+        )
 
     def _free_nodes(self):
         return ProcessingNode.objects.annotate(
