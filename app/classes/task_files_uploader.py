@@ -456,9 +456,18 @@ class TaskFilesUploader:
         return existing_files_index[-1] if len(existing_files_index) > 0 else 0
 
     def _concat_to_available_assets(self, assets: list[str]):
+        Task.objects.filter(pk=self.task.pk).update(
+            available_assets=RawSQL(
+                """
+                (
+                    SELECT array_agg(DISTINCT unnest)
+                    FROM unnest(array_cat(available_assets, %s::varchar[])) AS unnest
+                )
+                """,
+                (assets,)
+            )
+        )
         self.task.refresh_from_db()
-        self.task.available_assets = list(set(self.task.available_assets + assets))
-        self.task.save(update_fields=["available_assets"])
 
     def _update_task(self, *args, **kwargs):
         Task.objects.filter(pk=self.task.pk).update(**kwargs)
