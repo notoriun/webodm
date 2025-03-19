@@ -248,6 +248,10 @@ def convert_task_path_to_s3(task_path: str):
     return task_path.replace(ensure_sep_at_end(settings.MEDIA_ROOT), "")
 
 
+def s3_object_exists(key: str, bucket=settings.S3_BUCKET, s3_client=None):
+    return get_s3_object_metadata(key, bucket, s3_client) != None
+
+
 def _get_valid_s3_client(unsafe_s3_client):
     if (
         isinstance(unsafe_s3_client, BaseClient)

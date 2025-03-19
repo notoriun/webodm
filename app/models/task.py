@@ -60,6 +60,7 @@ from app.utils.s3_utils import (
     append_s3_bucket_prefix,
     convert_task_path_to_s3,
     get_object_checksum,
+    s3_object_exists,
 )
 from app.utils.file_utils import (
     ensure_path_exists,
@@ -638,7 +639,7 @@ class Task(models.Model):
             *args,
         )
 
-    def is_asset_available_slow(self, asset):
+    def is_asset_available_slow(self, asset, use_s3=False):
         """
         Checks whether a particular asset is available in the file system
         Generally this should never be used directly, as it's slow. Use the available_assets field
@@ -646,23 +647,9 @@ class Task(models.Model):
         :param asset: one of ASSETS_MAP keys
         :return: boolean
         """
-        if asset in self.ASSETS_MAP:
-            value = self.ASSETS_MAP[asset]
-            if isinstance(value, str):
-                if os.path.exists(self.assets_path(value)):
-                    return True
-            elif isinstance(value, dict):
-                if "deferred_compress_dir" in value:
-                    if os.path.exists(self.assets_path(value["deferred_compress_dir"])):
-                        return True
-
-        # Additional checks for 'foto360.jpg' and files in 'fotos' or 'videos' directories
-        if asset == "foto360.jpg":
-            return os.path.exists(self.assets_path("foto360.jpg"))
-        if asset.startswith("fotos/") or asset.startswith("videos/"):
-            return os.path.exists(self.assets_path(asset))
-
-        return False
+        return self._check_asset_exists(
+            asset, self._asset_exists_on_s3 if use_s3 else self._asset_exists_on_local
+        )
 
     def get_statistics(self):
         """
@@ -1641,7 +1628,7 @@ class Task(models.Model):
 
         return archive_path
 
-    def update_available_assets_field(self, commit=False):
+    def update_available_assets_field(self, commit=False, use_s3=False):
         """
         Updates the available_assets field with the actual types of assets available
         :param commit: when True also saves the model, otherwise the user should manually call save()
@@ -1657,7 +1644,7 @@ class Task(models.Model):
 
         # Verificar e adicionar novos assets disponíveis
         new_available_assets = [
-            asset for asset in all_assets if self.is_asset_available_slow(asset)
+            asset for asset in all_assets if self.is_asset_available_slow(asset, use_s3)
         ]
         logger.info(
             "New available assets for {}: {}".format(self, new_available_assets)
@@ -2199,3 +2186,33 @@ class Task(models.Model):
             self.save()
         except Exception as e:
             logger.warning(f"Failed on save node_connection_retry. Original error: {e}")
+
+    def _asset_exists_on_local(self, asset_path: str):
+        return os.path.exists(asset_path)
+
+    def _asset_exists_on_s3(self, asset_path: str):
+        s3_key = convert_task_path_to_s3(asset_path)
+        return s3_object_exists(s3_key)
+
+    def _check_asset_exists(self, asset: str, exists_func):
+        if asset in self.ASSETS_MAP:
+            value = self.ASSETS_MAP[asset]
+            if isinstance(value, str):
+                if exists_func(self.assets_path(value)):
+                    return True
+            elif isinstance(value, dict):
+                if "deferred_compress_dir" in value:
+                    if exists_func(self.assets_path(value["deferred_compress_dir"])):
+                        return True
+
+        # Additional checks for 'foto360.jpg' and files in 'fotos' or 'videos' directories
+        if asset == "foto360.jpg":
+            return exists_func(self.assets_path("foto360.jpg"))
+        if (
+            asset.startswith("fotos/")
+            or asset.startswith("videos/")
+            or asset.startswith("foto_giga/")
+        ):
+            return exists_func(self.assets_path(asset))
+
+        return False

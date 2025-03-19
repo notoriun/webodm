@@ -17,10 +17,14 @@ def populate_available_assets(apps, schema_editor):
         migration_task.save()
 
 
+def empty_func(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
         ("app", "0047_move_foto_360"),
     ]
 
-    operations = [migrations.RunPython(populate_available_assets)]
+    operations = [migrations.RunPython(populate_available_assets, empty_func)]
