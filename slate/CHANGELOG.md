@@ -1,5 +1,11 @@
 # Changelog
 
+## Versão 1.0.16
+
+*18-03-25*
+
+- Corrige problemas de paralelismo na sincronização do S3 e banco de dados.
+
 ## Versão 1.0.15
 
 *17-03-25*

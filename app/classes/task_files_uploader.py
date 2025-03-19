@@ -19,6 +19,7 @@ from app.utils.file_utils import ensure_path_exists, get_file_name
 from worker.utils.redis_file_cache import cache_lock
 from webodm import settings
 from rest_framework import exceptions
+from django.db.models.expressions import RawSQL
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -70,8 +71,8 @@ class TaskFilesUploader:
             raise e
 
     def task_upload_in_progress(self, in_progress):
-        self.task.upload_in_progress = in_progress
-        self.task.save()
+        self._update_task(upload_in_progress=in_progress)
+        self.task.refresh_from_db()
 
     def upload_foto360(
         self, local_files: list[str], s3_files: list[str], ignore_upload_to_s3=False
@@ -142,6 +143,9 @@ class TaskFilesUploader:
 
         return {"success": True, "uploaded": uploaded_files}
 
+    def task_already_uploading(self):
+        return self.task.upload_in_progress
+
     def _refresh_task(self):
         self._task_loaded = Task.objects.get(pk=self._task_id)
 
@@ -167,7 +171,7 @@ class TaskFilesUploader:
         self.task.refresh_from_db()
         self.task.images_count = len(self.task.scan_images())
         self.task.s3_images += s3_images_with_bucket
-        self.task.save()
+        self.task.save(update_fields=["s3_images", "images_count"])
 
         return {"success": True, "uploaded": result}
 
@@ -219,7 +223,7 @@ class TaskFilesUploader:
                     "altitude": lat_lon_alt[2] or 0,
                 }
 
-                uploaded_files.append(get_file_name(filepath))
+                uploaded_files.append(filename)
             except Exception as e:
                 logger.error(f"Upload foto error: {e}")
                 continue
@@ -333,15 +337,18 @@ class TaskFilesUploader:
         asset_info = "foto_giga/metadata.dzi"
         self._upload_task_assets([asset_info])
         self.task.refresh_from_db()
-        self.task.available_assets = [
-            asset
-            for asset in self.task.available_assets
-            if not ("foto_giga" in asset or "metadata.dzi" in asset)
-        ]
-        if asset_info not in self.task.available_assets:
-            self.task.available_assets.append(asset_info)
 
-        self.task.save()
+        self._update_task(
+            available_assets=RawSQL(
+                """array_cat(
+                    ARRAY(
+                        SELECT unnest(available_assets)
+                        WHERE unnest NOT LIKE '%foto_giga%' 
+                        AND unnest NOT LIKE '%metadata.dzi%'
+                    ), %s::varchar[])""",
+                ([asset_info],),
+            )
+        )
 
         return {"success": True, "uploaded": [get_file_name(filepath)]}
 
@@ -450,11 +457,12 @@ class TaskFilesUploader:
 
     def _concat_to_available_assets(self, assets: list[str]):
         self.task.refresh_from_db()
-        unique_assets = [
-            asset for asset in assets if assets not in self.task.available_assets
-        ]
-        self.task.available_assets += unique_assets
-        self.task.save()
+        self.task.available_assets = list(set(self.task.available_assets + assets))
+        self.task.save(update_fields=["available_assets"])
+
+    def _update_task(self, *args, **kwargs):
+        Task.objects.filter(pk=self.task.pk).update(**kwargs)
+        self.task.refresh_from_db()
 
     def _create_thumbnail(self, image_path: str, tamanho=(200, 200)):
         imagem = Image.open(image_path)

@@ -48,6 +48,9 @@ class GetTaskResult(APIView):
 
     def get(self, request, celery_task_id=None, **kwargs):
         res = TestSafeAsyncResult(celery_task_id)
+        if res.failed():
+            return Response({"ready": True, "error": str(res.info)})
+
         if res.ready():
             result = res.get()
 
