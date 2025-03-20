@@ -21,6 +21,7 @@ from webodm import settings
 from rest_framework import exceptions
 from django.db.models.expressions import RawSQL
 from django.utils.translation import gettext_lazy as _
+from django.db import transaction
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
@@ -457,18 +458,20 @@ class TaskFilesUploader:
 
     def _concat_to_available_assets(self, assets: list[str]):
         self.task.refresh_from_db()
-        Task.objects.filter(pk=self.task.pk).update(
-            available_assets=RawSQL(
-                """
-                (
-                    SELECT array_agg(DISTINCT unnest)
-                    FROM unnest(array_cat(available_assets, %s::varchar[])) AS unnest
+        with transaction.atomic():
+            Task.objects.select_for_update().get(pk=self.task.pk)
+            Task.objects.filter(pk=self.task.pk).update(
+                available_assets=RawSQL(
+                    """
+                    (
+                        SELECT array_agg(DISTINCT unnest)
+                        FROM unnest(array_cat(available_assets, %s::varchar[])) AS unnest
+                    )
+                    """,
+                    (assets,)
                 )
-                """,
-                (assets,)
             )
-        )
-        self.task.refresh_from_db()
+            self.task.refresh_from_db()
 
     def _update_task(self, *args, **kwargs):
         Task.objects.filter(pk=self.task.pk).update(**kwargs)
