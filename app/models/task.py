@@ -1932,6 +1932,7 @@ class Task(models.Model):
     def remove_from_your_node(self):
         if self.processing_node:
             try:
+                task_node = None
                 if self.uuid and self.processing_node.task_exists(self.uuid):
                     task_node = self.processing_node
                     task_id = self.uuid
