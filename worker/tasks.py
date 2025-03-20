@@ -335,7 +335,7 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
             raise self.retry(countdown=5)
         except MaxRetriesExceededError:
             raise Exception(
-                f"[MAX_RETRIES_ERROR]: O upload na {str(uploader.task)} falhou. Tente novamente"
+                f"[MAX_RETRIES_ERROR]: O upload de {str(files_to_upload + s3_images)} na {str(uploader.task)} falhou. Tente novamente"
             )
 
     try:

@@ -535,6 +535,13 @@ class Task(models.Model):
         help_text=_("Current node connection retry"),
         verbose_name="Current node connection retry",
     )
+    node_error_retry = models.IntegerField(
+        null=False,
+        default=0,
+        blank=False,
+        help_text=_("Current node error retry"),
+        verbose_name="Current node error retry",
+    )
 
     class Meta:
         verbose_name = _("Task")
@@ -1104,6 +1111,7 @@ class Task(models.Model):
                             )
                         )
                         self.node_connection_retry = 0
+                        self.node_error_retry = 0
                         self.save()
 
                 # Processing node assigned, but is offline and no errors
@@ -1174,12 +1182,13 @@ class Task(models.Model):
                         return
 
                     # Refresh task object before committing change
+
+                    logger.info(f"Created task {self.uuid} for process {self}")
+
                     self.refresh_from_db()
                     self.upload_progress = 1.0
                     self.uuid = uuid
                     self.save()
-
-                    # TODO: log process has started processing
 
             if self.pending_action is not None:
                 if self.pending_action == pending_actions.CANCEL:
@@ -1424,7 +1433,8 @@ class Task(models.Model):
                         self.save()
 
         except (NodeServerError, NodeResponseError) as e:
-            self.set_failure(str(e))
+            logger.error(f"Error on process {self}. Error: {e}")
+            self._increase_node_error_retry(e)
         except NodeConnectionError as e:
             logger.warning(
                 "{} connection/timeout error: {}. We'll try reprocessing at the next tick.".format(
@@ -1735,6 +1745,7 @@ class Task(models.Model):
         self.last_error = error_message
         self.status = status_codes.FAILED
         self.pending_action = None
+        self.node_error_retry = 0
         self.save()
 
     def find_all_files_matching(self, regex):
@@ -1932,6 +1943,7 @@ class Task(models.Model):
                 self.last_error = None
                 self.uuid = ""
                 self.node_connection_retry = 0
+                self.node_error_retry = 0
                 self.save()
 
                 if task_node:
@@ -2186,6 +2198,19 @@ class Task(models.Model):
             self.save()
         except Exception as e:
             logger.warning(f"Failed on save node_connection_retry. Original error: {e}")
+
+    def _increase_node_error_retry(self, error: Exception):
+        self.node_error_retry += 1
+
+        if self.node_error_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+            self.set_failure(str(error))
+            return
+
+        try:
+            self.remove_from_your_node()
+            self.save()
+        except Exception as e:
+            logger.warning(f"Failed on save node_error_retry. Original error: {e}")
 
     def _asset_exists_on_local(self, asset_path: str):
         return os.path.exists(asset_path)
