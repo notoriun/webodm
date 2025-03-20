@@ -456,6 +456,7 @@ class TaskFilesUploader:
         return existing_files_index[-1] if len(existing_files_index) > 0 else 0
 
     def _concat_to_available_assets(self, assets: list[str]):
+        self.task.refresh_from_db()
         Task.objects.filter(pk=self.task.pk).update(
             available_assets=RawSQL(
                 """
