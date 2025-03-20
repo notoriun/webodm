@@ -1111,6 +1111,7 @@ class Task(models.Model):
                             )
                         )
                         self.node_connection_retry = 0
+                        self.node_error_retry = 0
                         self.save()
 
                 # Processing node assigned, but is offline and no errors
@@ -1942,6 +1943,7 @@ class Task(models.Model):
                 self.last_error = None
                 self.uuid = ""
                 self.node_connection_retry = 0
+                self.node_error_retry = 0
                 self.save()
 
                 if task_node:

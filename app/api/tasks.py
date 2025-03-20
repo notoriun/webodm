@@ -215,6 +215,7 @@ class TaskViewSet(viewsets.ViewSet):
         task.partial = False  # Otherwise this will not be processed
         task.last_error = None
         task.node_connection_retry = 0
+        task.node_error_retry = 0
         task.save()
 
         # Process task right away

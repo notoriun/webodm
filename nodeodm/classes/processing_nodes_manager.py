@@ -148,6 +148,7 @@ class ProcessingNodesManager:
             task.last_error = None
             task.uuid = ""
             task.node_connection_retry = 0
+            task.node_error_retry = 0
             task.save()
 
             return True
