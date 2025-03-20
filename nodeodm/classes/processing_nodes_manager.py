@@ -119,6 +119,12 @@ class ProcessingNodesManager:
     def _queued_tasks_or_without_node(self):
         return Task.objects.filter(
             Q(status=status_codes.QUEUED) | Q(processing_node__isnull=True)
+        ).exclude(
+            status__in=(
+                status_codes.COMPLETED,
+                status_codes.CANCELED,
+                status_codes.FAILED,
+            )
         )
 
     def _free_nodes(self):
