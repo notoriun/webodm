@@ -1,5 +1,12 @@
 # Changelog
 
+## Versão 1.0.17
+
+*20-03-25*
+
+- Aprimoramento do controle de transações.
+- Adiciona novos logs para depuração.
+
 ## Versão 1.0.16
 
 *19-03-25*
