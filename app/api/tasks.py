@@ -110,6 +110,7 @@ class TaskSerializer(serializers.ModelSerializer):
     can_rerun_from = serializers.SerializerMethodField()
     statistics = serializers.SerializerMethodField()
     available_assets = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     tags = TagsField(required=False)
 
     def get_processing_node_name(self, obj):
@@ -149,6 +150,9 @@ class TaskSerializer(serializers.ModelSerializer):
         return obj.assets.filter(status=task_asset_status.SUCCESS).values_list(
             "name", flat=True
         )
+
+    def get_status(self, obj):
+        return obj.status if obj.status is not None else 60
 
     class Meta:
         model = models.Task

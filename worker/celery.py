@@ -32,12 +32,12 @@ app.conf.beat_schedule = {
     "process-pending-tasks": {
         "task": "worker.tasks.process_pending_tasks",
         "schedule": 5,
-        "options": {"expires": 2, "retry": False},
+        "options": {"expires": 3, "retry": False, "priority": 9},
     },
-    "watch-has-offline-nodes": {
+    "manage-processing-nodes": {
         "task": "worker.tasks.manage_processing_nodes",
-        "schedule": 5,
-        "options": {"expires": 2, "retry": False},
+        "schedule": 30,
+        "options": {"expires": 10, "retry": False, "priority": 5},
     },
     "check-quotas": {
         "task": "worker.tasks.check_quotas",
