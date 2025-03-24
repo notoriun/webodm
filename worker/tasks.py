@@ -88,22 +88,6 @@ def cleanup_projects():
 
 
 @app.task(ignore_result=True)
-def cleanup_tasks():
-    # Delete tasks that are older than
-    if settings.CLEANUP_PARTIAL_TASKS is None:
-        return
-
-    tasks_to_delete = Task.objects.filter(
-        partial=True,
-        created_at__lte=timezone.now()
-        - timedelta(hours=settings.CLEANUP_PARTIAL_TASKS),
-    )
-    for t in tasks_to_delete:
-        logger.info("Cleaning up partial task {}".format(t))
-        t.delete()
-
-
-@app.task(ignore_result=True)
 def cleanup_tmp_directory():
     # Delete files and folder in the tmp directory that are
     # older than 24 hours
