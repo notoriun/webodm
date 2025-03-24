@@ -16,7 +16,8 @@ from app.utils.s3_utils import (
 from app.utils.file_utils import ensure_path_exists, get_file_name
 from webodm import settings
 from rest_framework import exceptions
-from django.db.models import Q
+from django.db.models import Q, IntegerField, F, Func, Value
+from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -373,16 +374,32 @@ class TaskFilesUploader:
                 task=self.task,
                 type=asset_type,
             )
+            .annotate(
+                numero=Cast(
+                    Func(
+                        Func(
+                            F("name"),
+                            Value(name_prefix),
+                            Value(""),
+                            function="REGEXP_REPLACE",
+                        ),
+                        Value(name_suffix),
+                        Value(""),
+                        function="REGEXP_REPLACE",
+                    ),
+                    IntegerField(),
+                )
+            )
             .filter(Q(name__icontains=name_prefix) & Q(name__icontains=name_suffix))
             .exclude(name__icontains="metadata.json")
-            .order_by("-name")
+            .order_by("-numero")
             .first()
         )
 
         if not last_asset:
             return 0
 
-        return int(last_asset.name.split(name_prefix)[1].split(name_suffix)[0])
+        return last_asset.numero
 
     def _concat_to_available_assets(self, assets: list[TaskAsset]):
         TaskAsset.objects.filter(pk__in=(asset.pk for asset in assets)).update(
