@@ -1,10 +1,18 @@
 # Changelog
 
+## Versão 1.0.17
+
+*20-03-25*
+
+- Aprimoramento do controle de transações.
+- Adiciona novos logs para depuração.
+
 ## Versão 1.0.16
 
-*18-03-25*
+*19-03-25*
 
 - Corrige problemas de paralelismo na sincronização do S3 e banco de dados.
+- Corrige problemas de tarefas (tasks) zumbis no servidor.
 
 ## Versão 1.0.15
 

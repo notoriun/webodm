@@ -18,6 +18,7 @@ from webodm import settings
 from rest_framework import exceptions
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django.db import transaction
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
