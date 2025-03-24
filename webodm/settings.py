@@ -407,10 +407,11 @@ DOCS_LINK = "https://docs.opendronemap.org"
 
 # Link to task options docs
 TASK_OPTIONS_DOCS_LINK = "https://docs.opendronemap.org/arguments/"
-TASK_MAX_NODE_CONNECTION_RETRIES = os.environ.get(
-    "WO_TASK_MAX_NODE_CONNECTION_RETRIES", 3
+TASK_MAX_NODE_CONNECTION_RETRIES = int(
+    os.environ.get("WO_TASK_MAX_NODE_CONNECTION_RETRIES", "3")
 )
-TASK_MAX_NODE_ERROR_RETRIES = os.environ.get("WO_TASK_MAX_NODE_ERROR_RETRIES", 3)
+TASK_MAX_NODE_ERROR_RETRIES = int(os.environ.get("WO_TASK_MAX_NODE_ERROR_RETRIES", "3"))
+TASK_MAX_UPLOAD_RETRIES = int(os.environ.get("WO_TASK_MAX_UPLOAD_RETRIES", "127"))
 
 if TESTING or FLUSHING:
     CELERY_TASK_ALWAYS_EAGER = True
