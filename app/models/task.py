@@ -13,7 +13,6 @@ import uuid as uuid_module
 import worker.cache_files as worker_cache_files_tasks
 
 from datetime import datetime
-from app.vendor import zipfly
 
 
 from shutil import copyfile
@@ -30,9 +29,11 @@ from django.db import connection
 from django.utils import timezone
 from urllib3.exceptions import ReadTimeoutError
 
-from app import pending_actions
 from django.contrib.gis.db.models.fields import GeometryField
 
+from .task_asset import TaskAsset
+from app import pending_actions, task_asset_status, task_asset_type
+from app.vendor import zipfly
 from app.cogeo import assure_cogeo
 from app.pointcloud_utils import is_pointcloud_georeferenced
 from app.testwatch import testWatch
@@ -363,13 +364,6 @@ class Task(models.Model):
         help_text=_("Options that are being used to process this task"),
         validators=[validate_task_options],
         verbose_name=_("Options"),
-    )
-    available_assets = fields.ArrayField(
-        models.CharField(max_length=80),
-        default=list,
-        blank=True,
-        help_text=_("List of available assets to download"),
-        verbose_name=_("Available Assets"),
     )
 
     orthophoto_extent = GeometryField(
@@ -892,7 +886,7 @@ class Task(models.Model):
 
     def handle_import(self):
         self.console += gettext("Importing assets...") + "\n"
-        self.save()
+        self.save(update_fields=["console"])
 
         zip_path = self.assets_path("all.zip")
         # Import assets file from mounted system volume (media-dir)/imports by relative path.
@@ -991,7 +985,7 @@ class Task(models.Model):
     def handle_s3_import(self):
         logger.info("donwloading images from s3")
         self.downloading_s3_progress = 0.0
-        self.save()
+        self.save(update_fields=["downloading_s3_progress"])
 
         class DownloadProgressCallback(object):
             def __init__(self, task: Task, downloaded_images, total_size):
@@ -1074,7 +1068,7 @@ class Task(models.Model):
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
                 self._upload_all_assets_and_cache_assets()
                 self.pending_action = None
-                self.save()
+                self.save(update_fields=["pending_action"])
                 return
 
             if self.pending_action in [
@@ -1112,7 +1106,9 @@ class Task(models.Model):
                         )
                         self.node_connection_retry = 0
                         self.node_error_retry = 0
-                        self.save()
+                        self.save(
+                            update_fields=("node_connection_retry", "node_error_retry")
+                        )
 
                 # Processing node assigned, but is offline and no errors
                 if self.processing_node and not self.processing_node.is_online():
@@ -1149,7 +1145,7 @@ class Task(models.Model):
 
                     if len(self.scan_images()) == 0 and len(self.s3_images) > 0:
                         self.pending_action = pending_actions.IMPORT_FROM_S3
-                        self.save()
+                        self.save(update_fields=("pending_action",))
                         self.handle_s3_import()
                         self._try_download_root_images_from_s3()
 
@@ -1183,12 +1179,12 @@ class Task(models.Model):
 
                     # Refresh task object before committing change
 
-                    logger.info(f"Created task {self.uuid} for process {self}")
+                    logger.info(f"Created task {uuid} for process {self}")
 
                     self.refresh_from_db()
                     self.upload_progress = 1.0
                     self.uuid = uuid
-                    self.save()
+                    self.save(update_fields=("upload_progress", "uuid"))
 
             if self.pending_action is not None:
                 if self.pending_action == pending_actions.CANCEL:
@@ -1208,12 +1204,12 @@ class Task(models.Model):
 
                         self.status = status_codes.CANCELED
                         self.pending_action = None
-                        self.save()
+                        self.save(update_fields=("status", "pending_action"))
                     else:
                         # Tasks with no processing node or UUID need no special action
                         self.status = status_codes.CANCELED
                         self.pending_action = None
-                        self.save()
+                        self.save(update_fields=("status", "pending_action"))
 
                 elif self.pending_action == pending_actions.RESTART:
                     logger.info("Restarting {}".format(self))
@@ -1221,7 +1217,7 @@ class Task(models.Model):
                     if self.processing_node:
                         if len(self.s3_images) > 0:
                             self.pending_action = pending_actions.IMPORT_FROM_S3
-                            self.save()
+                            self.save(update_fields=("pending_action",))
                             self.handle_s3_import()
 
                         self._try_download_root_images_from_s3()
@@ -1322,7 +1318,7 @@ class Task(models.Model):
                     if not self.processing_node.task_exists(self.uuid):
                         self.pending_action = pending_actions.RESTART
                         self.last_error = None
-                        self.save()
+                        self.save(update_fields=("last_error", "pending_action"))
                         return
 
                     info = self.processing_node.get_task_info(
@@ -1569,23 +1565,24 @@ class Task(models.Model):
         )
 
     def get_map_items(self):
+        available_assets_names = self.list_available_assets_names()
         types = []
-        if "orthophoto.tif" in self.available_assets:
+        if "orthophoto.tif" in available_assets_names:
             types.append("orthophoto")
             types.append("plant")
-        if "dsm.tif" in self.available_assets:
+        if "dsm.tif" in available_assets_names:
             types.append("dsm")
-        if "dtm.tif" in self.available_assets:
+        if "dtm.tif" in available_assets_names:
             types.append("dtm")
 
         camera_shots = ""
-        if "shots.geojson" in self.available_assets:
+        if "shots.geojson" in available_assets_names:
             camera_shots = "/api/projects/{}/tasks/{}/download/shots.geojson".format(
                 self.project.id, self.id
             )
 
         ground_control_points = ""
-        if "ground_control_points.geojson" in self.available_assets:
+        if "ground_control_points.geojson" in available_assets_names:
             ground_control_points = "/api/projects/{}/tasks/{}/download/ground_control_points.geojson".format(
                 self.project.id, self.id
             )
@@ -1613,7 +1610,7 @@ class Task(models.Model):
         return {
             "id": str(self.id),
             "project": self.project.id,
-            "available_assets": self.available_assets,
+            "available_assets": self.list_available_assets_names(),
             "public": self.public,
             "epsg": self.epsg,
         }
@@ -1638,7 +1635,7 @@ class Task(models.Model):
 
         return archive_path
 
-    def update_available_assets_field(self, commit=False, use_s3=False):
+    def update_available_assets_field(self):
         """
         Updates the available_assets field with the actual types of assets available
         :param commit: when True also saves the model, otherwise the user should manually call save()
@@ -1647,29 +1644,33 @@ class Task(models.Model):
         logger.info("All assets: {}".format(all_assets))
 
         # Obter os assets disponíveis atualmente
-        current_available_assets = set(self.available_assets)
+        current_available_assets = set(self.list_available_assets_names())
         logger.info(
             "Current available assets for {}: {}".format(self, current_available_assets)
         )
 
         # Verificar e adicionar novos assets disponíveis
         new_available_assets = [
-            asset for asset in all_assets if self.is_asset_available_slow(asset, use_s3)
+            asset for asset in all_assets if self.is_asset_available_slow(asset)
         ]
         logger.info(
             "New available assets for {}: {}".format(self, new_available_assets)
         )
 
         # Atualizar a lista de available_assets com novos assets
-        updated_available_assets = current_available_assets.union(new_available_assets)
-        self.available_assets = list(updated_available_assets)
+        assets_to_add = set(new_available_assets).difference(current_available_assets)
+        self.list_available_assets().exclude(name__in=current_available_assets).delete()
 
-        logger.info(
-            "Updated available assets for {}: {}".format(self, self.available_assets)
-        )
-
-        if commit:
-            self.save()
+        new_task_assets = [
+            TaskAsset(
+                type=task_asset_type.ORTHOPHOTO,
+                name=asset,
+                task=self,
+                status=task_asset_status.SUCCESS,
+            )
+            for asset in assets_to_add
+        ]
+        TaskAsset.objects.bulk_create(new_task_assets)
 
     def update_epsg_field(self, commit=False):
         """
@@ -1698,7 +1699,7 @@ class Task(models.Model):
 
         self.epsg = epsg
         if commit:
-            self.save()
+            self.save(update_fields=("epsg",))
 
     def update_orthophoto_bands_field(self, commit=False):
         """
@@ -1716,7 +1717,7 @@ class Task(models.Model):
 
         self.orthophoto_bands = bands
         if commit:
-            self.save()
+            self.save(update_fields=("orthophoto_bands",))
 
     def delete(self, using=None, keep_parents=False):
         task_id = self.id
@@ -1917,7 +1918,7 @@ class Task(models.Model):
                         total_bytes += os.path.getsize(fp)
             self.size = total_bytes / 1024 / 1024
             if commit:
-                self.save()
+                self.save(update_fields=("size",))
 
             if clear_quota:
                 self.project.owner.profile.clear_used_quota_cache()
@@ -1966,11 +1967,17 @@ class Task(models.Model):
             if asset_key not in ignore_keys
         ]
 
+    def list_available_assets(self):
+        return TaskAsset.objects.filter(task=self, status=task_asset_status.SUCCESS)
+
+    def list_available_assets_names(self):
+        return (task_asset.name for task_asset in self.list_available_assets())
+
     def _upload_assets_to_s3(self, assets_to_upload: list[str]):
         s3_bucket = settings.S3_BUCKET
         files_uploadeds = []
         self.uploading_s3_progress = 0.0
-        self.save()
+        self.save(update_fields=("uploading_s3_progress",))
 
         if not s3_bucket:
             logger.error(
@@ -2102,13 +2109,13 @@ class Task(models.Model):
         self.downloading_s3_progress = self._calculate_progress_of_images(
             downloaded_images, len(self.s3_images), progress
         )
-        self.save()
+        self.save(update_fields=("downloading_s3_progress",))
 
     def _update_upload_progress(self, uploaded_images, total_images, progress):
         self.uploading_s3_progress = self._calculate_progress_of_images(
             uploaded_images, total_images, progress
         )
-        self.save()
+        self.save(update_fields=("uploading_s3_progress",))
 
     def _calculate_progress_of_images(self, succeded_images, total_images, progress):
         percent_per_image = 1.0 / total_images
@@ -2193,23 +2200,27 @@ class Task(models.Model):
         self.node_connection_retry += 1
 
         if self.node_connection_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+            node = str(self.processing_node)
             self.remove_from_your_node()
+            self.set_failure(str(NodeConnectionError(f"Cannot connect to {node}")))
+            return
 
         try:
-            self.save()
+            self.save(update_fields=("node_connection_retry",))
         except Exception as e:
             logger.warning(f"Failed on save node_connection_retry. Original error: {e}")
 
     def _increase_node_error_retry(self, error: Exception):
-        self.node_error_retry += 1
+        node_error_retry = self.node_error_retry + 1
 
-        if self.node_error_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+        if node_error_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
             self.set_failure(str(error))
             return
 
         try:
             self.remove_from_your_node()
-            self.save()
+            self.node_error_retry = node_error_retry
+            self.save(update_fields=("node_error_retry",))
         except Exception as e:
             logger.warning(f"Failed on save node_error_retry. Original error: {e}")
 

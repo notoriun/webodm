@@ -1,10 +1,8 @@
 import logging
-import tempfile
 
 import os
 import re
 import shutil
-from wsgiref.util import FileWrapper
 
 import mimetypes
 
@@ -31,7 +29,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app import models, pending_actions
+from app import models, pending_actions, task_asset_status, task_asset_type
 from app.classes.task_assets_manager import TaskAssetsManager
 from app.utils.file_utils import get_file_name
 from app.utils.request_files_utils import save_request_file
@@ -111,6 +109,7 @@ class TaskSerializer(serializers.ModelSerializer):
     processing_node_name = serializers.SerializerMethodField()
     can_rerun_from = serializers.SerializerMethodField()
     statistics = serializers.SerializerMethodField()
+    available_assets = serializers.SerializerMethodField()
     tags = TagsField(required=False)
 
     def get_processing_node_name(self, obj):
@@ -145,6 +144,11 @@ class TaskSerializer(serializers.ModelSerializer):
                 return rerun_from_option[0]["domain"]
 
         return []
+
+    def get_available_assets(self, obj):
+        return obj.assets.filter(status=task_asset_status.SUCCESS).values_list(
+            "name", flat=True
+        )
 
     class Meta:
         model = models.Task
@@ -308,7 +312,7 @@ class TaskViewSet(viewsets.ViewSet):
     def upload(self, request, pk=None, project_pk=None, type=""):
         project = get_and_check_project(request, project_pk, ("change_project",))
         files = flatten_files(request.FILES)
-        s3_images = request.data.get("images_download_s3", "")
+        s3_images: str = request.data.get("images_download_s3", "")
         valid_s3_images = self._sanitize_s3_images(s3_images)
 
         if len(files) == 0 and len(valid_s3_images) == 0:
@@ -605,6 +609,39 @@ class TaskAssets(TaskNestedView):
         return download_file_stream(
             request, asset, content_disposition, get_file_name(unsafe_asset_path)
         )
+
+
+class TaskMetadataAssets(TaskNestedView):
+    def get(self, request, pk=None, project_pk=None, asset_type=""):
+        """
+        Downloads a task asset (if available)
+        """
+        task = self.get_and_check_task(request, pk)
+
+        asset_types = {
+            "fotos": task_asset_type.FOTO,
+            "fotos_360": task_asset_type.FOTO_360,
+            "videos": task_asset_type.VIDEO,
+        }
+
+        if asset_type not in asset_types:
+            raise exceptions.ValidationError({"error": "Invalid asset type."})
+
+        assets = models.TaskAsset.objects.filter(
+            status=task_asset_status.SUCCESS, type=asset_types[asset_type], task=task
+        ).order_by("name")
+        metadata = {}
+
+        for asset in assets:
+            asset_name = asset.name.split("/")[1] if "/" in asset.name else asset.name
+            metadata[asset_name] = {
+                "latitude": asset.latitude,
+                "longitude": asset.longitude,
+                "altitude": asset.altitude,
+                "created_at": asset.created_at,
+            }
+
+        return Response(metadata, status=status.HTTP_200_OK)
 
 
 """
