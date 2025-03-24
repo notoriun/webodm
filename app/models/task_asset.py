@@ -94,3 +94,22 @@ class TaskAsset(models.Model):
         name = self.name if self.name is not None else gettext("unnamed")
 
         return "Asset [{}] ({})".format(name, self.id)
+
+    @staticmethod
+    def get_query_with_numero(name_prefix: str, name_suffix: str):
+        return TaskAsset.objects.annotate(
+            numero=models.Cast(
+                models.Func(
+                    models.Func(
+                        models.F("name"),
+                        models.Value(name_prefix),
+                        models.Value(""),
+                        function="REGEXP_REPLACE",
+                    ),
+                    models.Value(name_suffix),
+                    models.Value(""),
+                    function="REGEXP_REPLACE",
+                ),
+                models.IntegerField(),
+            )
+        )
