@@ -6,6 +6,8 @@ from .setting import Setting
 from .plugin_datum import PluginDatum
 from .plugin import Plugin
 from .profile import Profile
+from .task_asset import TaskAsset
+
 
 # deprecated
 def image_directory_path(image_upload, filename):

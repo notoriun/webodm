@@ -88,22 +88,6 @@ def cleanup_projects():
 
 
 @app.task(ignore_result=True)
-def cleanup_tasks():
-    # Delete tasks that are older than
-    if settings.CLEANUP_PARTIAL_TASKS is None:
-        return
-
-    tasks_to_delete = Task.objects.filter(
-        partial=True,
-        created_at__lte=timezone.now()
-        - timedelta(hours=settings.CLEANUP_PARTIAL_TASKS),
-    )
-    for t in tasks_to_delete:
-        logger.info("Cleaning up partial task {}".format(t))
-        t.delete()
-
-
-@app.task(ignore_result=True)
 def cleanup_tmp_directory():
     # Delete files and folder in the tmp directory that are
     # older than 24 hours
@@ -322,21 +306,13 @@ def check_quotas():
             p.clear_quota_deadline()
 
 
-@app.task(bind=True, max_retries=10)
+@app.task(bind=True, max_retries=settings.TASK_MAX_UPLOAD_RETRIES)
 def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
     logger.info(
         f"Start upload files {files_to_upload} and s3 images {s3_images} of type {upload_type} to task {task_id}"
     )
 
     uploader = TaskFilesUploader(task_id)
-
-    if uploader.task_already_uploading():
-        try:
-            raise self.retry(countdown=5)
-        except MaxRetriesExceededError:
-            raise Exception(
-                f"[MAX_RETRIES_ERROR]: O upload de {str(files_to_upload + s3_images)} na {str(uploader.task)} falhou. Tente novamente"
-            )
 
     try:
         result = uploader.upload_files(files_to_upload, s3_images, upload_type)

@@ -118,13 +118,8 @@ class ProcessingNodesManager:
 
     def _queued_tasks_or_without_node(self):
         return Task.objects.filter(
-            Q(status=status_codes.QUEUED) | Q(processing_node__isnull=True)
-        ).exclude(
-            status__in=(
-                status_codes.COMPLETED,
-                status_codes.CANCELED,
-                status_codes.FAILED,
-            )
+            Q(status=status_codes.QUEUED, partial=False)
+            | Q(processing_node__isnull=True, status__isnull=True, partial=False)
         )
 
     def _free_nodes(self):
@@ -141,10 +136,15 @@ class ProcessingNodesManager:
 
     def _assign_task_to_node(self, task: Task, node: ProcessingNode):
         try:
+            current_status = task.status
             task.status = None
             task.auto_processing_node = True
             task.processing_node = node
-            task.pending_action = pending_actions.RESTART
+            task.pending_action = (
+                pending_actions.RESTART
+                if current_status == status_codes.QUEUED
+                else task.pending_action
+            )
             task.last_error = None
             task.uuid = ""
             task.node_connection_retry = 0

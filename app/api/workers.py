@@ -54,6 +54,9 @@ class GetTaskResult(APIView):
         if res.ready():
             result = res.get()
 
+            if result is None:
+                return Response({"ready": True, "error": None})
+
             if result.get("error", None) is not None:
                 msg = result["error"]
                 return Response({"ready": True, "error": msg})
@@ -61,7 +64,7 @@ class GetTaskResult(APIView):
             file = result.get("file", None)  # File path
             output = result.get("output", None)  # String/object
         else:
-            return Response({"error": "Task not ready"})
+            return Response({"ready": False, "error": "Task not ready"})
 
         if file is not None:
             filename = request.query_params.get("filename", os.path.basename(file))
@@ -93,11 +96,13 @@ class GetTaskResult(APIView):
             try:
                 output = self.handle_output(output, result, **kwargs)
             except TaskResultOutputError as e:
-                return Response({"error": str(e)})
+                return Response({"ready": True, "error": str(e)})
 
-            return Response({"output": output})
+            return Response({"ready": True, "output": output})
         else:
-            return Response({"error": "Invalid task output (cannot find valid key)"})
+            return Response(
+                {"ready": True, "error": "Invalid task output (cannot find valid key)"}
+            )
 
     def handle_output(self, output, result, **kwargs):
         return output
