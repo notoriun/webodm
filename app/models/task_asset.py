@@ -1,6 +1,7 @@
 import uuid as uuid_module
 
 from django.db import models
+from django.db.models.functions import Cast
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
 
@@ -98,7 +99,7 @@ class TaskAsset(models.Model):
     @staticmethod
     def get_query_with_numero(name_prefix: str, name_suffix: str):
         return TaskAsset.objects.annotate(
-            numero=models.Cast(
+            numero=Cast(
                 models.Func(
                     models.Func(
                         models.F("name"),
