@@ -1,5 +1,13 @@
 # Changelog
 
+## Versão 1.0.18
+
+*24-03-25*
+
+- Refactory do controle de recebimento de arquivos (foto, vídeo, foto 360)
+- Adiciona status "60 - WAITING_NODE" a tarefas que não possuem um nó disponível para execução.
+- Melhoria da limpeza de nodes com tarefas zumbis.
+
 ## Versão 1.0.17
 
 *20-03-25*
