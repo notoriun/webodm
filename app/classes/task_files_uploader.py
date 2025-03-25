@@ -123,7 +123,7 @@ class TaskFilesUploader:
                     altitude=lat_lon_alt[2] or 0,
                 )
 
-                shutil.copyfile(filepath, dst_path)
+                shutil.move(filepath, dst_path)
                 self._create_thumbnail(dst_path)
 
                 assets_uploaded.append(task_asset)
@@ -142,7 +142,7 @@ class TaskFilesUploader:
         self._concat_to_available_assets(assets_uploaded)
 
         return {
-            "success": True,
+            "success": len(files_error) == 0,
             "uploaded": uploaded_files,
             "files_with_error": files_error,
         }
@@ -161,7 +161,8 @@ class TaskFilesUploader:
     ):
         logger.info("Upload images")
         files = local_files + [
-            {"path": filepath, "name": get_file_name(filepath)} for filepath in s3_files
+            {"path": filepath, "name": get_file_name(s3_images_with_bucket[i])}
+            for i, filepath in enumerate(s3_files)
         ]
         if len(files) == 0:
             raise exceptions.ValidationError(detail=_("No files uploaded"))
@@ -173,7 +174,7 @@ class TaskFilesUploader:
         self.task.s3_images += s3_images_with_bucket
         self.task.save(update_fields=["s3_images", "images_count"])
 
-        return {"success": True, "uploaded": list(uploaded.keys())}
+        return {"success": True, "uploaded": uploaded}
 
     def _upload_fotos(self, local_files: list[str], s3_files: list[str]):
         # Garantir que o diretório assets/fotos existe
@@ -215,7 +216,7 @@ class TaskFilesUploader:
                     altitude=lat_lon_alt[2] or 0,
                 )
 
-                shutil.copyfile(filepath, dst_path)
+                shutil.move(filepath, dst_path)
 
                 assets_uploaded.append(task_asset)
 
@@ -231,7 +232,7 @@ class TaskFilesUploader:
         self._concat_to_available_assets(assets_uploaded)
 
         return {
-            "success": True,
+            "success": len(files_error) == 0,
             "uploaded": uploaded_files,
             "files_with_error": files_error,
         }
@@ -271,7 +272,7 @@ class TaskFilesUploader:
                     altitude=0,
                 )
 
-                shutil.copyfile(filepath, dst_path)
+                shutil.move(filepath, dst_path)
 
                 assets_uploaded.append(task_asset)
 
@@ -287,7 +288,7 @@ class TaskFilesUploader:
         self._concat_to_available_assets(assets_uploaded)
 
         return {
-            "success": True,
+            "success": len(files_error) == 0,
             "uploaded": uploaded_files,
             "files_with_error": files_error,
         }
@@ -316,7 +317,7 @@ class TaskFilesUploader:
             dst_path = os.path.join(foto_giga_dir, filename)
 
             # Gravar o arquivo no diretório de destino
-            shutil.copyfile(filepath, dst_path)
+            shutil.move(filepath, dst_path)
 
             # Criar arquivos DZI
             create_dzi(dst_path, foto_giga_dir)
