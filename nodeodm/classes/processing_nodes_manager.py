@@ -119,8 +119,17 @@ class ProcessingNodesManager:
 
     def _queued_tasks_or_without_node(self):
         return Task.objects.filter(
-            Q(status=status_codes.QUEUED, partial=False)
-            | Q(processing_node__isnull=True, status__isnull=True, partial=False)
+            Q(partial=False)
+            & (
+                Q(status=status_codes.QUEUED)
+                | (
+                    Q(processing_node__isnull=True)
+                    & (Q(status__isnull=True) | Q(status=status_codes.FAILED))
+                )
+                | Q(
+                    node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES
+                )
+            )
         )
 
     def _free_nodes(self):
@@ -198,7 +207,6 @@ class ProcessingNodesManager:
             tasks_removeds = []
             for uuid_not_exists in uuids_not_exists_on_webodm:
                 try:
-                    node.cancel_task(uuid_not_exists)
                     node.remove_task(uuid_not_exists)
 
                     tasks_removeds.append(uuid_not_exists)
