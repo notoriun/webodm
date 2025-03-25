@@ -472,6 +472,11 @@ def get_video_gps(file_path):
         probe = ffmpeg.probe(file_path)
         tags = probe.get("format", {}).get("tags", {})
         location = tags.get("location")
+        if not location:  # Se location estiver em branco ou não existir
+            gps_latitude = tags.get("gps_latitude")
+            gps_longitude = tags.get("gps_longitude")
+            if gps_latitude and gps_longitude:
+                location = f"{gps_latitude},{gps_longitude}"
         if location:
             # Remove a barra no final da string, se houver
             location = location.rstrip("/")
