@@ -306,7 +306,7 @@ def check_quotas():
             p.clear_quota_deadline()
 
 
-@app.task(bind=True, max_retries=settings.TASK_MAX_UPLOAD_RETRIES)
+@app.task(bind=True, max_retries=settings.TASK_MAX_UPLOAD_RETRIES, priority=8)
 def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
     logger.info(
         f"Start upload files {files_to_upload} and s3 images {s3_images} of type {upload_type} to task {task_id}"

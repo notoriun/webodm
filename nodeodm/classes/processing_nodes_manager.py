@@ -20,6 +20,7 @@ class ProcessingNodesManager:
         if self._has_more_than_one_node():
             self._remove_offline_nodes()
 
+        self._clear_old_tasks_of_nodes()
         self._update_queued_tasks_to_free_node()
 
     def _remove_offline_nodes(self):
@@ -160,3 +161,55 @@ class ProcessingNodesManager:
 
     def _has_more_than_one_node(self):
         return ProcessingNode.objects.all().count() > 1
+
+    def _clear_old_tasks_of_nodes(self):
+        self._logger.info("Starting to remnove old tasks of nodes...")
+
+        nodes_with_greater_queues = ProcessingNode.objects.filter(
+            last_refreshed__gte=timezone.now()
+            - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+        ).order_by("-queue_count")
+
+        for node in nodes_with_greater_queues:
+            self._logger.info(f"Start to clear old tasks of {node}")
+            queued_or_running_tasks = list(node.list_queued_or_running_tasks())
+
+            if len(queued_or_running_tasks) == 0:
+                self._logger.info(f"Not found any old task for {node}. Exiting...")
+                continue
+
+            queued_or_running_uuids: list[str] = [
+                task["uuid"] for task in queued_or_running_tasks
+            ]
+
+            webodm_tasks = self._list_tasks_with(queued_or_running_uuids)
+            existing_tasks = (task.uuid for task in webodm_tasks)
+
+            uuids_not_exists_on_webodm = [
+                id for id in queued_or_running_uuids if id not in existing_tasks
+            ]
+
+            if len(uuids_not_exists_on_webodm) == 0:
+                self._logger.info(
+                    f"All tasks exists, not has old tasks on {node}. Exiting..."
+                )
+                continue
+
+            tasks_removeds = []
+            for uuid_not_exists in uuids_not_exists_on_webodm:
+                try:
+                    node.cancel_task(uuid_not_exists)
+                    node.remove_task(uuid_not_exists)
+
+                    tasks_removeds.append(uuid_not_exists)
+                except Exception as e:
+                    self._logger.warning(
+                        f"Warning cannot remove task {uuid_not_exists}. Original error: {str(e)}"
+                    )
+
+            self._logger.info(
+                f"Removed old tasks of ids ({str(tasks_removeds)}) from node {node}"
+            )
+
+    def _list_tasks_with(self, uuids: list[str]):
+        return Task.objects.filter(uuid__in=uuids)

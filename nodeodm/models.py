@@ -9,6 +9,7 @@ from guardian.models import UserObjectPermissionBase
 from django.utils.translation import gettext_lazy as _
 
 from webodm import settings
+from nodeodm import status_codes
 
 import json
 from pyodm import Node
@@ -310,6 +311,22 @@ class ProcessingNode(models.Model):
                 return False
 
             raise e
+
+    def list_uuid_of_tasks(self):
+        api_client = self.api_client()
+        task_list = api_client.get("/task/list")
+        return (task["uuid"] for task in task_list if "uuid" in task)
+
+    def list_tasks(self):
+        tasks_ids = self.list_uuid_of_tasks()
+        return (self.get_task_info(uuid) for uuid in tasks_ids)
+
+    def list_queued_or_running_tasks(self):
+        return (
+            task
+            for task in self.list_tasks()
+            if task.status in (status_codes.QUEUED, status_codes.RUNNING)
+        )
 
 
 # First time a processing node is created, automatically try to update
