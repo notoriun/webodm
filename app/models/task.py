@@ -886,7 +886,6 @@ class Task(models.Model):
 
     def handle_import(self):
         self.console += gettext("Importing assets...") + "\n"
-        self.save(update_fields=["console"])
 
         zip_path = self.assets_path("all.zip")
         # Import assets file from mounted system volume (media-dir)/imports by relative path.
@@ -1670,6 +1669,11 @@ class Task(models.Model):
             )
             for asset in assets_to_add
         ]
+        TaskAsset.objects.filter(
+            type=task_asset_type.ORTHOPHOTO,
+            task=self,
+            status=task_asset_status.PROCESSING,
+        ).delete()
         TaskAsset.objects.bulk_create(new_task_assets)
 
     def update_epsg_field(self, commit=False):
@@ -1880,6 +1884,15 @@ class Task(models.Model):
         return [obj["Key"] for obj in list_s3_objects(s3_key)]
 
     def scan_images(self):
+        task_assets = TaskAsset.objects.filter(
+            type=task_asset_type.ORTHOPHOTO,
+            task=self,
+            status=task_asset_status.PROCESSING,
+        )
+
+        if task_assets.count() > 0:
+            return [asset.name for asset in task_assets]
+
         return [e.name for e in self._entry_root_images()]
 
     def get_image_path(self, filename):
@@ -1896,8 +1909,15 @@ class Task(models.Model):
 
             tp = self.task_path()
             ensure_path_exists(tp)
-
             dst_path = self.get_image_path(name)
+
+            TaskAsset.objects.create(
+                type=task_asset_type.ORTHOPHOTO,
+                name=dst_path,
+                task=self,
+                status=task_asset_status.PROCESSING,
+            )
+
             shutil.copyfile(file["path"], dst_path)
 
             uploaded[name] = {
@@ -1949,7 +1969,6 @@ class Task(models.Model):
                 self.save()
 
                 if task_node:
-                    task_node.cancel_task(task_id)
                     task_node.remove_task(task_id)
 
                 return True
@@ -2200,8 +2219,10 @@ class Task(models.Model):
         self.node_connection_retry += 1
 
         if self.node_connection_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+            node_connection_retry = self.node_connection_retry
             node = str(self.processing_node)
             self.remove_from_your_node()
+            self.node_connection_retry = node_connection_retry
             self.set_failure(str(NodeConnectionError(f"Cannot connect to {node}")))
             return
 

@@ -122,8 +122,6 @@ class TaskFilesUploader:
                     longitude=lat_lon_alt[1],
                     altitude=lat_lon_alt[2] or 0,
                 )
-                task_asset.save()
-                task_asset_thumb.save()
 
                 shutil.copyfile(filepath, dst_path)
                 self._create_thumbnail(dst_path)
@@ -216,7 +214,6 @@ class TaskFilesUploader:
                     longitude=lat_lon_alt[1],
                     altitude=lat_lon_alt[2] or 0,
                 )
-                task_asset.save()
 
                 shutil.copyfile(filepath, dst_path)
 
@@ -273,7 +270,6 @@ class TaskFilesUploader:
                     longitude=lat_lon[1],
                     altitude=0,
                 )
-                task_asset.save()
 
                 shutil.copyfile(filepath, dst_path)
 
