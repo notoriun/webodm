@@ -1,5 +1,12 @@
 # Changelog
 
+## Versão 1.0.20
+
+*25-03-25*
+
+- Adiciona extração de lat e lon em arquivos de vídeo em mais de um metadata.
+- Altera forma de recebimento de ortofotos evitando duplicidade e arquivos órfãos.
+
 ## Versão 1.0.18
 
 *24-03-25*
