@@ -1142,11 +1142,7 @@ class Task(models.Model):
                 ):
                     logger.info("Processing... {}".format(self))
 
-                    if len(self.scan_images()) == 0 and len(self.s3_images) > 0:
-                        self.pending_action = pending_actions.IMPORT_FROM_S3
-                        self.save(update_fields=("pending_action",))
-                        self.handle_s3_import()
-                        self._try_download_root_images_from_s3()
+                    self._ensure_s3_images_exists()
 
                     images_path = self.task_path()
                     images = [os.path.join(images_path, i) for i in self.scan_images()]
@@ -1214,12 +1210,7 @@ class Task(models.Model):
                     logger.info("Restarting {}".format(self))
 
                     if self.processing_node:
-                        if len(self.s3_images) > 0:
-                            self.pending_action = pending_actions.IMPORT_FROM_S3
-                            self.save(update_fields=("pending_action",))
-                            self.handle_s3_import()
-
-                        self._try_download_root_images_from_s3()
+                        self._ensure_s3_images_exists()
 
                         # Check if the UUID is still valid, as processing nodes purge
                         # results after a set amount of time, the UUID might have been eliminated.
@@ -1900,31 +1891,26 @@ class Task(models.Model):
         return path_traversal_check(p, self.task_path())
 
     def handle_images_upload(self, files: list[dict[str, str]]):
-        uploaded = {}
+        ensure_path_exists(self.task_path())
+        uploaded = []
+
         for file in files:
-            if file is None:
+            if not file:
                 continue
 
-            name = file["name"]
-
-            tp = self.task_path()
-            ensure_path_exists(tp)
-            dst_path = self.get_image_path(name)
+            filename = file["name"]
 
             TaskAsset.objects.create(
                 type=task_asset_type.ORTHOPHOTO,
-                name=dst_path,
+                name=filename,
                 task=self,
                 status=task_asset_status.PROCESSING,
             )
 
-            shutil.copyfile(file["path"], dst_path)
+            dst_path = self.get_image_path(filename)
+            shutil.move(file["path"], dst_path)
 
-            uploaded[name] = {
-                "size": os.path.getsize(dst_path),
-                "origin_path": file["path"],
-                "destiny_path": dst_path,
-            }
+            uploaded.append(filename)
 
         return uploaded
 
@@ -2189,27 +2175,6 @@ class Task(models.Model):
 
         return root_images
 
-    def _try_download_root_images_from_s3(self):
-        s3_images = self._list_s3_root_images()
-
-        if len(s3_images) == 0:
-            return
-
-        task_path = ensure_sep_at_end(self.task_path())
-        ensure_path_exists(task_path)
-
-        s3_client = get_s3_client()
-        for key in s3_images:
-            image_name = get_file_name(key)
-            dst_path = task_path + image_name
-
-            try:
-                download_s3_file(key, dst_path, s3_client)
-            except Exception as e:
-                logger.error(
-                    f"Error on download root files from s3. Original error: {str(e)}"
-                )
-
     def _need_upload_asset(self, current_checksum: str, s3_key: str, s3_client):
         object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
 
@@ -2274,3 +2239,48 @@ class Task(models.Model):
             return exists_func(self.assets_path(asset))
 
         return False
+
+    def _download_images_from_s3_images(self):
+        from app.classes.task_files_uploader import TaskFilesUploader
+
+        current_pending_action = self.pending_action
+        self.pending_action = pending_actions.IMPORT_FROM_S3
+        self.save(update_fields=("pending_action",))
+
+        self._remove_s3_task_assets()
+        uploader = TaskFilesUploader(self.pk)
+        uploader.upload_files([], self.s3_images, "orthophoto")
+
+        self.pending_action = current_pending_action
+        self.save(update_fields=("pending_action",))
+
+    def _ensure_s3_images_exists(self):
+        s3_images_count = len(self.s3_images)
+
+        if s3_images_count == 0:
+            return
+
+        root_images = self._entry_root_images()
+        root_images_count = len(root_images)
+
+        need_download = False
+
+        if s3_images_count != root_images_count:
+            need_download = True
+        else:
+            s3_file_names = [get_file_name(s3_image) for s3_image in self.s3_images]
+            root_images_name = [e.name for e in root_images]
+            need_download = s3_file_names == root_images_name
+
+        if need_download:
+            self._download_images_from_s3_images()
+
+    def _remove_s3_task_assets(self):
+        s3_filenames = [get_file_name(s3_image) for s3_image in self.s3_images]
+
+        TaskAsset.objects.filter(
+            type=task_asset_type.ORTHOPHOTO,
+            task=self,
+            status=task_asset_status.PROCESSING,
+            name__in=s3_filenames,
+        ).delete()
