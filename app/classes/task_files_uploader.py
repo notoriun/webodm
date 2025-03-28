@@ -49,7 +49,9 @@ class TaskFilesUploader:
             s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
 
             if upload_type == "foto":
-                response = self._upload_fotos(local_files_path, s3_downloaded_files)
+                response = self._upload_fotos(
+                    local_files_path, s3_downloaded_files, local_files_to_upload
+                )
             elif upload_type == "video":
                 response = self._upload_videos(local_files_path, s3_downloaded_files)
             elif upload_type == "foto360":
@@ -138,7 +140,7 @@ class TaskFilesUploader:
                 continue
 
         if not ignore_upload_to_s3:
-            self._upload_task_assets(assets_uploaded)
+            self._upload_task_assets_to_s3(assets_uploaded)
         self._concat_to_available_assets(assets_uploaded)
 
         return {
@@ -176,7 +178,12 @@ class TaskFilesUploader:
 
         return {"success": True, "uploaded": uploaded}
 
-    def _upload_fotos(self, local_files: list[str], s3_files: list[str]):
+    def _upload_fotos(
+        self,
+        local_files: list[str],
+        s3_files: list[str],
+        local_files_uploadeds: list[dict[str, str]],
+    ):
         # Garantir que o diretório assets/fotos existe
         logger.info("Upload fotos")
         fotos_dir = self.task.assets_path("fotos")
@@ -188,8 +195,10 @@ class TaskFilesUploader:
         files_error = {}
         uploaded_files = []
 
-        for filepath in files:
+        for i, filepath in enumerate(files):
             try:
+                self._upload_task_asset(local_files_uploadeds[i], task_asset_type.FOTO)
+
                 # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
                 image = Image.open(filepath)
                 exif_data = get_exif_data(image)
@@ -214,6 +223,7 @@ class TaskFilesUploader:
                     latitude=lat_lon_alt[0],
                     longitude=lat_lon_alt[1],
                     altitude=lat_lon_alt[2] or 0,
+                    path=dst_path,
                 )
 
                 shutil.move(filepath, dst_path)
@@ -228,7 +238,7 @@ class TaskFilesUploader:
                 files_error[filepath] = str(e)
                 continue
 
-        self._upload_task_assets(assets_uploaded)
+        self._upload_task_assets_to_s3(assets_uploaded)
         self._concat_to_available_assets(assets_uploaded)
 
         return {
@@ -284,7 +294,7 @@ class TaskFilesUploader:
                 files_error[filepath] = str(e)
                 continue
 
-        self._upload_task_assets(assets_uploaded)
+        self._upload_task_assets_to_s3(assets_uploaded)
         self._concat_to_available_assets(assets_uploaded)
 
         return {
@@ -326,7 +336,7 @@ class TaskFilesUploader:
         except Exception as e:
             return {"success": False}
 
-        self._upload_task_assets([task_asset])
+        self._upload_task_assets_to_s3([task_asset])
 
         return {"success": True, "uploaded": [filename]}
 
@@ -403,10 +413,33 @@ class TaskFilesUploader:
 
         return thumbnail_path
 
-    def _upload_task_assets(self, assets: list[TaskAsset]):
+    def _upload_task_assets_to_s3(self, assets: list[TaskAsset]):
         self.task.upload_and_cache_assets(
             [self.task.assets_path(asset.name) for asset in assets]
         )
+
+    def _upload_task_asset(self, uploaded_file: dict[str, str], asset_type: int):
+        task_asset = TaskAsset.objects.create(
+            type=asset_type,
+            task=self.task,
+            status=task_asset_status.PROCESSING,
+            path=uploaded_file["path"],
+        ).copy_to_type()
+
+        is_valid_or_error = task_asset.is_valid()
+
+        if is_valid_or_error != True:
+            filename = uploaded_file["name"]
+            logger.info(f'Uploaded file "{filename}" with error: {is_valid_or_error}')
+            return None
+
+        task_asset.generate_name(uploaded_file)
+        task_asset.create_asset_file_on_task()
+
+        task_asset.status = task_asset_status.SUCCESS
+        task_asset.save()
+
+        return task_asset
 
 
 def get_exif_data(image):

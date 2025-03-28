@@ -1,6 +1,11 @@
 import os
 import hashlib
 import base64
+import ffmpeg
+import re
+
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
 
 
 def ensure_path_exists(path: str):
@@ -70,3 +75,100 @@ def calculate_sha256(path: str):
         return base64.b64encode(sha256.digest()).decode("utf-8")
     except:
         return None
+
+
+def get_image_location(image_path: str):
+    image = Image.open(image_path)
+    exif_data = _get_exif_data(image)
+    return _get_lat_lon_alt(exif_data)
+
+
+def get_video_location(file_path):
+    try:
+        probe = ffmpeg.probe(file_path)
+        tags = probe.get("format", {}).get("tags", {})
+        location = tags.get("location")
+        if not location:  # Se location estiver em branco ou não existir
+            gps_latitude = tags.get("gps_latitude")
+            gps_longitude = tags.get("gps_longitude")
+            if gps_latitude and gps_longitude:
+                location = f"{gps_latitude},{gps_longitude}"
+        if location:
+            # Remove a barra no final da string, se houver
+            location = location.rstrip("/")
+
+            # Definir a expressão regular para capturar latitude e longitude
+            match = re.match(r"([+-]?\d+\.\d+),?\s*([+-]?\d+\.\d+)", location)
+            if not match:
+                raise ValueError("Formato inválido para a string de localização")
+
+            # Extrair latitude e longitude da correspondência
+            lat_str, lon_str = match.groups()
+
+            # Converter para float
+            latitude = float(lat_str)
+            longitude = float(lon_str)
+            return latitude, longitude
+    except ffmpeg.Error as e:
+        print(e)
+        return None
+    return None
+
+
+def _get_exif_data(image):
+    exif_data = {}
+    info = image._getexif()
+    if info:
+        for tag, value in info.items():
+            decoded = TAGS.get(tag, tag)
+            if decoded == "GPSInfo":
+                gps_data = {}
+                for t in value:
+                    sub_decoded = GPSTAGS.get(t, t)
+                    gps_data[sub_decoded] = value[t]
+                exif_data[decoded] = gps_data
+            else:
+                exif_data[decoded] = value
+
+    return exif_data
+
+
+def _get_lat_lon_alt(exif_data):
+    gps_info = exif_data.get("GPSInfo")
+    if not gps_info:
+        return None
+
+    def get_if_exist(data, key):
+        return data[key] if key in data else None
+
+    lat = get_if_exist(gps_info, GPSTAGS.get(2))  # GPSLatitude
+    lat_ref = get_if_exist(gps_info, GPSTAGS.get(1))  # GPSLatitudeRef
+    lon = get_if_exist(gps_info, GPSTAGS.get(4))  # GPSLongitude
+    lon_ref = get_if_exist(gps_info, GPSTAGS.get(3))  # GPSLongitudeRef
+    alt = get_if_exist(gps_info, GPSTAGS.get(6))  # GPSAltitude
+    alt_ref = get_if_exist(gps_info, GPSTAGS.get(5))  # GPSAltitudeRef
+
+    if lat and lon and lat_ref and lon_ref:
+        lat = _convert_to_degrees(lat, lat_ref)
+        lon = _convert_to_degrees(lon, lon_ref)
+
+        if alt:
+            alt = float(alt)
+            if alt_ref and alt_ref != 0:
+                alt = -alt
+
+        return lat, lon, alt
+    return None
+
+
+def _convert_to_degrees(value, ref):
+    def to_degrees(val):
+        d = float(val[0])
+        m = float(val[1])
+        s = float(val[2])
+        return d + (m / 60.0) + (s / 3600.0)
+
+    degrees = to_degrees(value)
+    if ref in ["S", "W"]:
+        degrees = -degrees
+    return degrees
