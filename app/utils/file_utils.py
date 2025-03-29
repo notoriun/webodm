@@ -4,6 +4,7 @@ import base64
 import ffmpeg
 import re
 
+from io import BytesIO
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
@@ -77,8 +78,8 @@ def calculate_sha256(path: str):
         return None
 
 
-def get_image_location(image_path: str):
-    image = Image.open(image_path)
+def get_image_location(image_path_or_stream):
+    image = Image.open(image_path_or_stream)
     exif_data = _get_exif_data(image)
     return _get_lat_lon_alt(exif_data)
 
@@ -113,6 +114,12 @@ def get_video_location(file_path):
         print(e)
         return None
     return None
+
+
+def move_stream(source_stream: BytesIO, destiny_path: str):
+    with open(destiny_path, "wb") as f:
+        f.write(source_stream.getvalue())
+        f.flush()
 
 
 def _get_exif_data(image):

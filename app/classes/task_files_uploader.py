@@ -50,7 +50,16 @@ class TaskFilesUploader:
 
             if upload_type == "foto":
                 response = self._upload_fotos(
-                    local_files_path, s3_downloaded_files, local_files_to_upload
+                    local_files_path,
+                    s3_downloaded_files,
+                    local_files_to_upload
+                    + [
+                        {
+                            "path": filepath,
+                            "name": get_file_name(filepath),
+                        }
+                        for filepath in s3_files_to_upload
+                    ],
                 )
             elif upload_type == "video":
                 response = self._upload_videos(local_files_path, s3_downloaded_files)
@@ -182,7 +191,7 @@ class TaskFilesUploader:
         self,
         local_files: list[str],
         s3_files: list[str],
-        local_files_uploadeds: list[dict[str, str]],
+        files_uploadeds: list[dict[str, str]],
     ):
         # Garantir que o diretório assets/fotos existe
         logger.info("Upload fotos")
@@ -197,7 +206,7 @@ class TaskFilesUploader:
 
         for i, filepath in enumerate(files):
             try:
-                self._upload_task_asset(local_files_uploadeds[i], task_asset_type.FOTO)
+                self._upload_task_asset(files_uploadeds[i], task_asset_type.FOTO)
 
                 # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
                 image = Image.open(filepath)
@@ -223,7 +232,7 @@ class TaskFilesUploader:
                     latitude=lat_lon_alt[0],
                     longitude=lat_lon_alt[1],
                     altitude=lat_lon_alt[2] or 0,
-                    path=dst_path,
+                    origin_path=dst_path,
                 )
 
                 shutil.move(filepath, dst_path)
@@ -423,7 +432,7 @@ class TaskFilesUploader:
             type=asset_type,
             task=self.task,
             status=task_asset_status.PROCESSING,
-            path=uploaded_file["path"],
+            origin_path=uploaded_file["path"],
         ).copy_to_type()
 
         is_valid_or_error = task_asset.is_valid()

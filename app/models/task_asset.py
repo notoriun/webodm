@@ -1,6 +1,7 @@
 import uuid as uuid_module
-import shutil
+import tempfile
 
+from io import BytesIO
 from typing import Literal, Union
 from django.db import models
 from django.db.models.functions import Cast
@@ -8,7 +9,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
 
 from app import task_asset_type, task_asset_status
-from app.utils import file_utils
+from app.utils import file_utils, s3_utils
 
 
 class TaskAsset(models.Model):
@@ -89,11 +90,13 @@ class TaskAsset(models.Model):
         blank=True,
         null=True,
     )
-    path = models.TextField(
+    origin_path = models.TextField(
         null=False,
         blank=False,
-        help_text=_("The current path of asset"),
-        verbose_name=_("Current path"),
+        help_text=_(
+            "The origin path of asset. If starts with 's3://' that means it's from S3"
+        ),
+        verbose_name=_("Origin path"),
     )
 
     class Meta:
@@ -105,6 +108,8 @@ class TaskAsset(models.Model):
 
         if hasattr(self, "_asset_type"):
             self.type = self._asset_type
+
+        self._s3_object_body_cache = None
 
     def __str__(self):
         name = self.name if self.name is not None else gettext("unnamed")
@@ -125,18 +130,40 @@ class TaskAsset(models.Model):
 
     def create_asset_file_on_task(self):
         asset_filename = file_utils.get_file_name(self.name)
-        destiny_path = self.task.assets_path(self.name)
+        destiny_path = self.path()
         destiny_dir = destiny_path.replace(asset_filename, "")
 
         file_utils.ensure_path_exists(destiny_dir)
-        shutil.move(self.path, destiny_path)
+        file_utils.move_stream(self.file_stream(), destiny_path)
 
-        self.path = destiny_path
-
-        return self.path
+        return destiny_path
 
     def is_valid(self) -> Union[Literal[True], str]:
         return True
+
+    def is_from_s3(self):
+        return self.origin_path.startswith("s3://")
+
+    def path(self) -> str:
+        return self.task.assets_path(self.name)
+
+    def file_stream(self):
+        if self.status == task_asset_status.SUCCESS:
+            return open(self.path(), "rb")
+
+        if self.is_from_s3():
+            return BytesIO(self._s3_object_body())
+
+        return open(self.origin_path, "rb")
+
+    def _s3_object_body(self):
+        if self._s3_object_body_cache is None:
+            s3_object = s3_utils.get_s3_object(
+                s3_utils.remove_s3_bucket_prefix(self.origin_path)
+            )
+            self._s3_object_body_cache = s3_object["Body"].read()
+
+        return self._s3_object_body_cache
 
     @staticmethod
     def get_query_with_numero(name_prefix: str, name_suffix: str):
@@ -181,7 +208,7 @@ class TaskAsset(models.Model):
             "latitude": task_asset.latitude,
             "longitude": task_asset.longitude,
             "altitude": task_asset.altitude,
-            "path": task_asset.path,
+            "origin_path": task_asset.origin_path,
         }
 
         cls = TaskAsset.class_from_type(type)
@@ -193,7 +220,7 @@ class TaskAssetFoto(TaskAsset):
     _asset_type = task_asset_type.FOTO
 
     class Meta:
-        abstract = True
+        proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         last_foto_number = last_task_asset_name_number(
@@ -207,7 +234,7 @@ class TaskAssetFoto(TaskAsset):
         return self._update_location() or "NOT_HAS_LAT_LON"
 
     def _update_location(self):
-        lat_lon_alt = file_utils.get_image_location(self.path)
+        lat_lon_alt = file_utils.get_image_location(self.file_stream())
 
         if not lat_lon_alt:
             return False
@@ -223,7 +250,7 @@ class TaskAssetFoto360(TaskAsset):
     _asset_type = task_asset_type.FOTO_360
 
     class Meta:
-        abstract = True
+        proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         last_foto_number = last_task_asset_name_number(
@@ -237,7 +264,7 @@ class TaskAssetFoto360(TaskAsset):
         return self._update_location() or "NOT_HAS_LAT_LON"
 
     def _update_location(self):
-        lat_lon_alt = file_utils.get_image_location(self.path)
+        lat_lon_alt = file_utils.get_image_location(self.file_stream())
 
         if not lat_lon_alt:
             return False
@@ -253,21 +280,21 @@ class TaskAssetFoto360Thumbnail(TaskAsset):
     _asset_type = task_asset_type.FOTO_360_THUMB
 
     class Meta:
-        abstract = True
+        proxy = True
 
 
 class TaskAssetFotoGiga(TaskAsset):
     _asset_type = task_asset_type.FOTO_GIGA
 
     class Meta:
-        abstract = True
+        proxy = True
 
 
 class TaskAssetVideo(TaskAsset):
     _asset_type = task_asset_type.VIDEO
 
     class Meta:
-        abstract = True
+        proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         last_foto_number = last_task_asset_name_number(
@@ -281,7 +308,10 @@ class TaskAssetVideo(TaskAsset):
         return self._update_location() or "NOT_HAS_LAT_LON"
 
     def _update_location(self):
-        lat_lon_alt = file_utils.get_image_location(self.path)
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".mp4") as temp_file:
+            file_utils.move_stream(self.file_stream(), temp_file.name)
+
+            lat_lon_alt = file_utils.get_video_location(temp_file.name)
 
         if not lat_lon_alt:
             return False
@@ -297,7 +327,7 @@ class TaskAssetOrthophoto(TaskAsset):
     _asset_type = task_asset_type.ORTHOPHOTO
 
     class Meta:
-        abstract = True
+        proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         self.name = original_file_uploaded.get("name", None)
