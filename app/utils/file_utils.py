@@ -4,7 +4,8 @@ import base64
 import ffmpeg
 import re
 
-from io import BytesIO
+from typing import Union
+from io import BytesIO, BufferedReader
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
@@ -116,10 +117,22 @@ def get_video_location(file_path):
     return None
 
 
-def move_stream(source_stream: BytesIO, destiny_path: str):
+def move_stream(source_stream: Union[BytesIO, BufferedReader], destiny_path: str):
     with open(destiny_path, "wb") as f:
-        f.write(source_stream.getvalue())
+        f.write(source_stream.read())
         f.flush()
+
+
+def create_thumbnail(image_path: str, tamanho=(200, 200)):
+    image = Image.open(image_path)
+    image.thumbnail(tamanho)
+
+    name, ext = os.path.splitext(image_path)
+    thumbnail_path = f"{name}_thumb{ext}"
+
+    image.save(thumbnail_path, format=image.format)
+
+    return thumbnail_path
 
 
 def _get_exif_data(image):

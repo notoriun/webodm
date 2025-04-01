@@ -2,10 +2,8 @@ import os
 import shutil
 import ffmpeg
 import re
-import gc
 import logging
 import tempfile
-import xml.etree.ElementTree as ET
 
 from app import task_asset_type, task_asset_status
 from app.models import Task, TaskAsset
@@ -42,35 +40,35 @@ class TaskFilesUploader:
         local_files_to_upload: list[dict[str, str]],
         s3_files_to_upload: list[str],
         upload_type: str,
+        ignore_upload_to_s3=False,
     ):
         try:
             self.task_upload_in_progress(True)
-            local_files_path = [file["path"] for file in local_files_to_upload]
-            s3_downloaded_files = self._download_files_from_s3(s3_files_to_upload)
 
-            if upload_type == "foto":
-                response = self._upload_fotos(
-                    local_files_path,
-                    s3_downloaded_files,
-                    local_files_to_upload
-                    + [
-                        {
-                            "path": filepath,
-                            "name": get_file_name(filepath),
-                        }
-                        for filepath in s3_files_to_upload
-                    ],
+            all_files_uploadeds = self._parse_uploaded_files(
+                local_files_to_upload, s3_files_to_upload
+            )
+            task_asset_upload_type = self._parse_upload_type(upload_type)
+            response = self._create_task_assets(
+                all_files_uploadeds, task_asset_upload_type, ignore_upload_to_s3
+            )
+
+            if task_asset_upload_type == task_asset_type.ORTHOPHOTO:
+                self.task.refresh_from_db()
+                self.task.images_count = len(self.task.scan_images())
+                self.task.s3_images = list(
+                    set(s3_files_to_upload).union(self.task.s3_images)
                 )
-            elif upload_type == "video":
-                response = self._upload_videos(local_files_path, s3_downloaded_files)
-            elif upload_type == "foto360":
-                response = self.upload_foto360(local_files_path, s3_downloaded_files)
-            elif upload_type == "foto_giga":
-                response = self._upload_foto_giga(local_files_path, s3_downloaded_files)
-            else:  # Default to 'orthophoto'
-                response = self._upload_images(
-                    local_files_to_upload, s3_downloaded_files, s3_files_to_upload
-                )
+                self.task.save(update_fields=["s3_images", "images_count"])
+
+            # elif upload_type == "foto360":
+            #     response = self.upload_foto360(local_files_path, s3_downloaded_files)
+            # elif upload_type == "foto_giga":
+            #     response = self._upload_foto_giga(local_files_path, s3_downloaded_files)
+            # else:  # Default to 'orthophoto'
+            #     response = self._upload_images(
+            #         local_files_to_upload, s3_downloaded_files, s3_files_to_upload
+            #     )
 
             self.task_upload_in_progress(False)
 
@@ -86,77 +84,8 @@ class TaskFilesUploader:
     def upload_foto360(
         self, local_files: list[str], s3_files: list[str], ignore_upload_to_s3=False
     ):
-        # Garantir que o diretório assets existe
-        logger.info("Upload foto360")
-        fotos_360_dir = self.task.assets_path("fotos_360")
-        ensure_path_exists(fotos_360_dir)
-
-        # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
-        files = local_files + s3_files
-        assets_uploaded = []
-        files_error = {}
-        uploaded_files = []
-
-        for filepath in files:
-            try:
-                image = Image.open(filepath)
-                exif_data = get_exif_data(image)
-                lat_lon_alt = get_lat_lon_alt(exif_data)
-
-                if not lat_lon_alt:
-                    files_error[filepath] = "NOT_HAS_LAT_LON"
-                    continue
-
-                last_index = self._get_file_index(
-                    task_asset_type.FOTO_360, "fotos_360/foto_360_", ".jpg"
-                )
-                filename = f"foto_360_{last_index + 1}.jpg"
-                thumb_filename = f"foto_360_{last_index + 1}_thumb.jpg"
-                dst_path = os.path.join(fotos_360_dir, filename)
-                logger.info("Saving file uploaded on: {}".format(dst_path))
-
-                task_asset = TaskAsset.objects.create(
-                    type=task_asset_type.FOTO_360,
-                    name=f"fotos_360/{filename}",
-                    task=self.task,
-                    status=task_asset_status.PROCESSING,
-                    latitude=lat_lon_alt[0],
-                    longitude=lat_lon_alt[1],
-                    altitude=lat_lon_alt[2] or 0,
-                )
-                task_asset_thumb = TaskAsset.objects.create(
-                    type=task_asset_type.FOTO_360_THUMB,
-                    name=f"fotos_360/{thumb_filename}",
-                    task=self.task,
-                    status=task_asset_status.PROCESSING,
-                    latitude=lat_lon_alt[0],
-                    longitude=lat_lon_alt[1],
-                    altitude=lat_lon_alt[2] or 0,
-                )
-
-                shutil.move(filepath, dst_path)
-                self._create_thumbnail(dst_path)
-
-                assets_uploaded.append(task_asset)
-                assets_uploaded.append(task_asset_thumb)
-
-                uploaded_files.append(filename)
-            except Exception as e:
-                logger.error(f"Upload foto 360 error: {e}")
-                task_asset.status = task_asset_status.ERROR
-                task_asset.save(update_fields=("status",))
-                files_error[filepath] = str(e)
-                continue
-
-        if not ignore_upload_to_s3:
-            self._upload_task_assets_to_s3(assets_uploaded)
-        self._concat_to_available_assets(assets_uploaded)
-
-        return {
-            "success": len(files_error) == 0,
-            "uploaded": uploaded_files,
-            "files_with_error": files_error,
-        }
+        files = self._parse_uploaded_files([], local_files + s3_files)
+        return self.upload_files(files, [], "foto360")
 
     def task_already_uploading(self):
         return self.task.upload_in_progress
@@ -186,131 +115,6 @@ class TaskFilesUploader:
         self.task.save(update_fields=["s3_images", "images_count"])
 
         return {"success": True, "uploaded": uploaded}
-
-    def _upload_fotos(
-        self,
-        local_files: list[str],
-        s3_files: list[str],
-        files_uploadeds: list[dict[str, str]],
-    ):
-        # Garantir que o diretório assets/fotos existe
-        logger.info("Upload fotos")
-        fotos_dir = self.task.assets_path("fotos")
-        ensure_path_exists(fotos_dir)
-
-        # Salvar os novos arquivos na pasta assets/fotos com nomes sequenciais
-        files = local_files + s3_files
-        assets_uploaded = []
-        files_error = {}
-        uploaded_files = []
-
-        for i, filepath in enumerate(files):
-            try:
-                self._upload_task_asset(files_uploadeds[i], task_asset_type.FOTO)
-
-                # Para arquivos temporários, abra o arquivo diretamente do caminho temporário
-                image = Image.open(filepath)
-                exif_data = get_exif_data(image)
-                lat_lon_alt = get_lat_lon_alt(exif_data)
-
-                if not lat_lon_alt:
-                    files_error[filepath] = "NOT_HAS_LAT_LON"
-                    continue
-
-                last_index = self._get_file_index(
-                    task_asset_type.FOTO, "fotos/foto_", ".jpg"
-                )
-                filename = f"foto_{last_index + 1}.jpg"
-                dst_path = os.path.join(fotos_dir, filename)
-                logger.info("Saving file uploaded on: {}".format(dst_path))
-
-                task_asset = TaskAsset.objects.create(
-                    type=task_asset_type.FOTO,
-                    name=f"fotos/{filename}",
-                    task=self.task,
-                    status=task_asset_status.PROCESSING,
-                    latitude=lat_lon_alt[0],
-                    longitude=lat_lon_alt[1],
-                    altitude=lat_lon_alt[2] or 0,
-                    origin_path=dst_path,
-                )
-
-                shutil.move(filepath, dst_path)
-
-                assets_uploaded.append(task_asset)
-
-                uploaded_files.append(filename)
-            except Exception as e:
-                logger.error(f"Upload foto error: {e}")
-                task_asset.status = task_asset_status.ERROR
-                task_asset.save(update_fields=("status",))
-                files_error[filepath] = str(e)
-                continue
-
-        self._upload_task_assets_to_s3(assets_uploaded)
-        self._concat_to_available_assets(assets_uploaded)
-
-        return {
-            "success": len(files_error) == 0,
-            "uploaded": uploaded_files,
-            "files_with_error": files_error,
-        }
-
-    def _upload_videos(self, local_files: list[str], s3_files: list[str]):
-        logger.info("Upload videos")
-        videos_dir = self.task.assets_path("videos")
-        ensure_path_exists(videos_dir)
-
-        files = local_files + s3_files
-        assets_uploaded = []
-        files_error = {}
-        uploaded_files = []
-
-        for filepath in files:
-            try:
-                lat_lon = get_video_gps(filepath)
-
-                if not lat_lon:
-                    files_error[filepath] = "NOT_HAS_LAT_LON"
-                    continue
-
-                last_index = self._get_file_index(
-                    task_asset_type.VIDEO, "videos/video_", ".mp4"
-                )
-
-                filename = f"video_{last_index + 1}.mp4"
-                dst_path = os.path.join(videos_dir, filename)
-
-                task_asset = TaskAsset.objects.create(
-                    type=task_asset_type.VIDEO,
-                    name=f"videos/{filename}",
-                    task=self.task,
-                    status=task_asset_status.PROCESSING,
-                    latitude=lat_lon[0],
-                    longitude=lat_lon[1],
-                    altitude=0,
-                )
-
-                shutil.move(filepath, dst_path)
-
-                assets_uploaded.append(task_asset)
-
-                uploaded_files.append(filename)
-            except Exception as e:
-                logger.error(f"Upload video error: {e}")
-                task_asset.status = task_asset_status.ERROR
-                task_asset.save(update_fields=("status",))
-                files_error[filepath] = str(e)
-                continue
-
-        self._upload_task_assets_to_s3(assets_uploaded)
-        self._concat_to_available_assets(assets_uploaded)
-
-        return {
-            "success": len(files_error) == 0,
-            "uploaded": uploaded_files,
-            "files_with_error": files_error,
-        }
 
     def _upload_foto_giga(self, local_files: list[str], s3_files: list[str]):
         logger.info("Upload foto giga")
@@ -424,7 +228,7 @@ class TaskFilesUploader:
 
     def _upload_task_assets_to_s3(self, assets: list[TaskAsset]):
         self.task.upload_and_cache_assets(
-            [self.task.assets_path(asset.name) for asset in assets]
+            [asset.path() for asset in assets if asset.need_upload_to_s3()]
         )
 
     def _upload_task_asset(self, uploaded_file: dict[str, str], asset_type: int):
@@ -439,8 +243,14 @@ class TaskFilesUploader:
 
         if is_valid_or_error != True:
             filename = uploaded_file["name"]
-            logger.info(f'Uploaded file "{filename}" with error: {is_valid_or_error}')
-            return None
+            logger.debug(
+                f'Error on upload file "{filename}". Original error: {is_valid_or_error}'
+            )
+
+            task_asset.status = task_asset_status.ERROR
+            task_asset.save(update_fields=("status",))
+
+            return task_asset, is_valid_or_error
 
         task_asset.generate_name(uploaded_file)
         task_asset.create_asset_file_on_task()
@@ -448,7 +258,66 @@ class TaskFilesUploader:
         task_asset.status = task_asset_status.SUCCESS
         task_asset.save()
 
-        return task_asset
+        return task_asset, None
+
+    def _parse_upload_type(self, upload_type: str):
+        if upload_type == "foto":
+            return task_asset_type.FOTO
+        elif upload_type == "video":
+            return task_asset_type.VIDEO
+        elif upload_type == "foto360":
+            return task_asset_type.FOTO_360
+        elif upload_type == "foto_giga":
+            return task_asset_type.FOTO_GIGA
+        else:  # Default to 'orthophoto'
+            return task_asset_type.ORTHOPHOTO
+
+    def _parse_uploaded_files(
+        self, uploadeds_saved_local: list[dict[str, str]], uploadeds_saved_s3: list[str]
+    ):
+        return uploadeds_saved_local + [
+            {
+                "path": filepath,
+                "name": get_file_name(filepath),
+            }
+            for filepath in uploadeds_saved_s3
+        ]
+
+    def _create_task_assets(
+        self,
+        all_files_uploadeds: list[dict[str, str]],
+        asset_type: int,
+        ignore_upload_to_s3=False,
+    ):
+        assets_uploadeds = []
+        files_success = []
+        files_with_error = {}
+
+        for file_uploaded in all_files_uploadeds:
+            task_asset, upload_error = self._upload_task_asset(
+                file_uploaded, asset_type
+            )
+
+            filename = file_uploaded["name"]
+
+            if task_asset.status == task_asset_status.ERROR:
+                files_with_error[filename] = upload_error or "UNKNOW_ERROR"
+            elif task_asset.status == task_asset_status.PROCESSING:
+                files_with_error[filename] = "STILL_PROCESSING_ERROR"
+            else:
+                files_success.append(filename)
+                assets_uploadeds.append(task_asset)
+
+        if asset_type != task_asset_type.ORTHOPHOTO:
+            if not ignore_upload_to_s3:
+                self._upload_task_assets_to_s3(assets_uploadeds)
+            self._concat_to_available_assets(assets_uploadeds)
+
+        return {
+            "success": len(files_with_error) == 0,
+            "uploaded": files_success,
+            "files_with_error": files_with_error,
+        }
 
 
 def get_exif_data(image):
@@ -540,63 +409,6 @@ def get_video_gps(file_path):
         print(e)
         return None
     return None
-
-
-def create_dzi(image_path, output_dir):
-    """
-    Converte uma imagem para o formato DZI e salva no diretório especificado.
-    """
-    image = Image.open(image_path)
-    img_width, img_height = image.size
-
-    max_level = int(image.size[0].bit_length())
-
-    dzi_dir = os.path.join(output_dir)
-    files_dir = os.path.join(dzi_dir, "metadata_files")
-    tile_size = 512
-    overlap = 1
-
-    for level in range(max_level + 1):
-        level_dir = os.path.join(files_dir, str(level))
-        if not os.path.exists(level_dir):
-            os.makedirs(level_dir, exist_ok=True)
-
-        scale = 2 ** (max_level - level)
-        new_width = max(img_width // scale, 1)
-        new_height = max(img_height // scale, 1)
-        resized_image = image.resize((new_width, new_height), Image.LANCZOS)
-
-        for x in range(0, resized_image.width, tile_size):
-            for y in range(0, resized_image.height, tile_size):
-                box = (x, y, x + tile_size + overlap, y + tile_size + overlap)
-                tile = resized_image.crop(box)
-                tile.save(
-                    os.path.join(level_dir, f"{x // tile_size}_{y // tile_size}.jpg")
-                )
-                tile.close()
-                gc.collect()
-
-        resized_image.close()
-        gc.collect()
-
-    # Criar arquivo XML DZI
-    root = ET.Element(
-        "Image",
-        TileSize=str(tile_size),
-        Overlap=str(overlap),
-        Format="jpg",
-        xmlns="http://schemas.microsoft.com/deepzoom/2008",
-    )
-    ET.SubElement(root, "Size", Width=str(img_width), Height=str(img_height))
-    tree = ET.ElementTree(root)
-    path_metadata = os.path.join(dzi_dir, "metadata.dzi")
-    with open(path_metadata, "wb") as f:
-        f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
-        tree.write(f, encoding="utf-8", xml_declaration=False)
-    image.close()
-    gc.collect()
-
-    return os.path.join(dzi_dir, "metadata.dzi")
 
 
 def merge_metadatas(metadata1: dict[str, any], metadata2: dict[str, any]):

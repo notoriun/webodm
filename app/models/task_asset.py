@@ -1,5 +1,9 @@
 import uuid as uuid_module
+import xml.etree.ElementTree as ET
 import tempfile
+import logging
+import gc
+import os
 
 from io import BytesIO
 from typing import Literal, Union
@@ -7,9 +11,12 @@ from django.db import models
 from django.db.models.functions import Cast
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _, gettext
+from PIL import Image
 
 from app import task_asset_type, task_asset_status
 from app.utils import file_utils, s3_utils
+
+logger = logging.getLogger("app.logger")
 
 
 class TaskAsset(models.Model):
@@ -156,6 +163,9 @@ class TaskAsset(models.Model):
 
         return open(self.origin_path, "rb")
 
+    def need_upload_to_s3(self):
+        return not self.is_from_s3()
+
     def _s3_object_body(self):
         if self._s3_object_body_cache is None:
             s3_object = s3_utils.get_s3_object(
@@ -227,7 +237,7 @@ class TaskAssetFoto(TaskAsset):
             "fotos/foto_", ".jpg", task_asset_type.FOTO, self.task_id
         )
 
-        self.name = f"fotos/test_foto_{last_foto_number + 1}.jpg"
+        self.name = f"fotos/foto_{last_foto_number + 1}.jpg"
         return self.name
 
     def is_valid(self):
@@ -263,6 +273,43 @@ class TaskAssetFoto360(TaskAsset):
     def is_valid(self):
         return self._update_location() or "NOT_HAS_LAT_LON"
 
+    def create_asset_file_on_task(self):
+        destiny_path = super().create_asset_file_on_task()
+
+        self._create_thumbnail()
+
+        return destiny_path
+
+    def _create_thumbnail(self):
+        thumbnail_asset = TaskAsset.objects.create(
+            type=task_asset_type.FOTO_360_THUMB,
+            task=self.task,
+            status=task_asset_status.PROCESSING,
+            latitude=self.latitude,
+            longitude=self.longitude,
+            altitude=self.altitude,
+            origin_path=self.origin_path,
+        )
+
+        try:
+            thumbnail_path = file_utils.create_thumbnail(self.path())
+
+            thumbnail_asset.status = task_asset_status.SUCCESS
+            thumbnail_asset.name = file_utils.remove_path_from_path(
+                thumbnail_path, self.task.assets_path()
+            )
+            thumbnail_asset.save(update_fields=("status", "name"))
+        except Exception as e:
+            logger.error(
+                f'Error on create thumbnail of "{self.origin_path}". Original error: {e}'
+            )
+            try:
+                thumbnail_asset.save(update_fields=("status",))
+            except Exception as save_error:
+                logger.error(
+                    f"Error save error changes of thumbnail after other error. Save error: {save_error}"
+                )
+
     def _update_location(self):
         lat_lon_alt = file_utils.get_image_location(self.file_stream())
 
@@ -286,6 +333,84 @@ class TaskAssetFoto360Thumbnail(TaskAsset):
 class TaskAssetFotoGiga(TaskAsset):
     _asset_type = task_asset_type.FOTO_GIGA
 
+    def generate_name(self, original_file_uploaded: dict[str, str]):
+        self.name = "foto_giga/foto_giga_1.jpg"
+        return self.name
+
+    def create_asset_file_on_task(self):
+        foto_giga_file = super().create_asset_file_on_task()
+
+        foto_giga_dir = self.task.assets_path("foto_giga")
+        dzi_path = self._create_dzi(foto_giga_dir)
+        file_utils.remove_path_from_path(dzi_path, self.task.assets_path())
+
+        try:
+            os.remove(foto_giga_file)
+        except Exception as e:
+            logger.error(
+                f"Error on remove foto giga uploaded file. Original error: {e}"
+            )
+
+        return dzi_path
+
+    def _create_dzi(self, output_dir):
+        """
+        Converte uma imagem para o formato DZI e salva no diretório especificado.
+        """
+        image = Image.open(self.path())
+        img_width, img_height = image.size
+
+        max_level = int(image.size[0].bit_length())
+
+        dzi_dir = os.path.join(output_dir)
+        files_dir = os.path.join(dzi_dir, "metadata_files")
+        tile_size = 512
+        overlap = 1
+
+        for level in range(max_level + 1):
+            level_dir = os.path.join(files_dir, str(level))
+            if not os.path.exists(level_dir):
+                os.makedirs(level_dir, exist_ok=True)
+
+            scale = 2 ** (max_level - level)
+            new_width = max(img_width // scale, 1)
+            new_height = max(img_height // scale, 1)
+            resized_image = image.resize((new_width, new_height), Image.LANCZOS)
+
+            for x in range(0, resized_image.width, tile_size):
+                for y in range(0, resized_image.height, tile_size):
+                    box = (x, y, x + tile_size + overlap, y + tile_size + overlap)
+                    tile = resized_image.crop(box)
+                    tile.save(
+                        os.path.join(
+                            level_dir, f"{x // tile_size}_{y // tile_size}.jpg"
+                        )
+                    )
+                    tile.close()
+                    gc.collect()
+
+            resized_image.close()
+            gc.collect()
+
+        # Criar arquivo XML DZI
+        root = ET.Element(
+            "Image",
+            TileSize=str(tile_size),
+            Overlap=str(overlap),
+            Format="jpg",
+            xmlns="http://schemas.microsoft.com/deepzoom/2008",
+        )
+        ET.SubElement(root, "Size", Width=str(img_width), Height=str(img_height))
+        tree = ET.ElementTree(root)
+        path_metadata = os.path.join(dzi_dir, "metadata.dzi")
+        with open(path_metadata, "wb") as f:
+            f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
+            tree.write(f, encoding="utf-8", xml_declaration=False)
+        image.close()
+        gc.collect()
+
+        return path_metadata
+
     class Meta:
         proxy = True
 
@@ -297,11 +422,11 @@ class TaskAssetVideo(TaskAsset):
         proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
-        last_foto_number = last_task_asset_name_number(
+        last_video_number = last_task_asset_name_number(
             "videos/video_", ".mp4", task_asset_type.VIDEO, self.task_id
         )
 
-        self.name = f"videos/video_{last_foto_number + 1}.mp4"
+        self.name = f"videos/video_{last_video_number + 1}.mp4"
         return self.name
 
     def is_valid(self):
@@ -318,7 +443,7 @@ class TaskAssetVideo(TaskAsset):
 
         self.latitude = lat_lon_alt[0]
         self.longitude = lat_lon_alt[1]
-        self.altitude = lat_lon_alt[2] or 0
+        self.altitude = 0
 
         return True
 
@@ -332,7 +457,16 @@ class TaskAssetOrthophoto(TaskAsset):
     def generate_name(self, original_file_uploaded: dict[str, str]):
         self.name = original_file_uploaded.get("name", None)
 
+        if self.name is None:
+            self.name = file_utils.get_file_name(self.origin_path)
+
         return self.name
+
+    def path(self) -> str:
+        return self.task.get_image_path(self.name)
+
+    def need_upload_to_s3(self):
+        return (not self.is_from_s3()) and (self.task.assets_path() in self.path())
 
 
 def get_common_task_assets_ordered_query(name_prefix: str, name_suffix: str):

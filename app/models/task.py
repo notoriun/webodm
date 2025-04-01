@@ -1657,6 +1657,7 @@ class Task(models.Model):
                 name=asset,
                 task=self,
                 status=task_asset_status.SUCCESS,
+                origin_path=self.assets_path(asset),
             )
             for asset in assets_to_add
         ]
@@ -1666,6 +1667,7 @@ class Task(models.Model):
             status=task_asset_status.PROCESSING,
         ).delete()
         TaskAsset.objects.bulk_create(new_task_assets)
+        # @TODO Fazer upload desses assets
 
     def update_epsg_field(self, commit=False):
         """
