@@ -255,11 +255,9 @@ class TaskFilesUploader:
         task_asset.generate_name(uploaded_file)
         file_created = task_asset.create_asset_file_on_task()
 
-        task_asset.status = (
-            task_asset_status.SUCCESS
-            if file_created is not None
-            else task_asset_status.ERROR
-        )
+        if file_created is None:
+            task_asset.status = task_asset_status.ERROR
+
         task_asset.save()
 
         return task_asset, None
@@ -306,8 +304,6 @@ class TaskFilesUploader:
 
             if task_asset.status == task_asset_status.ERROR:
                 files_with_error[filename] = upload_error or "UNKNOW_ERROR"
-            elif task_asset.status == task_asset_status.PROCESSING:
-                files_with_error[filename] = "STILL_PROCESSING_ERROR"
             else:
                 files_success.append(filename)
                 assets_uploadeds.append(task_asset)

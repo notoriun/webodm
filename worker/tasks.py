@@ -197,7 +197,7 @@ def get_pending_tasks():
             upload_in_progress=False,
         )
         | Q(pending_action__isnull=False, partial=False, upload_in_progress=False)
-    )
+    ).exclude(status=status_codes.COMPLETED, pending_action__isnull=True)
 
 
 @app.task(ignore_result=True)

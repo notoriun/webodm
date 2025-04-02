@@ -1600,7 +1600,7 @@ class Task(models.Model):
         return {
             "id": str(self.id),
             "project": self.project.id,
-            "available_assets": TaskAsset.sort_list(self.list_available_assets_names()),
+            "available_assets": list(self.list_available_assets_names()),
             "public": self.public,
             "epsg": self.epsg,
         }
@@ -1881,6 +1881,7 @@ class Task(models.Model):
             type=task_asset_type.ORTHOPHOTO,
             task=self,
             status=task_asset_status.PROCESSING,
+            name__isnull=False,
         )
 
         if task_assets.count() > 0:
@@ -1975,12 +1976,13 @@ class Task(models.Model):
         ]
 
     def list_available_assets(self):
-        return TaskAsset.sort_list(
-            TaskAsset.objects.filter(task=self, status=task_asset_status.SUCCESS)
-        )
+        return TaskAsset.objects.filter(task=self, status=task_asset_status.SUCCESS)
 
     def list_available_assets_names(self):
-        return (task_asset.name for task_asset in self.list_available_assets())
+        return (
+            task_asset.name
+            for task_asset in TaskAsset.sort_list(self.list_available_assets())
+        )
 
     def reverse_parse_asset_path(self, asset_task_path: str):
         for key, value in self.ASSETS_MAP.items():
