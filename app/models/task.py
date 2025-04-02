@@ -1600,7 +1600,7 @@ class Task(models.Model):
         return {
             "id": str(self.id),
             "project": self.project.id,
-            "available_assets": list(self.list_available_assets_names()),
+            "available_assets": TaskAsset.sort_list(self.list_available_assets_names()),
             "public": self.public,
             "epsg": self.epsg,
         }
@@ -1975,7 +1975,9 @@ class Task(models.Model):
         ]
 
     def list_available_assets(self):
-        return TaskAsset.objects.filter(task=self, status=task_asset_status.SUCCESS)
+        return TaskAsset.sort_list(
+            TaskAsset.objects.filter(task=self, status=task_asset_status.SUCCESS)
+        )
 
     def list_available_assets_names(self):
         return (task_asset.name for task_asset in self.list_available_assets())

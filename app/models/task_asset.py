@@ -6,7 +6,7 @@ import gc
 import os
 
 from io import BytesIO
-from typing import Literal, Union
+from typing import Literal, Union, Iterable
 from django.db import models
 from django.db.models.functions import Cast
 from django.utils import timezone
@@ -169,6 +169,19 @@ class TaskAsset(models.Model):
     def need_upload_to_s3(self):
         return not self.is_from_s3()
 
+    def sort_name_value(self):
+        if not hasattr(self, "_name_prefix") and not hasattr(self, "_name_suffix"):
+            return self.name
+
+        name_number = self.name.replace(getattr(self, "_name_prefix", ""), "").replace(
+            getattr(self, "_name_suffix", ""), ""
+        )
+
+        try:
+            return int(name_number)
+        except:
+            return name_number
+
     def _s3_object_body(self):
         if self._s3_object_body_cache is None:
             s3_key = s3_utils.remove_s3_bucket_prefix(self.origin_path)
@@ -231,19 +244,31 @@ class TaskAsset(models.Model):
 
         return cls(**kwargs) if cls else None
 
+    @staticmethod
+    def sort_list(assets: Iterable["TaskAsset"]):
+        def sort_asset(asset: "TaskAsset"):
+            asset_typed = asset.copy_to_type()
+            name_sort_value = asset_typed.sort_name_value()
+            return (asset_typed.type, isinstance(name_sort_value, str), name_sort_value)
+
+        return sorted(assets, key=sort_asset)
+
 
 class TaskAssetFoto(TaskAsset):
     _asset_type = task_asset_type.FOTO
+
+    _name_prefix = "fotos/foto_"
+    _name_suffix = ".jpg"
 
     class Meta:
         proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         last_foto_number = last_task_asset_name_number(
-            "fotos/foto_", ".jpg", task_asset_type.FOTO, self.task_id
+            self._name_prefix, self._name_suffix, task_asset_type.FOTO, self.task_id
         )
 
-        self.name = f"fotos/foto_{last_foto_number + 1}.jpg"
+        self.name = self._name_prefix + str(last_foto_number + 1) + self._name_suffix
         return self.name
 
     def is_valid(self):
@@ -270,15 +295,18 @@ class TaskAssetFoto(TaskAsset):
 class TaskAssetFoto360(TaskAsset):
     _asset_type = task_asset_type.FOTO_360
 
+    _name_prefix = "fotos_360/foto_360_"
+    _name_suffix = ".jpg"
+
     class Meta:
         proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         last_foto_number = last_task_asset_name_number(
-            "fotos_360/foto_360_", ".jpg", task_asset_type.FOTO_360, self.task_id
+            self._name_prefix, self._name_suffix, task_asset_type.FOTO_360, self.task_id
         )
 
-        self.name = f"fotos_360/foto_360_{last_foto_number + 1}.jpg"
+        self.name = self._name_prefix + str(last_foto_number + 1) + self._name_suffix
         return self.name
 
     def is_valid(self):
@@ -342,12 +370,18 @@ class TaskAssetFoto360(TaskAsset):
 class TaskAssetFoto360Thumbnail(TaskAsset):
     _asset_type = task_asset_type.FOTO_360_THUMB
 
+    _name_prefix = "fotos_360/foto_360_"
+    _name_suffix = "_thumb.jpg"
+
     class Meta:
         proxy = True
 
 
 class TaskAssetFotoGiga(TaskAsset):
     _asset_type = task_asset_type.FOTO_GIGA
+
+    _name_prefix = "foto_giga/foto_giga_"
+    _name_suffix = ".jpg"
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         self.name = "foto_giga/foto_giga_1.jpg"
@@ -434,15 +468,18 @@ class TaskAssetFotoGiga(TaskAsset):
 class TaskAssetVideo(TaskAsset):
     _asset_type = task_asset_type.VIDEO
 
+    _name_prefix = "videos/video_"
+    _name_suffix = ".mp4"
+
     class Meta:
         proxy = True
 
     def generate_name(self, original_file_uploaded: dict[str, str]):
         last_video_number = last_task_asset_name_number(
-            "videos/video_", ".mp4", task_asset_type.VIDEO, self.task_id
+            self._name_prefix, self._name_suffix, task_asset_type.VIDEO, self.task_id
         )
 
-        self.name = f"videos/video_{last_video_number + 1}.mp4"
+        self.name = self._name_prefix + str(last_video_number + 1) + self._name_suffix
         return self.name
 
     def is_valid(self):
