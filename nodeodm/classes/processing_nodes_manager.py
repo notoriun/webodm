@@ -72,7 +72,7 @@ class ProcessingNodesManager:
         tasks_needs_other_node_count = tasks_needs_other_node.count()
 
         if tasks_needs_other_node_count == 0:
-            self._logger.info("Any task needs a new node")
+            self._logger.info("No one task needs a new node")
             return
 
         free_nodes = self._free_nodes()

@@ -186,9 +186,7 @@ def download_s3_file(
     valid_s3_client.download_file(bucket, key, destiny_image_filename, *args, **kwargs)
 
 
-def append_s3_bucket_prefix(path: str):
-    bucket = settings.S3_BUCKET
-
+def append_s3_bucket_prefix(path: str, bucket=settings.S3_BUCKET):
     if not bucket:
         logger.error(
             "Could append s3 prefix to access any s3 object, because is missing some s3 configuration variable"
@@ -200,6 +198,15 @@ def append_s3_bucket_prefix(path: str):
     )
 
     return f"s3://{bucket}/{s3_path}"
+
+
+def split_s3_bucket_prefix(path: str):
+    s3_prefix = "s3://"
+    path_without_prefix = path.replace(s3_prefix, "")
+
+    paths_splitted_by_sep = path_without_prefix.split("/")
+
+    return paths_splitted_by_sep[0], "/".join(paths_splitted_by_sep[1:])
 
 
 def remove_s3_bucket_prefix(path: str, bucket=settings.S3_BUCKET):
