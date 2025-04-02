@@ -11,7 +11,7 @@ def fix_assets_origin_path(apps, schema_editor):
         task_asset.save(update_fields=("origin_path",))
 
 
-def empty_func(apps, schema_editor):
+def update_path_with_origin_path_on_task(apps, schema_editor):
     TaskAsset = apps.get_model("app", "TaskAsset")
 
     for task_asset in TaskAsset.objects.all():
@@ -36,7 +36,9 @@ class Migration(migrations.Migration):
             ),
             preserve_default=False,
         ),
-        migrations.RunPython(fix_assets_origin_path, empty_func),
+        migrations.RunPython(
+            fix_assets_origin_path, update_path_with_origin_path_on_task
+        ),
         migrations.RemoveField(
             model_name="taskasset",
             name="path",
