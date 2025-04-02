@@ -54,6 +54,7 @@ class ProcessingNodesManager:
         return Task.objects.filter(
             processing_node__in=nodes_id,
             status__in=(status_codes.RUNNING, status_codes.QUEUED),
+            partial=False,
         ).update(
             status=None,
             auto_processing_node=True,
@@ -172,7 +173,7 @@ class ProcessingNodesManager:
         return ProcessingNode.objects.all().count() > 1
 
     def _clear_old_tasks_of_nodes(self):
-        self._logger.info("Starting to remnove old tasks of nodes...")
+        self._logger.info("Starting to remove old tasks of nodes...")
 
         nodes_with_greater_queues = ProcessingNode.objects.filter(
             last_refreshed__gte=timezone.now()
