@@ -98,14 +98,22 @@ class TaskAssetsManager:
         worker_cache_files_tasks.move_file_and_add_in_cache.delay(s3_file, file_to_move)
 
     def _task_asset(self, asset_local_path: str):
-        asset_path_after_task_asset = remove_path_from_path(
-            asset_local_path, self.task.assets_path()
+        asset_path_after_task_asset = self.task.reverse_parse_asset_path(
+            remove_path_from_path(asset_local_path, self.task.assets_path())
         )
 
-        return TaskAsset.objects.get(task=self.task, name=asset_path_after_task_asset)
+        try:
+            return TaskAsset.objects.get(
+                task=self.task, name=asset_path_after_task_asset
+            )
+        except TaskAsset.DoesNotExist:
+            return None
 
     def _asset_s3_key(self, asset_local_path: str):
         task_asset = self._task_asset(asset_local_path)
+
+        if task_asset is None:
+            return settings.S3_BUCKET, convert_task_path_to_s3(asset_local_path)
 
         if task_asset.is_from_s3():
             return split_s3_bucket_prefix(task_asset.origin_path)

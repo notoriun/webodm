@@ -253,9 +253,13 @@ class TaskFilesUploader:
             return task_asset, is_valid_or_error
 
         task_asset.generate_name(uploaded_file)
-        task_asset.create_asset_file_on_task()
+        file_created = task_asset.create_asset_file_on_task()
 
-        task_asset.status = task_asset_status.SUCCESS
+        task_asset.status = (
+            task_asset_status.SUCCESS
+            if file_created is not None
+            else task_asset_status.ERROR
+        )
         task_asset.save()
 
         return task_asset, None

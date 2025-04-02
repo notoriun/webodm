@@ -62,7 +62,7 @@ def get_s3_object(key: str, bucket=settings.S3_BUCKET, s3_client=None):
         if s3_object_exists:
             return s3_object
     except Exception as e:
-        logger.error(str(e))
+        logger.error(f'Error on get S3 object "{key}". Original Error: {str(e)}')
 
     return None
 
@@ -275,3 +275,10 @@ def _get_valid_s3_client(unsafe_s3_client):
         return None
 
     return s3_client
+
+
+class S3ObjectGetError(Exception):
+    def __init__(self, s3_key: str, s3_bucket=settings.S3_BUCKET, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.s3_key = s3_key
+        self.s3_bucket = s3_bucket

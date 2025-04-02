@@ -1555,7 +1555,7 @@ class Task(models.Model):
         )
 
     def get_map_items(self):
-        available_assets_names = self.list_available_assets_names()
+        available_assets_names = list(self.list_available_assets_names())
         types = []
         if "orthophoto.tif" in available_assets_names:
             types.append("orthophoto")
@@ -1600,7 +1600,7 @@ class Task(models.Model):
         return {
             "id": str(self.id),
             "project": self.project.id,
-            "available_assets": self.list_available_assets_names(),
+            "available_assets": list(self.list_available_assets_names()),
             "public": self.public,
             "epsg": self.epsg,
         }
@@ -1979,6 +1979,19 @@ class Task(models.Model):
 
     def list_available_assets_names(self):
         return (task_asset.name for task_asset in self.list_available_assets())
+
+    def reverse_parse_asset_path(self, asset_task_path: str):
+        for key, value in self.ASSETS_MAP.items():
+            if isinstance(value, str) and value == asset_task_path:
+                return key
+            elif (
+                isinstance(value, dict)
+                and "deferred_path" in value
+                and value["deferred_path"] == asset_task_path
+            ):
+                return key
+
+        return asset_task_path
 
     def _upload_assets_to_s3(self, assets_to_upload: list[str]):
         s3_bucket = settings.S3_BUCKET

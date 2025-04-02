@@ -141,7 +141,10 @@ class TaskAsset(models.Model):
         destiny_dir = destiny_path.replace(asset_filename, "")
 
         file_utils.ensure_path_exists(destiny_dir)
-        file_utils.move_stream(self.file_stream(), destiny_path)
+        try:
+            file_utils.move_stream(self.file_stream(), destiny_path)
+        except s3_utils.S3ObjectGetError:
+            return None
 
         return destiny_path
 
@@ -168,9 +171,12 @@ class TaskAsset(models.Model):
 
     def _s3_object_body(self):
         if self._s3_object_body_cache is None:
-            s3_object = s3_utils.get_s3_object(
-                s3_utils.remove_s3_bucket_prefix(self.origin_path)
-            )
+            s3_key = s3_utils.remove_s3_bucket_prefix(self.origin_path)
+            s3_object = s3_utils.get_s3_object(s3_key)
+
+            if s3_object is None:
+                raise s3_utils.S3ObjectGetError(s3_key)
+
             self._s3_object_body_cache = s3_object["Body"].read()
 
         return self._s3_object_body_cache
@@ -241,7 +247,12 @@ class TaskAssetFoto(TaskAsset):
         return self.name
 
     def is_valid(self):
-        return self._update_location() or "NOT_HAS_LAT_LON"
+        try:
+            return self._update_location() or "NOT_HAS_LAT_LON"
+        except s3_utils.S3ObjectGetError:
+            return "S3_GET_OBJECT_ERROR"
+        except Exception:
+            return "UNKNOW_ERROR"
 
     def _update_location(self):
         lat_lon_alt = file_utils.get_image_location(self.file_stream())
@@ -271,7 +282,12 @@ class TaskAssetFoto360(TaskAsset):
         return self.name
 
     def is_valid(self):
-        return self._update_location() or "NOT_HAS_LAT_LON"
+        try:
+            return self._update_location() or "NOT_HAS_LAT_LON"
+        except s3_utils.S3ObjectGetError:
+            return "S3_GET_OBJECT_ERROR"
+        except Exception:
+            return "UNKNOW_ERROR"
 
     def create_asset_file_on_task(self):
         destiny_path = super().create_asset_file_on_task()
@@ -430,7 +446,12 @@ class TaskAssetVideo(TaskAsset):
         return self.name
 
     def is_valid(self):
-        return self._update_location() or "NOT_HAS_LAT_LON"
+        try:
+            return self._update_location() or "NOT_HAS_LAT_LON"
+        except s3_utils.S3ObjectGetError:
+            return "S3_GET_OBJECT_ERROR"
+        except Exception:
+            return "UNKNOW_ERROR"
 
     def _update_location(self):
         with tempfile.NamedTemporaryFile(delete=True, suffix=".mp4") as temp_file:
