@@ -1,5 +1,12 @@
 # Changelog
 
+## Versão 1.0.21
+
+*04-04-25*
+
+- Altera forma de registro de arquivos do S3 evitando duplicação destes arquivos no bucket.
+
+
 ## Versão 1.0.20
 
 *25-03-25*
