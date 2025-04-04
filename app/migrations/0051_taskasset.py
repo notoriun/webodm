@@ -273,11 +273,6 @@ def download_asset(asset: str, task, assets_manager):
 
 
 def get_asset_local_path(task, asset):
-    """
-    Get the path to an asset download
-    :param asset: one of ASSETS_MAP keys
-    :return: path
-    """
     if asset in ASSETS_MAP:
         value = ASSETS_MAP[asset]
         if isinstance(value, str):
@@ -297,7 +292,7 @@ def populate_available_assets(apps, schema_editor):
     for task_asset in TaskAsset.objects.all():
         task = Task.objects.get(pk=task_asset.task_id)
         task.available_assets.append(task_asset.name)
-        task.save()
+        task.save(update_fields=("available_assets",))
 
 
 class Migration(migrations.Migration):

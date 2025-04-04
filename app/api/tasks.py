@@ -147,8 +147,11 @@ class TaskSerializer(serializers.ModelSerializer):
         return []
 
     def get_available_assets(self, obj):
-        return obj.assets.filter(status=task_asset_status.SUCCESS).values_list(
-            "name", flat=True
+        return (
+            asset.name
+            for asset in models.TaskAsset.sort_list(
+                obj.assets.filter(status=task_asset_status.SUCCESS)
+            )
         )
 
     def get_status(self, obj):
@@ -542,7 +545,7 @@ class TaskDownloads(TaskNestedView):
 
         # Verificar se é um pedido para DZI
         if asset.startswith("foto_giga") and asset.endswith(".dzi"):
-            asset_stream = asset_manager.get_asset_stream(asset)
+            asset_stream = asset_manager.get_asset_stream(task.assets_path(asset))
 
             if not asset_stream:
                 raise exceptions.NotFound(_("Asset does not exist"))
@@ -636,7 +639,7 @@ class TaskMetadataAssets(TaskNestedView):
         ).order_by("name")
         metadata = {}
 
-        for asset in assets:
+        for asset in models.TaskAsset.sort_list(assets):
             asset_name = asset.name.split("/")[1] if "/" in asset.name else asset.name
             metadata[asset_name] = {
                 "latitude": asset.latitude,

@@ -1065,7 +1065,7 @@ class Task(models.Model):
                 return
 
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
-                self._upload_all_assets_and_cache_assets()
+                self._upload_to_s3_and_cache_orthophoto_assets()
                 self.pending_action = None
                 self.save(update_fields=["pending_action"])
                 return
@@ -1555,7 +1555,7 @@ class Task(models.Model):
         )
 
     def get_map_items(self):
-        available_assets_names = self.list_available_assets_names()
+        available_assets_names = list(self.list_available_assets_names())
         types = []
         if "orthophoto.tif" in available_assets_names:
             types.append("orthophoto")
@@ -1600,7 +1600,7 @@ class Task(models.Model):
         return {
             "id": str(self.id),
             "project": self.project.id,
-            "available_assets": self.list_available_assets_names(),
+            "available_assets": list(self.list_available_assets_names()),
             "public": self.public,
             "epsg": self.epsg,
         }
@@ -1640,15 +1640,15 @@ class Task(models.Model):
         )
 
         # Verificar e adicionar novos assets disponíveis
-        new_available_assets = [
-            asset for asset in all_assets if self.is_asset_available_slow(asset)
-        ]
-        logger.info(
-            "New available assets for {}: {}".format(self, new_available_assets)
+        all_current_assets = (
+            self.reverse_parse_asset_path(
+                remove_path_from_path(path, self.assets_path())
+            )
+            for path in get_all_files_in_dir(self.assets_path())
         )
 
         # Atualizar a lista de available_assets com novos assets
-        assets_to_add = set(new_available_assets).difference(current_available_assets)
+        assets_to_add = set(all_current_assets).difference(current_available_assets)
         self.list_available_assets().exclude(name__in=current_available_assets).delete()
 
         new_task_assets = [
@@ -1657,6 +1657,7 @@ class Task(models.Model):
                 name=asset,
                 task=self,
                 status=task_asset_status.SUCCESS,
+                origin_path=self.assets_path(asset),
             )
             for asset in assets_to_add
         ]
@@ -1879,6 +1880,7 @@ class Task(models.Model):
             type=task_asset_type.ORTHOPHOTO,
             task=self,
             status=task_asset_status.PROCESSING,
+            name__isnull=False,
         )
 
         if task_assets.count() > 0:
@@ -1976,7 +1978,23 @@ class Task(models.Model):
         return TaskAsset.objects.filter(task=self, status=task_asset_status.SUCCESS)
 
     def list_available_assets_names(self):
-        return (task_asset.name for task_asset in self.list_available_assets())
+        return (
+            task_asset.name
+            for task_asset in TaskAsset.sort_list(self.list_available_assets())
+        )
+
+    def reverse_parse_asset_path(self, asset_task_path: str):
+        for key, value in self.ASSETS_MAP.items():
+            if isinstance(value, str) and value == asset_task_path:
+                return key
+            elif (
+                isinstance(value, dict)
+                and "deferred_path" in value
+                and value["deferred_path"] == asset_task_path
+            ):
+                return key
+
+        return asset_task_path
 
     def _upload_assets_to_s3(self, assets_to_upload: list[str]):
         s3_bucket = settings.S3_BUCKET
@@ -2031,9 +2049,6 @@ class Task(models.Model):
                     continue
 
                 if not self._need_upload_asset(checksum, s3_key, s3_client):
-                    logger.info(
-                        f"Asset '{file_to_upload}' already saved on s3, no need reupload."
-                    )
                     self._update_upload_progress(
                         files_uploadeds, len(assets_to_upload), 1
                     )
@@ -2043,9 +2058,6 @@ class Task(models.Model):
                         )
                     )
                 else:
-                    logger.info(
-                        f"Asset '{file_to_upload}' not saved on s3, uploading..."
-                    )
                     try:
                         file_size = os.path.getsize(file_to_upload)
                     except:
@@ -2073,8 +2085,8 @@ class Task(models.Model):
 
         return files_uploadeds
 
-    def _upload_all_assets_and_cache_assets(self):
-        files_to_upload = self._all_assets_needs_upload_to_s3()
+    def _upload_to_s3_and_cache_orthophoto_assets(self):
+        files_to_upload = self._orthophoto_assets_needs_upload_to_s3()
         return self.upload_and_cache_assets(files_to_upload)
 
     def _create_task_s3_download_dir(self):
@@ -2153,12 +2165,15 @@ class Task(models.Model):
             download_s3_file(image_key, image_key, s3_client)
             logger.info('downloaded image: "{}"'.format(image_key))
 
-    def _all_assets_needs_upload_to_s3(self):
-        assets_dont_upload = [e.path for e in self._entry_root_images()]
+    def _orthophoto_assets_needs_upload_to_s3(self):
         return [
-            f
-            for f in self._get_all_assets_files()
-            if not (f in assets_dont_upload) and os.path.exists(f)
+            f.path()
+            for f in TaskAsset.objects.filter(
+                task=self,
+                type=task_asset_type.ORTHOPHOTO,
+                status=task_asset_status.SUCCESS,
+            )
+            if os.path.exists(f.path()) and f.need_upload_to_s3()
         ]
 
     def _list_s3_root_images(self):

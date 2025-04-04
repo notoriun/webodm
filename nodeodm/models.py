@@ -325,7 +325,7 @@ class ProcessingNode(models.Model):
         return (
             task
             for task in self.list_tasks()
-            if task.status in (status_codes.QUEUED, status_codes.RUNNING)
+            if task.status.value in (status_codes.QUEUED, status_codes.RUNNING)
         )
 
 

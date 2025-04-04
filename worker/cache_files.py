@@ -30,7 +30,7 @@ logger = get_task_logger("app.logger")
 
 
 @app.task()
-def download_and_add_to_cache(file: str, overide_local_file=True):
+def download_and_add_to_cache(file: str, destiny_path: str = None):
     from app.utils.s3_utils import (
         remove_s3_bucket_prefix,
         download_s3_file,
@@ -39,47 +39,49 @@ def download_and_add_to_cache(file: str, overide_local_file=True):
 
     try:
         with s3_cache_lock():
-            logger.info(f"Start to add {file} in cache")
+            logger.debug(f"Start to add {file} in cache")
             s3_path = remove_s3_bucket_prefix(file)
             s3_object = get_s3_object_metadata(s3_path)
 
             if not s3_object:
-                logger.info(f"not found {s3_path} aborting download and add to cache")
+                logger.debug(f"Not found {s3_path} aborting download and add to cache")
                 return
 
-            logger.info(f"headed object {file} in s3")
-            filename = get_file_name(s3_path)
-            file_dir = os.path.join(settings.MEDIA_ROOT, s3_path.replace(filename, ""))
+            download_path = destiny_path or s3_path
+            filename = get_file_name(download_path)
+            file_dir = os.path.join(
+                settings.MEDIA_ROOT, download_path.replace(filename, "")
+            )
             filepath = os.path.join(file_dir, filename)
 
-            logger.info(f"check if has {file} in cache")
             if has_file_in_cache(filepath) and _s3_file_is_equals_to_cache_file(
                 s3_path, filepath
             ):
+                logger.debug(f"{file} already in cache. Exiting...")
                 return
 
             file_size = s3_object.get("ContentLength", 0)
-            logger.info(f"the {file} has {file_size} B")
 
-            logger.info(f"check can add {file} to cache")
             can_add_to_cache = _check_cache_has_space(file_size)
 
             if not can_add_to_cache:
+                logger.debug(
+                    f"Can not add {file} to cache, not enough space. Exiting..."
+                )
                 return
 
             ensure_path_exists(file_dir)
 
             file_already_exists = os.path.isfile(filepath)
 
-            if (file_already_exists and overide_local_file) or not file_already_exists:
-                logger.info(f"downloading {file} to {filepath}")
+            if not file_already_exists:
                 download_s3_file(s3_path, filepath)
 
-            new_cache = update_file_in_cache(filepath)
+            update_file_in_cache(filepath)
 
-            logger.info(f"new cache after download {new_cache}")
+            logger.debug(f"Added {file} to cache with success!")
     except Exception as e:
-        logger.error(str(e))
+        logger.error(f"Error on add {file} to cache. Original error: {str(e)}")
 
 
 @app.task()
@@ -110,10 +112,12 @@ def move_file_and_add_in_cache(file_s3: str, file_to_move):
         file_stat = os.stat(file_to_move)
         file_size = file_stat.st_size
 
-        logger.info(f"check can add {file_s3} to cache")
         can_add_to_cache = _check_cache_has_space(file_size)
 
         if not can_add_to_cache:
+            logger.debug(
+                f"Can not add {file_s3} to cache, not enough space. Exiting..."
+            )
             return
 
         ensure_path_exists(file_dir)
@@ -123,9 +127,11 @@ def move_file_and_add_in_cache(file_s3: str, file_to_move):
         with s3_cache_lock():
             new_cache = update_file_in_cache(filepath)
 
-        logger.info(f"New cache after move {new_cache}")
+        logger.debug(f"Added {new_cache} on cache with success!")
     except Exception as e:
-        logger.error(str(e))
+        logger.error(
+            f"Error on move {file_s3} and add to cache. Original error: {str(e)}"
+        )
 
 
 @app.task()
@@ -166,8 +172,6 @@ def refresh_file_cache_keys():
                         {"path": file, "project": project_entry, "task": task_entry}
                     )
 
-            logger.info(f"tasks downloaded files {tasks_downloaded_files}")
-
             files_to_add_cache = [
                 file["path"]
                 for file in tasks_downloaded_files
@@ -186,10 +190,6 @@ def refresh_file_cache_keys():
                 if not os.path.exists(file):
                     remove_file_from_cache(file)
                     removeds_from_cache.append(file)
-
-            logger.info(
-                f"refreshed files in cache, current files {get_files_in_cache()}"
-            )
 
         max_cache_size = get_max_cache_size()
         cache_available_size = human_readable_size(
@@ -215,8 +215,6 @@ def seek_and_populate_redis_cache():
     if len(projects_on_media) == 0:
         logger.info("Not found projects on media dir, exiting...")
         return
-
-    logger.info(f"Found these projects on media dir: {projects_on_media}")
 
     projects_not_exists = []
     projects_exists: list[ProjectDirFiles] = []
@@ -277,13 +275,10 @@ def add_local_file_to_redis_cache(file_path: str):
             return
 
         with s3_cache_lock():
-            new_cache = update_file_in_cache(file_path)
+            update_file_in_cache(file_path)
 
-        logger.info(f"New cache: {new_cache}")
     except Exception as e:
-        logger.warning(
-            f"Error on set file({file_path}) on redis cache. Error: {str(e)}"
-        )
+        logger.error(f"Error on set file({file_path}) on redis cache. Error: {str(e)}")
 
 
 def _check_cache_has_space(space_need: int):
@@ -348,7 +343,7 @@ def list_media_projects():
             if not (path in ignore_paths)
         ]
     except Exception as e:
-        logger.warning(f"Error on get projects on media_dir. Error: {str(e)}")
+        logger.error(f"Error on get projects on media_dir. Error: {str(e)}")
         return []
 
 
@@ -370,8 +365,6 @@ def get_project_dir_files(project_path: str):
 
             project_tasks.append(TaskDirFiles(task_id, task_files))
         except Exception as e:
-            logger.warning(
-                f"Error on get file on task dir({task_path}). Error: {str(e)}"
-            )
+            logger.error(f"Error on get file on task dir({task_path}). Error: {str(e)}")
 
     return ProjectDirFiles(get_file_name(project_path), project_tasks)
