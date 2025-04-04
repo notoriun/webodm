@@ -22,8 +22,7 @@ class TaskAssetsManager:
         self.task = task
 
     def get_asset_stream(self, path: str, chunk_size=1024):
-        local_path = self.task.assets_path(path)
-        return self._generate_stream(local_path, chunk_size=chunk_size)
+        return self._generate_stream(path, chunk_size=chunk_size)
 
     def get_image_stream(self, path, chunk_size=1024):
         local_path = self.task.get_image_path(path)
@@ -67,7 +66,7 @@ class TaskAssetsManager:
             return None
 
         return self._stream_s3_object(
-            s3_object, s3_key, s3_bucket, chunk_size=chunk_size
+            s3_object, s3_key, s3_bucket, path, chunk_size=chunk_size
         )
 
     def _stream_file(self, filepath: str, s3_key: str, s3_bucket: str, chunk_size=1024):
@@ -78,20 +77,24 @@ class TaskAssetsManager:
         self._refresh_file_in_cache(s3_key, s3_bucket)
 
     def _stream_s3_object(
-        self, s3_object, s3_key: str, s3_bucket: str, chunk_size=1024
+        self, s3_object, s3_key: str, s3_bucket: str, destiny_path: str, chunk_size=1024
     ):
         for chunk in s3_object["Body"].iter_chunks(chunk_size=chunk_size):
             yield chunk
 
-        self._download_and_add_to_cache(s3_key, s3_bucket)
+        self._download_and_add_to_cache(s3_key, s3_bucket, destiny_path)
 
     def _refresh_file_in_cache(self, s3_key: str, s3_bucket: str):
         s3_file = append_s3_bucket_prefix(s3_key, bucket=s3_bucket)
         worker_cache_files_tasks.refresh_file_in_cache.delay(s3_file)
 
-    def _download_and_add_to_cache(self, s3_key: str, s3_bucket: str):
+    def _download_and_add_to_cache(
+        self, s3_key: str, s3_bucket: str, destiny_path: str
+    ):
         s3_file = append_s3_bucket_prefix(s3_key, bucket=s3_bucket)
-        worker_cache_files_tasks.download_and_add_to_cache.delay(s3_file)
+        worker_cache_files_tasks.download_and_add_to_cache.delay(
+            s3_file, destiny_path=destiny_path
+        )
 
     def _move_and_add_to_cache(self, s3_key: str, file_to_move: str, s3_bucket: str):
         s3_file = append_s3_bucket_prefix(s3_key, bucket=s3_bucket)

@@ -30,7 +30,7 @@ logger = get_task_logger("app.logger")
 
 
 @app.task()
-def download_and_add_to_cache(file: str, overide_local_file=True):
+def download_and_add_to_cache(file: str, destiny_path: str = None):
     from app.utils.s3_utils import (
         remove_s3_bucket_prefix,
         download_s3_file,
@@ -47,8 +47,11 @@ def download_and_add_to_cache(file: str, overide_local_file=True):
                 logger.debug(f"Not found {s3_path} aborting download and add to cache")
                 return
 
-            filename = get_file_name(s3_path)
-            file_dir = os.path.join(settings.MEDIA_ROOT, s3_path.replace(filename, ""))
+            download_path = destiny_path or s3_path
+            filename = get_file_name(download_path)
+            file_dir = os.path.join(
+                settings.MEDIA_ROOT, download_path.replace(filename, "")
+            )
             filepath = os.path.join(file_dir, filename)
 
             if has_file_in_cache(filepath) and _s3_file_is_equals_to_cache_file(
@@ -71,7 +74,7 @@ def download_and_add_to_cache(file: str, overide_local_file=True):
 
             file_already_exists = os.path.isfile(filepath)
 
-            if (file_already_exists and overide_local_file) or not file_already_exists:
+            if not file_already_exists:
                 download_s3_file(s3_path, filepath)
 
             update_file_in_cache(filepath)

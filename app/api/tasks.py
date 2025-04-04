@@ -545,7 +545,7 @@ class TaskDownloads(TaskNestedView):
 
         # Verificar se é um pedido para DZI
         if asset.startswith("foto_giga") and asset.endswith(".dzi"):
-            asset_stream = asset_manager.get_asset_stream(asset)
+            asset_stream = asset_manager.get_asset_stream(task.assets_path(asset))
 
             if not asset_stream:
                 raise exceptions.NotFound(_("Asset does not exist"))
