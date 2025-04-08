@@ -2177,13 +2177,13 @@ class Task(models.Model):
 
     def _orthophoto_assets_needs_upload_to_s3(self):
         return [
-            f.path()
-            for f in TaskAsset.objects.filter(
+            asset
+            for asset in TaskAsset.objects.filter(
                 task=self,
                 type=task_asset_type.ORTHOPHOTO,
                 status=task_asset_status.SUCCESS,
             )
-            if os.path.exists(f.path()) and f.need_upload_to_s3()
+            if os.path.exists(asset.path()) and asset.need_upload_to_s3()
         ]
 
     def _list_s3_root_images(self):
