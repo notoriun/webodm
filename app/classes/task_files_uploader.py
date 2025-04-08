@@ -77,7 +77,7 @@ class TaskFilesUploader:
 
     def _upload_task_assets_to_s3(self, assets: list[TaskAsset]):
         self.task.upload_and_cache_assets(
-            [asset.path() for asset in assets if asset.need_upload_to_s3()]
+            [asset for asset in assets if asset.need_upload_to_s3()]
         )
 
     def _upload_task_asset(self, uploaded_file: dict[str, str], asset_type: int):

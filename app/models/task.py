@@ -70,6 +70,7 @@ from app.utils.file_utils import (
     get_file_name,
     ensure_sep_at_end,
     calculate_sha256,
+    delete_path,
 )
 
 logger = logging.getLogger("app.logger")
@@ -1398,7 +1399,7 @@ class Task(models.Model):
                                             )
                                         )
                                         retry_num += 1
-                                        os.remove(all_zip_path)
+                                        delete_path(all_zip_path)
                                     else:
                                         raise NodeServerError(
                                             gettext("Invalid zip file")
@@ -1447,7 +1448,7 @@ class Task(models.Model):
 
         logger.info("Extracted all.zip for {}".format(self))
 
-        os.remove(zip_path)
+        delete_path(zip_path)
 
         # Check if this looks like a backup file, in which case we need to move the files
         # a directory level higher
@@ -1933,7 +1934,7 @@ class Task(models.Model):
         except Exception as e:
             logger.warn("Cannot update size for task {}: {}".format(self, str(e)))
 
-    def upload_and_cache_assets(self, assets: list[str]):
+    def upload_and_cache_assets(self, assets: list[TaskAsset]):
         files_uploadeds = self._upload_assets_to_s3(assets)
         for file in files_uploadeds:
             worker_cache_files_tasks.add_local_file_to_redis_cache.delay(file)
@@ -1996,7 +1997,7 @@ class Task(models.Model):
 
         return asset_task_path
 
-    def _upload_assets_to_s3(self, assets_to_upload: list[str]):
+    def _upload_assets_to_s3(self, assets_to_upload: list[TaskAsset]):
         s3_bucket = settings.S3_BUCKET
         files_uploadeds = []
         self.uploading_s3_progress = 0.0
@@ -2038,17 +2039,24 @@ class Task(models.Model):
                 )
                 return
 
-            for file_to_upload in assets_to_upload:
+            for asset_to_upload in assets_to_upload:
+                file_to_upload = asset_to_upload.path()
                 if not os.path.exists(file_to_upload):
                     continue
 
                 s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
-                checksum = calculate_sha256(file_to_upload)
+                try:
+                    checksum = calculate_sha256(file_to_upload)
+                except Exception as e:
+                    asset_to_upload.status = task_asset_status.ERROR
+                    asset_to_upload.save(update_fields=("status",))
+                    raise Exception(
+                        f"Error on calculate SHA256 of {file_to_upload}. Original error: {e}"
+                    )
 
-                if not checksum:
-                    continue
-
-                if not self._need_upload_asset(checksum, s3_key, s3_client):
+                if checksum and not self._need_upload_asset(
+                    checksum, s3_key, s3_client
+                ):
                     self._update_upload_progress(
                         files_uploadeds, len(assets_to_upload), 1
                     )
@@ -2060,22 +2068,24 @@ class Task(models.Model):
                 else:
                     try:
                         file_size = os.path.getsize(file_to_upload)
-                    except:
-                        continue
 
-                    s3_client.upload_file(
-                        file_to_upload,
-                        s3_bucket,
-                        s3_key,
-                        Callback=UploadProgressCallback(
-                            self, files_uploadeds, file_size, len(assets_to_upload)
-                        ),
-                        ExtraArgs={
-                            "Metadata": {
-                                "Checksumsha256": checksum,
-                            }
-                        },
-                    )
+                        s3_client.upload_file(
+                            file_to_upload,
+                            s3_bucket,
+                            s3_key,
+                            Callback=UploadProgressCallback(
+                                self, files_uploadeds, file_size, len(assets_to_upload)
+                            ),
+                            ExtraArgs={
+                                "Metadata": {
+                                    "Checksumsha256": checksum,
+                                }
+                            },
+                        )
+                    except Exception as e:
+                        asset_to_upload.status = task_asset_status.ERROR
+                        asset_to_upload.save(update_fields=("status",))
+                        raise e
 
                 files_uploadeds.append(append_s3_bucket_prefix(file_to_upload))
 
