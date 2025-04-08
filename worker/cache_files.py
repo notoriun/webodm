@@ -274,8 +274,6 @@ def add_local_file_to_redis_cache(file_path: str):
 
         with s3_cache_lock():
             update_file_in_cache(file_path)
-
-        logger.info(f"Added {file_path}. CACHE SIZE: {get_cache_sizes()}")
     except Exception as e:
         logger.error(f"Error on set file({file_path}) on redis cache. Error: {str(e)}")
 
