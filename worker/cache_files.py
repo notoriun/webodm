@@ -11,6 +11,7 @@ from app.utils.file_utils import (
     get_all_files_in_dir,
     human_readable_size,
     calculate_sha256,
+    delete_path,
 )
 from worker.utils.redis_file_cache import (
     get_max_cache_size,
@@ -191,10 +192,7 @@ def refresh_file_cache_keys():
                     remove_file_from_cache(file)
                     removeds_from_cache.append(file)
 
-        max_cache_size = get_max_cache_size()
-        cache_available_size = human_readable_size(
-            max_cache_size - get_current_cache_size()
-        )
+        cache_available_size, max_cache_size = get_cache_sizes()
         logger.info(
             f"\n**Cache available space: {cache_available_size} / {human_readable_size(max_cache_size)}\n"
         )
@@ -271,14 +269,23 @@ def add_local_file_to_redis_cache(file_path: str):
         can_add_to_cache = _check_cache_has_space(file_size)
 
         if not can_add_to_cache:
-            os.remove(file_path)
+            delete_path(file_path)
             return
 
         with s3_cache_lock():
             update_file_in_cache(file_path)
 
+        logger.info(f"Added {file_path}. CACHE SIZE: {get_cache_sizes()}")
     except Exception as e:
         logger.error(f"Error on set file({file_path}) on redis cache. Error: {str(e)}")
+
+
+def get_cache_sizes():
+    max_cache_size = get_max_cache_size()
+    cache_available_size = human_readable_size(
+        max_cache_size - get_current_cache_size()
+    )
+    return cache_available_size, human_readable_size(max_cache_size)
 
 
 def _check_cache_has_space(space_need: int):
@@ -289,28 +296,32 @@ def _check_cache_has_space(space_need: int):
 
     cache_available_size = max_cache_size - get_current_cache_size()
 
-    if cache_available_size < space_need:
-        files_to_remove = []
+    if cache_available_size >= space_need:
+        return True
 
-        for cache_file in get_files_with_old_accessed_first():
-            if not os.path.exists(cache_file):
-                remove_file_from_cache(cache_file)
-                continue
+    files_to_remove = []
 
-            file_stat = os.stat(cache_file)
-            cache_available_size += file_stat.st_size
-            files_to_remove.append(cache_file)
+    for cache_file in get_files_with_old_accessed_first():
+        if not os.path.exists(cache_file):
+            remove_file_from_cache(cache_file)
+            continue
 
-            if cache_available_size >= space_need:
-                break
+        file_stat = os.stat(cache_file)
+        cache_available_size += file_stat.st_size
+        files_to_remove.append(cache_file)
 
-        for file_to_remove in files_to_remove:
-            if os.path.exists(file_to_remove):
-                os.remove(file_to_remove)
+        if cache_available_size >= space_need:
+            break
 
-            remove_file_from_cache(file_to_remove)
+    for file_to_remove in files_to_remove:
+        remove_file_from_cache(file_to_remove)
 
-    return True
+        if os.path.exists(file_to_remove):
+            delete_path(file_to_remove)
+
+    cache_available_size = max_cache_size - get_current_cache_size()
+
+    return cache_available_size >= space_need
 
 
 def _s3_file_is_equals_to_cache_file(s3_key: str, cache_filepath: str):

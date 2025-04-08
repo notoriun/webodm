@@ -6,6 +6,7 @@ from django.core.cache import caches
 from webodm import settings
 from time import sleep
 from contextlib import contextmanager
+from app.utils import file_utils
 
 cache_files_queue_key = "s3_cache_files_queue"
 cache_files_lock_key = "s3_cache_files_lock"
@@ -67,7 +68,16 @@ def get_current_cache_size():
             file_stat = os.stat(filepath)
             current_size += file_stat.st_size
         except OSError:
-            pass
+            import logging
+
+            logging.getLogger().warning(
+                f"Failed to get size of {filepath}, removing from cache..."
+            )
+
+            remove_file_from_cache(filepath)
+
+            if os.path.exists(filepath):
+                file_utils.delete_path(filepath)
 
     return current_size
 

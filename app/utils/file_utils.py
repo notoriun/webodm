@@ -69,14 +69,11 @@ def human_readable_size(size_in_bytes: int):
 
 
 def calculate_sha256(path: str):
-    try:
-        sha256 = hashlib.sha256()
-        with open(path, "rb") as f:
-            while chunk := f.read(8192):
-                sha256.update(chunk)
-        return base64.b64encode(sha256.digest()).decode("utf-8")
-    except:
-        return None
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(8192):
+            sha256.update(chunk)
+    return base64.b64encode(sha256.digest()).decode("utf-8")
 
 
 def get_image_location(image_path_or_stream):
@@ -133,6 +130,28 @@ def create_thumbnail(image_path: str, tamanho=(200, 200)):
     image.save(thumbnail_path, format=image.format)
 
     return thumbnail_path
+
+
+def delete_path(path: str):
+    path_parts = path.split(os.sep)
+    removed_all_empty_dirs = False
+
+    while not removed_all_empty_dirs:
+        path = os.sep.join(path_parts)
+
+        if os.path.isfile(path):
+            os.remove(path)
+            path_parts.pop()
+        elif os.path.isdir(path):
+            if len(os.listdir(path)) == 0:
+                os.rmdir(path)
+                path_parts.pop()
+            else:
+                removed_all_empty_dirs = True
+        else:
+            return False
+
+    return True
 
 
 def _get_exif_data(image):
