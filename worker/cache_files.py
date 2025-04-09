@@ -206,8 +206,6 @@ def seek_and_populate_redis_cache():
     import os
     from worker.classes.local_files_redis import ProjectDirFiles
 
-    logger.info("Starting to populate redis cache...")
-
     projects_on_media = list_media_projects()
 
     if len(projects_on_media) == 0:
@@ -233,8 +231,12 @@ def seek_and_populate_redis_cache():
             else:
                 tasks_exists.append(task)
 
+            task.clear_task_dir()
+
+        projects_dir_files.clear_project_dir()
+
         projects_exists.append(
-            ProjectDirFiles(projects_dir_files.project_id, tasks_exists)
+            ProjectDirFiles(projects_dir_files.project_path, tasks_exists)
         )
 
     if len(projects_not_exists) > 0:
@@ -253,14 +255,13 @@ def seek_and_populate_redis_cache():
 
     for project in projects_exists:
         for file in project.all_files():
-            add_local_file_to_redis_cache.delay(file)
+            if os.path.exists(file):
+                add_local_file_to_redis_cache.delay(file)
 
 
 @app.task()
 def add_local_file_to_redis_cache(file_path: str):
     import os
-
-    logger.info(f"Starting to add {file_path} to redis cache...")
 
     try:
         file_stat = os.stat(file_path)
@@ -279,11 +280,14 @@ def add_local_file_to_redis_cache(file_path: str):
 
 
 def get_cache_sizes():
+    cache_current_size = get_current_cache_size()
     max_cache_size = get_max_cache_size()
-    cache_available_size = human_readable_size(
-        max_cache_size - get_current_cache_size()
+    cache_available_size = max_cache_size - cache_current_size
+    return (
+        human_readable_size(cache_available_size),
+        human_readable_size(max_cache_size),
+        human_readable_size(cache_current_size),
     )
-    return cache_available_size, human_readable_size(max_cache_size)
 
 
 def _check_cache_has_space(space_need: int):
@@ -370,10 +374,16 @@ def get_project_dir_files(project_path: str):
         try:
             task_id = get_file_name(task_path)
 
-            task_files = DirFiles(get_all_files_in_dir(task_path))
+            task_files = DirFiles(
+                [
+                    file
+                    for file in get_all_files_in_dir(task_path)
+                    if "/data/" not in file
+                ]
+            )
 
             project_tasks.append(TaskDirFiles(task_id, task_files))
         except Exception as e:
             logger.error(f"Error on get file on task dir({task_path}). Error: {str(e)}")
 
-    return ProjectDirFiles(get_file_name(project_path), project_tasks)
+    return ProjectDirFiles(project_path, project_tasks)

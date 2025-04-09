@@ -154,6 +154,26 @@ def delete_path(path: str):
     return True
 
 
+def delete_empty_dirs(path: str):
+    if os.path.isfile(path):
+        return False
+
+    inside_dirs = list_dirs_in_dir(path)
+
+    if len(inside_dirs) == 0:
+        if len(get_all_files_in_dir(path)) > 0:
+            return False
+
+        os.rmdir(path)
+
+        return True
+    for inside_dir in inside_dirs:
+        if not delete_empty_dirs(inside_dir):
+            return False
+
+    return True
+
+
 def _get_exif_data(image):
     exif_data = {}
     info = image._getexif()

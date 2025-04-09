@@ -204,9 +204,9 @@ def split_s3_bucket_prefix(path: str):
     s3_prefix = "s3://"
     path_without_prefix = path.replace(s3_prefix, "")
 
-    paths_splitted_by_sep = path_without_prefix.split("/")
+    paths_splitted_by_sep = path_without_prefix.split("/", 1)
 
-    return paths_splitted_by_sep[0], "/".join(paths_splitted_by_sep[1:])
+    return paths_splitted_by_sep[0], paths_splitted_by_sep[1]
 
 
 def remove_s3_bucket_prefix(path: str, bucket=settings.S3_BUCKET):

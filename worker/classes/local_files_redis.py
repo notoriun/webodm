@@ -1,4 +1,5 @@
 from app.models import Task, Project
+from app.utils import file_utils
 
 
 class DirFiles:
@@ -12,12 +13,25 @@ class TaskDirFiles:
         self.dir_files = dir_files
 
     def exists_on_db(self):
-        return Task.objects.filter(pk=self.task_id).exists()
+        return self._task_query().exists()
+
+    def clear_task_dir(self):
+        task = self._task_query().first()
+
+        if not task:
+            return True
+
+        task.delete_data_path()
+        return task.clear_empty_dirs()
+
+    def _task_query(self):
+        return Task.objects.filter(pk=self.task_id)
 
 
 class ProjectDirFiles:
-    def __init__(self, project_id: str, tasks: list[TaskDirFiles]):
-        self.project_id = project_id
+    def __init__(self, project_path: str, tasks: list[TaskDirFiles]):
+        self.project_path = project_path
+        self.project_id = file_utils.get_file_name(project_path)
         self.tasks = tasks
 
     def exists_on_db(self):
@@ -30,3 +44,6 @@ class ProjectDirFiles:
             files += task.dir_files.files
 
         return files
+
+    def clear_project_dir(self):
+        return file_utils.delete_empty_dirs(self.project_path)
