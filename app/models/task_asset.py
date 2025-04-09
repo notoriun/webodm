@@ -521,7 +521,10 @@ class TaskAssetOrthophoto(TaskAsset):
         return self.name
 
     def path(self) -> str:
-        return self.task.get_asset_download_path(self.name)
+        try:
+            return self.task.get_asset_download_path(self.name)
+        except:
+            return self.task.assets_path(self.name)
 
     def need_upload_to_s3(self):
         return (not self.is_from_s3()) and (self.task.assets_path() in self.path())
