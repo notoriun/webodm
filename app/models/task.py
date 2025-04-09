@@ -2157,7 +2157,9 @@ class Task(models.Model):
             return []
 
         try:
-            return [e for e in os.scandir(tp) if e.is_file()]
+            return [
+                e for e in os.scandir(tp) if e.is_file() and not e.name.startswith(".")
+            ]
         except:
             return []
 
@@ -2313,7 +2315,12 @@ class Task(models.Model):
             need_download = s3_file_names == root_images_name
 
         if need_download:
+            current_pending_action = self.pending_action
+
             self.handle_s3_import()
+
+            self.pending_action = current_pending_action
+            self.save(update_fields=("pending_action",))
 
     def _remove_s3_task_assets(self):
         s3_filenames = [get_file_name(s3_image) for s3_image in self.s3_images]
