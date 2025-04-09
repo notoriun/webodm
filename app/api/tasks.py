@@ -45,7 +45,7 @@ from rest_framework.permissions import AllowAny
 from PIL import Image
 import re
 import piexif
-import boto3  
+import boto3
 from boto3.dynamodb.conditions import Key
 
 logger = logging.getLogger("app.logger")
@@ -645,17 +645,17 @@ class TaskMetadataAssets(TaskNestedView):
         if settings.DYNAMODB_TABLE:
             # Verifica se a tabela existe
             try:
-                dynamodb = boto3.resource('dynamodb', 
-                                          region_name=settings.DYNAMODB_REGION, 
+                dynamodb = boto3.resource('dynamodb',
+                                          region_name=settings.DYNAMODB_REGION,
                                           aws_access_key_id=settings.DYNAMODB_ACCESS_KEY,
                                           aws_secret_access_key=settings.DYNAMODB_SECRET_KEY)
                 table = dynamodb.Table(settings.DYNAMODB_TABLE)
             except Exception as e:
                 logger.error(f"Erro ao conectar ao DynamoDB: {str(e)}")
-                
-                
 
-        for asset in models.TaskAsset.sort_list(assets):
+
+
+        for asset in models.TaskAsset.sort_list(list(assets)):
             asset_name = asset.name.split("/")[1] if "/" in asset.name else asset.name
             metadata[asset_name] = {
                 "latitude": asset.latitude,

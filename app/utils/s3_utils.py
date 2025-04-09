@@ -153,7 +153,7 @@ def open_cog_reader(url: str):
         )
         raise exceptions.NotFound(_("Unable to read the data from S3"))
     except Exception as e:
-        logger.error(str(e))
+        logger.error(f"Error on open CogReader from {url}. Original error: {e}")
         raise e
 
 
