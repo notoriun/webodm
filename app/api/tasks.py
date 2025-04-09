@@ -639,7 +639,7 @@ class TaskMetadataAssets(TaskNestedView):
         ).order_by("name")
         metadata = {}
 
-        for asset in models.TaskAsset.sort_list(assets):
+        for asset in models.TaskAsset.sort_list(list(assets)):
             asset_name = asset.name.split("/")[1] if "/" in asset.name else asset.name
             metadata[asset_name] = {
                 "latitude": asset.latitude,

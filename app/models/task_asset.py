@@ -69,7 +69,7 @@ class TaskAsset(models.Model):
         default=timezone.now, help_text=_("Creation date"), verbose_name=_("Created at")
     )
     status = models.IntegerField(
-        choices=TYPES,
+        choices=STATUS_CODES,
         db_index=True,
         null=False,
         blank=False,
@@ -521,7 +521,7 @@ class TaskAssetOrthophoto(TaskAsset):
         return self.name
 
     def path(self) -> str:
-        return self.task.get_image_path(self.name)
+        return self.task.get_asset_download_path(self.name)
 
     def need_upload_to_s3(self):
         return (not self.is_from_s3()) and (self.task.assets_path() in self.path())
