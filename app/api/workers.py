@@ -114,6 +114,8 @@ class GetCacheSize(APIView):
     def get(self, request, celery_task_id=None, **kwargs):
         from worker.cache_files import get_cache_sizes
 
-        available_size, max_size = get_cache_sizes()
+        available_size, max_size, current_size = get_cache_sizes()
 
-        return Response({"available": available_size, "max": max_size})
+        return Response(
+            {"available": available_size, "max": max_size, "current": current_size}
+        )

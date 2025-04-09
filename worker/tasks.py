@@ -8,7 +8,6 @@ import time
 
 from threading import Event, Thread
 from celery.utils.log import get_task_logger
-from celery.exceptions import MaxRetriesExceededError
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import Q
@@ -30,8 +29,6 @@ from app.raster_utils import (
     extension_for_export_format,
 )
 from app.pointcloud_utils import export_pointcloud as export_pointcloud_sync
-from django.utils import timezone
-from datetime import timedelta
 import redis
 
 logger = get_task_logger("app.logger")
