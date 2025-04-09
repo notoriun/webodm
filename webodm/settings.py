@@ -426,7 +426,10 @@ S3_CACHE_MAX_SIZE_MB = int(os.environ.get("WO_S3_CACHE_MAX_SIZE_MB", "0"))
 S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS = int(
     os.environ.get("WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS", "30")
 )
-
+DYNAMODB_SECRET_KEY = os.environ.get("WO_DYNAMODB_SECRET_KEY", None)
+DYNAMODB_ACCESS_KEY = os.environ.get("WO_DYNAMODB_ACCESS_KEY", None)
+DYNAMODB_TABLE = os.environ.get("WO_DYNAMODB_TABLE", None)
+DYNAMODB_REGION = os.environ.get("WO_DYNAMODB_REGION", 'us-east-1')
 try:
     from .local_settings import *
 except ImportError:
