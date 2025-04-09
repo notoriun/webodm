@@ -58,10 +58,10 @@ from app.utils.s3_utils import (
     list_s3_objects,
     download_s3_file,
     get_s3_object_metadata,
-    append_s3_bucket_prefix,
     convert_task_path_to_s3,
     get_object_checksum,
     s3_object_exists,
+    split_s3_bucket_prefix,
 )
 from app.utils.file_utils import (
     ensure_path_exists,
@@ -71,6 +71,7 @@ from app.utils.file_utils import (
     ensure_sep_at_end,
     calculate_sha256,
     delete_path,
+    delete_empty_dirs,
 )
 
 logger = logging.getLogger("app.logger")
@@ -983,7 +984,7 @@ class Task(models.Model):
         self.save()
 
     def handle_s3_import(self):
-        logger.info("donwloading images from s3")
+        self.console += "Starting donwload images from s3...\n"
         self.downloading_s3_progress = 0.0
         self.save(update_fields=["downloading_s3_progress"])
 
@@ -993,16 +994,20 @@ class Task(models.Model):
                 self._downloaded_bytes = 0.0
                 self._task = task
                 self._downloaded_images = downloaded_images
+                self.console_prints = 0
 
             def __call__(self, bytes_transferred):
                 self._downloaded_bytes += bytes_transferred
                 progress = self._downloaded_bytes / self._size if self._size > 0 else 0
                 self._task._update_download_progress(self._downloaded_images, progress)
-                logger.info(
-                    "Download from S3 percent {}%".format(
-                        self._task.downloading_s3_progress * 100
-                    )
+                self._task.console += (
+                    f"...{self._task.downloading_s3_progress * 100:.2f}%"
                 )
+                self.console_prints += 1
+
+                if self.console_prints >= 10:
+                    self.console_prints = 0
+                    self._task.console += "\n"
 
         try:
             self._remove_root_images()
@@ -1017,12 +1022,9 @@ class Task(models.Model):
                 fotos_s3_dir = self._create_task_s3_download_dir()
 
                 for image in self.s3_images:
-                    bucket, image_path = image.replace("s3://", "").split("/", 1)
-                    image_index = self.s3_images.index(image)
-                    original_image_filename = image_path.rsplit("/")[-1]
-                    destiny_image_filename = "{}/{}-{}".format(
-                        fotos_s3_dir, image_index, original_image_filename
-                    )
+                    bucket, image_path = split_s3_bucket_prefix(image)
+                    original_image_filename = get_file_name(image_path)
+                    destiny_image_filename = f"{fotos_s3_dir}/{original_image_filename}"
 
                     s3_object = get_s3_object_metadata(
                         bucket=bucket, key=image_path, s3_client=s3_client
@@ -1049,6 +1051,8 @@ class Task(models.Model):
             )
             self.update_size()
             self.save()
+
+            self.console += f"\nDownloaded {self.images_count} images from S3.\n"
         except Exception as e:
             self.set_failure(str(e))
             raise NodeServerError(e)
@@ -1207,10 +1211,13 @@ class Task(models.Model):
                         self.pending_action = None
                         self.save(update_fields=("status", "pending_action"))
 
+                    self._remove_root_images()
+
                 elif self.pending_action == pending_actions.RESTART:
                     logger.info("Restarting {}".format(self))
 
                     if self.processing_node:
+                        self.console.reset()
                         self._ensure_s3_images_exists()
 
                         # Check if the UUID is still valid, as processing nodes purge
@@ -1263,7 +1270,6 @@ class Task(models.Model):
                             )
                             self.upload_progress = 0
 
-                        self.console.reset()
                         self.processing_time = -1
                         self.status = None
                         self.last_error = None
@@ -1286,6 +1292,8 @@ class Task(models.Model):
                         except OdmError:
                             pass
 
+                    self._remove_root_images()
+
                     # What's more important is that we delete our task properly here
                     self.delete()
 
@@ -1299,18 +1307,18 @@ class Task(models.Model):
                     status_codes.QUEUED,
                     status_codes.RUNNING,
                 ]:
-                    # Update task info from processing node
-                    if not self.console.output():
-                        current_lines_count = 0
-                    else:
-                        current_lines_count = len(self.console.output().split("\n"))
-
                     # Not exists task on pyodm node, maybe the node crashed, so restart
                     if not self.processing_node.task_exists(self.uuid):
                         self.pending_action = pending_actions.RESTART
                         self.last_error = None
                         self.save(update_fields=("last_error", "pending_action"))
                         return
+
+                    # Update task info from processing node
+                    if not self.console.output():
+                        current_lines_count = 0
+                    else:
+                        current_lines_count = len(self.console.output().split("\n"))
 
                     info = self.processing_node.get_task_info(
                         self.uuid, current_lines_count
@@ -1533,7 +1541,7 @@ class Task(models.Model):
         if is_backup:
             self.read_backup_file()
         else:
-            self.console += gettext("Done!") + "\n"
+            self.console += gettext("Almost done") + "\n"
 
         self.save()
 
@@ -1997,6 +2005,15 @@ class Task(models.Model):
 
         return asset_task_path
 
+    def delete_data_path(self):
+        data_path = self.data_path()
+
+        if os.path.exists(data_path):
+            shutil.rmtree(data_path)
+
+    def clear_empty_dirs(self):
+        return delete_empty_dirs(self.task_path())
+
     def _upload_assets_to_s3(self, assets_to_upload: list[TaskAsset]):
         s3_bucket = settings.S3_BUCKET
         files_uploadeds = []
@@ -2007,7 +2024,7 @@ class Task(models.Model):
             logger.error(
                 "Could not upload any image to s3, because is missing some s3 configuration variable"
             )
-            return
+            return []
 
         class UploadProgressCallback(object):
             def __init__(self, task: Task, uploaded_images, total_size, total_images):
@@ -2016,6 +2033,7 @@ class Task(models.Model):
                 self._task = task
                 self._uploaded_images = uploaded_images
                 self._total_images = total_images
+                self.console_prints = 0
 
             def __call__(self, bytes_transferred):
                 self._uploaded_bytes += bytes_transferred
@@ -2023,25 +2041,38 @@ class Task(models.Model):
                 self._task._update_upload_progress(
                     self._uploaded_images, self._total_images, progress
                 )
-                logger.info(
-                    "Upload to S3 percent {}%".format(
-                        self._task.uploading_s3_progress * 100
-                    )
+                self._task.console += (
+                    f"...{self._task.uploading_s3_progress * 100:.2f}%"
                 )
+                self.console_prints += 1
+
+                if self.console_prints >= 10:
+                    self.console_prints = 0
+                    self._task.console += "\n"
 
         try:
-            logger.info("Starting upload assets to S3...")
+            self.console += "Starting upload assets to S3...\n"
             s3_client = get_s3_client()
 
             if not s3_client:
                 logger.error(
                     "Could not upload any image to s3, because is missing some s3 configuration variable"
                 )
-                return
+                return []
 
             for asset_to_upload in assets_to_upload:
                 file_to_upload = asset_to_upload.path()
                 if not os.path.exists(file_to_upload):
+                    continue
+
+                if not asset_to_upload.need_upload_to_s3():
+                    files_uploadeds.append(file_to_upload)
+
+                    self._update_upload_progress(
+                        files_uploadeds, len(assets_to_upload), 1
+                    )
+                    self.console += f"...{self.uploading_s3_progress * 100:.2f}%"
+
                     continue
 
                 s3_key = remove_path_from_path(file_to_upload, settings.MEDIA_ROOT)
@@ -2060,11 +2091,7 @@ class Task(models.Model):
                     self._update_upload_progress(
                         files_uploadeds, len(assets_to_upload), 1
                     )
-                    logger.info(
-                        "Upload to S3 percent {}%".format(
-                            self.uploading_s3_progress * 100
-                        )
-                    )
+                    self.console += f"...{self.uploading_s3_progress * 100:.2f}%"
                 else:
                     try:
                         file_size = os.path.getsize(file_to_upload)
@@ -2087,9 +2114,9 @@ class Task(models.Model):
                         asset_to_upload.save(update_fields=("status",))
                         raise e
 
-                files_uploadeds.append(append_s3_bucket_prefix(file_to_upload))
+                files_uploadeds.append(file_to_upload)
 
-            logger.info(f"Uploaded {len(files_uploadeds)} files to S3!")
+            self.console += f"\nUploaded {len(files_uploadeds)} files to S3!"
         except Exception as e:
             raise NodeServerError(e)
 
@@ -2097,7 +2124,9 @@ class Task(models.Model):
 
     def _upload_to_s3_and_cache_orthophoto_assets(self):
         files_to_upload = self._orthophoto_assets_needs_upload_to_s3()
-        return self.upload_and_cache_assets(files_to_upload)
+        self.upload_and_cache_assets(files_to_upload)
+
+        self.console += gettext("Done!") + "\n"
 
     def _create_task_s3_download_dir(self):
         fotos_s3_dir = self.task_path()
@@ -2119,7 +2148,7 @@ class Task(models.Model):
 
     def _remove_root_images(self):
         for e in self._entry_root_images():
-            os.remove(e.path)
+            delete_path(e.path)
 
     def _entry_root_images(self):
         tp = self.task_path()
@@ -2265,20 +2294,6 @@ class Task(models.Model):
 
         return False
 
-    def _download_images_from_s3_images(self):
-        from app.classes.task_files_uploader import TaskFilesUploader
-
-        current_pending_action = self.pending_action
-        self.pending_action = pending_actions.IMPORT_FROM_S3
-        self.save(update_fields=("pending_action",))
-
-        self._remove_s3_task_assets()
-        uploader = TaskFilesUploader(self.pk)
-        uploader.upload_files([], self.s3_images, "orthophoto")
-
-        self.pending_action = current_pending_action
-        self.save(update_fields=("pending_action",))
-
     def _ensure_s3_images_exists(self):
         s3_images_count = len(self.s3_images)
 
@@ -2298,7 +2313,7 @@ class Task(models.Model):
             need_download = s3_file_names == root_images_name
 
         if need_download:
-            self._download_images_from_s3_images()
+            self.handle_s3_import()
 
     def _remove_s3_task_assets(self):
         s3_filenames = [get_file_name(s3_image) for s3_image in self.s3_images]
