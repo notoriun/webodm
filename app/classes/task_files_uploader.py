@@ -3,6 +3,7 @@ import logging
 from app import task_asset_type, task_asset_status
 from app.models import Task, TaskAsset
 from app.utils.file_utils import get_file_name
+from worker import cache_files as worker_cache_files_tasks
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger("app.logger")
@@ -76,9 +77,7 @@ class TaskFilesUploader:
         self.task.refresh_from_db()
 
     def _upload_task_assets_to_s3(self, assets: list[TaskAsset]):
-        self.task.upload_and_cache_assets(
-            [asset.path() for asset in assets if asset.need_upload_to_s3()]
-        )
+        self.task.upload_and_cache_assets(assets)
 
     def _upload_task_asset(self, uploaded_file: dict[str, str], asset_type: int):
         task_asset = TaskAsset.objects.create(
@@ -140,7 +139,7 @@ class TaskFilesUploader:
         asset_type: int,
         ignore_upload_to_s3=False,
     ):
-        assets_uploadeds = []
+        assets_uploadeds: list[TaskAsset] = []
         files_success = []
         files_with_error = {}
 
@@ -160,6 +159,11 @@ class TaskFilesUploader:
         if asset_type != task_asset_type.ORTHOPHOTO:
             if not ignore_upload_to_s3:
                 self._upload_task_assets_to_s3(assets_uploadeds)
+            else:
+                for asset in assets_uploadeds:
+                    worker_cache_files_tasks.add_local_file_to_redis_cache.delay(
+                        asset.path()
+                    )
             self._concat_to_available_assets(assets_uploadeds)
 
         return {

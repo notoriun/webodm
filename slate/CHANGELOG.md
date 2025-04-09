@@ -1,5 +1,13 @@
 # Changelog
 
+## Versão 1.0.22
+
+*09-04-25*
+
+- Busca dados do DynamoDB para exibição de fotos e vídeos no timeline.
+- Corrige erros no gerenciamento do cache de arquivos de fotos, imagens e ortofotos.
+
+
 ## Versão 1.0.21
 
 *04-04-25*

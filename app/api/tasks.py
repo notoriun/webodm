@@ -45,6 +45,8 @@ from rest_framework.permissions import AllowAny
 from PIL import Image
 import re
 import piexif
+import boto3
+from boto3.dynamodb.conditions import Key
 
 logger = logging.getLogger("app.logger")
 
@@ -639,14 +641,45 @@ class TaskMetadataAssets(TaskNestedView):
         ).order_by("name")
         metadata = {}
 
-        for asset in models.TaskAsset.sort_list(assets):
+        # Busca dados do dynamodb
+        if settings.DYNAMODB_TABLE:
+            # Verifica se a tabela existe
+            try:
+                dynamodb = boto3.resource('dynamodb',
+                                          region_name=settings.DYNAMODB_REGION,
+                                          aws_access_key_id=settings.DYNAMODB_ACCESS_KEY,
+                                          aws_secret_access_key=settings.DYNAMODB_SECRET_KEY)
+                table = dynamodb.Table(settings.DYNAMODB_TABLE)
+            except Exception as e:
+                logger.error(f"Erro ao conectar ao DynamoDB: {str(e)}")
+
+
+
+        for asset in models.TaskAsset.sort_list(list(assets)):
             asset_name = asset.name.split("/")[1] if "/" in asset.name else asset.name
             metadata[asset_name] = {
                 "latitude": asset.latitude,
                 "longitude": asset.longitude,
                 "altitude": asset.altitude,
                 "created_at": asset.created_at,
+                "description": 'Descrição',
+                "field_label": 'Field label'
             }
+
+            # Extração do nome do arquivo do campo origin_path
+            if asset.origin_path:
+                file_name = os.path.basename(asset.origin_path)
+                print(f"Nome do arquivo: {file_name}")
+
+                # Busca no DynamoDB
+                response = table.query(
+                    KeyConditionExpression=Key('id').eq(file_name)
+                )
+                print(f"Response do DynamoDB: {response}")
+                if 'Items' in response and len(response['Items']) > 0:
+                    item = response['Items']
+                    metadata[asset_name]["description"] = item[0].get("description")
+                    metadata[asset_name]["field_label"] = item[0].get("field_label")
 
         return Response(metadata, status=status.HTTP_200_OK)
 

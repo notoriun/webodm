@@ -106,3 +106,16 @@ class GetTaskResult(APIView):
 
     def handle_output(self, output, result, **kwargs):
         return output
+
+
+class GetCacheSize(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, celery_task_id=None, **kwargs):
+        from worker.cache_files import get_cache_sizes
+
+        available_size, max_size, current_size = get_cache_sizes()
+
+        return Response(
+            {"available": available_size, "max": max_size, "current": current_size}
+        )
