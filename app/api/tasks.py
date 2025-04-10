@@ -662,8 +662,8 @@ class TaskMetadataAssets(TaskNestedView):
                 "longitude": asset.longitude,
                 "altitude": asset.altitude,
                 "created_at": asset.created_at,
-                "description": 'Descrição',
-                "field_label": 'Field label'
+                "description": '',
+                "field_label": ''
             }
 
             # Extração do nome do arquivo do campo origin_path
