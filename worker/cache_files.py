@@ -123,7 +123,12 @@ def move_file_and_add_in_cache(file_s3: str, file_to_move):
 
         ensure_path_exists(file_dir)
 
-        shutil.move(file_to_move, filepath)
+        is_source_on_temp = settings.MEDIA_TMP in file_to_move
+
+        if is_source_on_temp:
+            shutil.copy2(file_to_move, filepath)
+        else:
+            shutil.move(file_to_move, filepath)
 
         with s3_cache_lock():
             new_cache = update_file_in_cache(filepath)

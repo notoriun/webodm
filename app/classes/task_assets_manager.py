@@ -11,7 +11,12 @@ from app.utils.s3_utils import (
     download_s3_file,
     split_s3_bucket_prefix,
 )
-from app.utils.file_utils import ensure_sep_at_end, remove_path_from_path
+from app.utils.file_utils import (
+    ensure_sep_at_end,
+    remove_path_from_path,
+    get_file_name,
+    ensure_path_exists,
+)
 from webodm import settings
 
 logger = logging.getLogger("app.logger")
@@ -38,6 +43,10 @@ class TaskAssetsManager:
             return src_path
 
         source_path = src_path.replace(ensure_sep_at_end(settings.MEDIA_ROOT), "")
+        destiny_dir = destiny_path.replace(get_file_name(destiny_path), "")
+
+        ensure_path_exists(destiny_dir)
+
         download_s3_file(source_path, destiny_path)
         downloaded_file = os.path.exists(destiny_path)
 
