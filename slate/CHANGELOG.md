@@ -1,5 +1,11 @@
 # Changelog
 
+## Versão 1.0.23
+
+*28-04-25*
+
+- Corrige problema ao realizar medição que não buscava arquivos necessários do S3 se não estivesse no cache.
+
 ## Versão 1.0.22
 
 *09-04-25*
