@@ -1,5 +1,13 @@
-def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=None, decimals=4,
-                base_method="triangulate", custom_base_z=None):
+def calc_volume(
+    task_id,
+    input_dem,
+    pts=None,
+    pts_epsg=None,
+    geojson_polygon=None,
+    decimals=4,
+    base_method="triangulate",
+    custom_base_z=None,
+):
     try:
         import os
         import rasterio
@@ -14,13 +22,12 @@ def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=Non
         from app.models import Task
         from app.classes.task_assets_manager import TaskAssetsManager
 
-
         task = Task.objects.get(pk=task_id)
         asset_manager = TaskAssetsManager(task)
         downloaded_dem = asset_manager.download_asset_to_temp(input_dem)
 
         osr.UseExceptions()
-        warnings.filterwarnings("ignore", module='scipy.optimize')
+        warnings.filterwarnings("ignore", module="scipy.optimize")
 
         if not os.path.isfile(downloaded_dem):
             raise IOError(f"{downloaded_dem} does not exist")
@@ -35,15 +42,23 @@ def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=Non
         if pts is None and pts_epsg is None and geojson_polygon is not None:
             # Read GeoJSON points
             pts = read_polygon(geojson_polygon)
-            return calc_volume(task_id, downloaded_dem, pts=pts, pts_epsg=4326, decimals=decimals, base_method=base_method, custom_base_z=custom_base_z)
-        
+            return calc_volume(
+                task_id,
+                downloaded_dem,
+                pts=pts,
+                pts_epsg=4326,
+                decimals=decimals,
+                base_method=base_method,
+                custom_base_z=custom_base_z,
+            )
+
         # Convert to DEM crs
         src_crs = osr.SpatialReference()
         src_crs.ImportFromEPSG(pts_epsg)
         transformer = osr.CoordinateTransformation(src_crs, crs)
 
         dem_pts = [list(transformer.TransformPoint(p[1], p[0]))[:2] for p in pts]
-        
+
         # Some checks
         if len(dem_pts) < 2:
             raise ValueError("Insufficient points to form a polygon")
@@ -51,13 +66,13 @@ def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=Non
         # Close loop if needed
         if not np.array_equal(dem_pts[0], dem_pts[-1]):
             dem_pts.append(dem_pts[0])
-        
+
         polygon = {"coordinates": [dem_pts], "type": "Polygon"}
         dem_pts = np.array(dem_pts)
 
         # Remove last point (loop close)
         dem_pts = dem_pts[:-1]
-        
+
         with rasterio.open(downloaded_dem) as d:
             px_w = d.transform[0]
             px_h = d.transform[4]
@@ -65,20 +80,26 @@ def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=Non
             # Area of a pixel in square units
             px_area = abs(px_w * px_h)
 
-            rast_dem, transform = rasterio.mask.mask(d, [polygon], crop=True, all_touched=True, indexes=1, nodata=np.nan)
+            rast_dem, transform = rasterio.mask.mask(
+                d, [polygon], crop=True, all_touched=True, indexes=1, nodata=np.nan
+            )
             h, w = rast_dem.shape
 
             # X/Y coordinates in transform coordinates
-            ys, xs = np.array(rasterio.transform.rowcol(transform, dem_pts[:,0], dem_pts[:,1]))
+            ys, xs = np.array(
+                rasterio.transform.rowcol(transform, dem_pts[:, 0], dem_pts[:, 1])
+            )
 
-            if np.any(xs<0) or np.any(xs>=w) or np.any(ys<0) or np.any(ys>=h):
+            if np.any(xs < 0) or np.any(xs >= w) or np.any(ys < 0) or np.any(ys >= h):
                 raise ValueError("Points are out of bounds")
-            
-            zs = rast_dem[ys,xs]
+
+            zs = rast_dem[ys, xs]
 
             if base_method == "plane":
                 # Create a grid for interpolation
-                x_grid, y_grid = np.meshgrid(np.linspace(0, w - 1, w), np.linspace(0, h - 1, h))
+                x_grid, y_grid = np.meshgrid(
+                    np.linspace(0, w - 1, w), np.linspace(0, h - 1, h)
+                )
 
                 # Perform curve fitting
                 linear_func = lambda xy, m1, m2, b: m1 * xy[0] + m2 * xy[1] + b
@@ -87,15 +108,21 @@ def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=Non
                 base = linear_func((x_grid, y_grid), *params)
             elif base_method == "triangulate":
                 # Create a grid for interpolation
-                x_grid, y_grid = np.meshgrid(np.linspace(0, w - 1, w), np.linspace(0, h - 1, h))
-                
-                # Tessellate the input point set to N-D simplices, and interpolate linearly on each simplex. 
-                base = griddata(np.column_stack((xs, ys)), zs, (x_grid, y_grid), method='linear')
+                x_grid, y_grid = np.meshgrid(
+                    np.linspace(0, w - 1, w), np.linspace(0, h - 1, h)
+                )
+
+                # Tessellate the input point set to N-D simplices, and interpolate linearly on each simplex.
+                base = griddata(
+                    np.column_stack((xs, ys)), zs, (x_grid, y_grid), method="linear"
+                )
             elif base_method == "average":
                 base = np.full((h, w), np.mean(zs))
             elif base_method == "custom":
                 if custom_base_z is None:
-                    raise ValueError("Base method set to custom, but no custom base Z specified")
+                    raise ValueError(
+                        "Base method set to custom, but no custom base Z specified"
+                    )
                 base = np.full((h, w), float(custom_base_z))
             elif base_method == "highest":
                 base = np.full((h, w), np.max(zs))
@@ -118,27 +145,30 @@ def calc_volume(task_id, input_dem, pts=None, pts_epsg=None, geojson_polygon=Non
             # plt.title('Debug')
             # plt.show()
 
-            return {'output': np.abs(np.round(volume, decimals=decimals))}
+            return {"output": np.abs(np.round(volume, decimals=decimals))}
     except Exception as e:
-        return {'error': str(e)}
+        return {"error": str(e)}
+
 
 def read_polygon(file):
-    with open(file, 'r', encoding="utf-8") as f:
+    with open(file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    if data.get('type') == "FeatureCollection":
+    if data.get("type") == "FeatureCollection":
         features = data.get("features", [{}])
     else:
         features = [data]
 
     for feature in features:
-        if not 'geometry' in feature:
+        if not "geometry" in feature:
             continue
 
         # Check if the feature geometry type is Polygon
-        if feature['geometry']['type'] == 'Polygon':
+        if feature["geometry"]["type"] == "Polygon":
             # Extract polygon coordinates
-            coordinates = feature['geometry']['coordinates'][0]  # Assuming exterior ring
+            coordinates = feature["geometry"]["coordinates"][
+                0
+            ]  # Assuming exterior ring
             return coordinates
-    
+
     raise IOError("No polygons found in %s" % file)
