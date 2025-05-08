@@ -62,6 +62,7 @@ from app.utils.s3_utils import (
     get_object_checksum,
     s3_object_exists,
     split_s3_bucket_prefix,
+    calculate_object_checksum,
 )
 from app.utils.file_utils import (
     ensure_path_exists,
@@ -986,7 +987,7 @@ class Task(models.Model):
     def handle_s3_import(self):
         self.console += "Starting donwload images from s3...\n"
         self.downloading_s3_progress = 0.0
-        self.save(update_fields=["downloading_s3_progress"])
+        self.save(update_fields=("downloading_s3_progress",))
 
         class DownloadProgressCallback(object):
             def __init__(self, task: Task, downloaded_images, total_size):
@@ -1010,7 +1011,6 @@ class Task(models.Model):
                     self._task.console += "\n"
 
         try:
-            self._remove_root_images()
             s3_client = get_s3_client()
             downloaded_images = []
 
@@ -1020,18 +1020,38 @@ class Task(models.Model):
                 )
             else:
                 fotos_s3_dir = self._create_task_s3_download_dir()
+                files_already_downloaded_count = 0
 
                 for image in self.s3_images:
                     bucket, image_path = split_s3_bucket_prefix(image)
                     original_image_filename = get_file_name(image_path)
-                    destiny_image_filename = f"{fotos_s3_dir}/{original_image_filename}"
+                    destiny_image_filename = os.path.join(
+                        fotos_s3_dir, original_image_filename
+                    )
 
                     s3_object = get_s3_object_metadata(
                         bucket=bucket, key=image_path, s3_client=s3_client
                     )
                     total_size = s3_object.get("ContentLength", 0) if s3_object else 0
 
-                    if total_size:
+                    if total_size <= 0:
+                        continue
+
+                    need_download = self._need_download_asset(
+                        s3_object, destiny_image_filename
+                    )
+
+                    if not need_download:
+                        self._update_download_progress(
+                            downloaded_images + [destiny_image_filename], total_size
+                        )
+                        self.console += "100%\n"
+
+                        files_already_downloaded_count += 1
+                    else:
+                        if os.path.exists(destiny_image_filename):
+                            os.remove(destiny_image_filename)
+
                         download_s3_file(
                             image_path,
                             destiny_image_filename,
@@ -1041,7 +1061,8 @@ class Task(models.Model):
                                 self, downloaded_images, total_size
                             ),
                         )
-                        downloaded_images.append(destiny_image_filename)
+
+                    downloaded_images.append(destiny_image_filename)
 
             self.images_count = len(downloaded_images)
             self.pending_action = (
@@ -1050,9 +1071,9 @@ class Task(models.Model):
                 else None
             )
             self.update_size()
-            self.save()
+            self.save(update_fields=("images_count", "pending_action", "size"))
 
-            self.console += f"\nDownloaded {self.images_count} images from S3.\n"
+            self.console += f"\nDownloaded {self.images_count - files_already_downloaded_count} images from S3. {files_already_downloaded_count} already salved on disk. Total: {self.images_count}\n"
         except Exception as e:
             self.set_failure(str(e))
             raise NodeServerError(e)
@@ -2231,6 +2252,15 @@ class Task(models.Model):
                 root_images.append(obj_key)
 
         return root_images
+
+    def _need_download_asset(self, s3_metadata: dict, filepath: str):
+        s3_checksum = calculate_object_checksum(s3_metadata)
+        try:
+            local_checksum = calculate_sha256(filepath)
+        except:
+            local_checksum = None
+
+        return local_checksum == None or local_checksum != s3_checksum
 
     def _need_upload_asset(self, current_checksum: str, s3_key: str, s3_client):
         object_checksum = get_object_checksum(s3_key, s3_client=s3_client)
