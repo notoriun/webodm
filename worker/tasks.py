@@ -313,7 +313,7 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
 
     try:
         result = uploader.upload_files(files_to_upload, s3_images, upload_type)
-        logger.info(f"upload task finished with result {result}")
+        logger.info(f"Upload task finished with result {result}")
 
         if settings.TESTING:
             TestSafeAsyncResult.set(self.request.id, result)

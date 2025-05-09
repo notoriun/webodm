@@ -1,12 +1,27 @@
+import os
+import logging
+import signal
+import sys
 from celery import Celery
 from webodm import settings
-import os
+
+logger = logging.getLogger(__name__)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webodm.settings")
 
 app = Celery("tasks")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.conf.result_backend_transport_options = {"retry_policy": {"timeout": 5.0}}
+
+
+def graceful_shutdown(signum, frame):
+    logger.info(f"Received signal {signum}, shutting down gracefully...")
+    logger.info("Exiting...")
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, graceful_shutdown)
+signal.signal(signal.SIGINT, graceful_shutdown)
 
 app.conf.beat_schedule = {
     "update-nodes-info": {
