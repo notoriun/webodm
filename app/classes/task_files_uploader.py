@@ -1,9 +1,12 @@
 import logging
+import os
 
 from app import task_asset_type, task_asset_status
+from app.classes.file_dict import FileDict
 from app.models import Task, TaskAsset
 from app.utils.file_utils import get_file_name
 from worker import cache_files as worker_cache_files_tasks
+from webodm import settings
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger("app.logger")
@@ -13,6 +16,9 @@ class TaskFilesUploader:
     def __init__(self, task_id):
         self._task_id = task_id
         self._task_loaded: Task = None
+
+        upload_db_path = os.path.join(settings.MEDIA_ROOT, "task_files_uploader.db")
+        self._uploads_db = FileDict(upload_db_path)
 
     @property
     def task(self):
@@ -30,12 +36,15 @@ class TaskFilesUploader:
     ):
         try:
             self.task_upload_in_progress(True)
+            self._save_task_upload_params(
+                local_files_to_upload, s3_files_to_upload, upload_type
+            )
 
             all_files_uploadeds = self._parse_uploaded_files(
                 local_files_to_upload, s3_files_to_upload
             )
             self.task.console += (
-                f"Starting upload images to webodm. Images: {all_files_uploadeds}"
+                f"Starting upload images to webodm. Images: {all_files_uploadeds}\n"
             )
 
             task_asset_upload_type = self._parse_upload_type(upload_type)
@@ -52,7 +61,8 @@ class TaskFilesUploader:
                 self.task.save(update_fields=["s3_images", "images_count"])
 
             self.task_upload_in_progress(False)
-            self.task.console += "Finished upload images to webodm"
+            self._remove_task_from_db()
+            self.task.console += "Finished upload images to webodm\n"
 
             return response
         except Exception as e:
@@ -170,14 +180,15 @@ class TaskFilesUploader:
             if task_asset.status == task_asset_status.ERROR:
                 files_with_error[filename] = upload_error or "UNKNOW_ERROR"
 
-                self.task.console += f"[{progress * 100:.2f}%] - Cannot upload file {file_uploaded}. ERROR: {files_with_error[filename]}"
+                self.task.console += f"[{progress * 100:.2f}%] - Cannot upload file {filename}. ERROR: {files_with_error[filename]}\n"
             else:
                 progress += percent_per_file
                 files_success.append(filename)
                 assets_uploadeds.append(task_asset)
 
+                self._add_file_to_upload_success_on_db(file_uploaded)
                 self.task.console += (
-                    f"[{progress * 100:.2f}%] - File {file_uploaded} upload success"
+                    f"[{progress * 100:.2f}%] - File {filename} upload success\n"
                 )
 
         if asset_type != task_asset_type.ORTHOPHOTO:
@@ -195,3 +206,33 @@ class TaskFilesUploader:
             "uploaded": files_success,
             "files_with_error": files_with_error,
         }
+
+    def _save_task_upload_params(
+        self,
+        local_files_to_upload: list[dict[str, str]],
+        s3_files_to_upload: list[str],
+        upload_type: str,
+    ):
+        task_upload_db = self._uploads_db.get(self._task_id, {})
+
+        task_upload_db["local_files_to_upload"] = local_files_to_upload
+        task_upload_db["s3_files_to_upload"] = s3_files_to_upload
+        task_upload_db["upload_type"] = upload_type
+        task_upload_db["uploads_success"] = []
+
+        self._uploads_db.set(self._task_id, task_upload_db)
+
+    def _add_file_to_upload_success_on_db(
+        self,
+        file_success: dict[str, str],
+    ):
+        task_upload_db = self._uploads_db.get(self._task_id, {})
+
+        uploads_success = task_upload_db.get("uploads_success", [])
+        uploads_success.append(file_success)
+        task_upload_db["uploads_success"] = uploads_success
+
+        self._uploads_db.set(self._task_id, task_upload_db)
+
+    def _remove_task_from_db(self):
+        self._uploads_db.remove(self._task_id)
