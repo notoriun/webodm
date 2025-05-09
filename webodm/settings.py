@@ -349,6 +349,9 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_INCLUDE = ["worker.tasks", "app.plugins.worker"]
 CELERY_WORKER_REDIRECT_STDOUTS = False
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+CELERY_ACKS_LATE = True
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
 
 CACHES = {
     "default": {
@@ -429,7 +432,7 @@ S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS = int(
 DYNAMODB_SECRET_KEY = os.environ.get("WO_DYNAMODB_SECRET_KEY", None)
 DYNAMODB_ACCESS_KEY = os.environ.get("WO_DYNAMODB_ACCESS_KEY", None)
 DYNAMODB_TABLE = os.environ.get("WO_DYNAMODB_TABLE", None)
-DYNAMODB_REGION = os.environ.get("WO_DYNAMODB_REGION", 'us-east-1')
+DYNAMODB_REGION = os.environ.get("WO_DYNAMODB_REGION", "us-east-1")
 try:
     from .local_settings import *
 except ImportError:
