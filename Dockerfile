@@ -8,7 +8,6 @@ ENV PYTHONPATH $PYTHONPATH:/webodm
 ENV PROJ_LIB=/usr/share/proj
 
 # Prepare directory
-ADD . /webodm/
 WORKDIR /webodm
 
 # Use old-releases for 21.04
@@ -33,10 +32,17 @@ RUN apt-get -o Acquire::Retries=3 -qq update && apt-get -o Acquire::Retries=3 -q
 
 #RUN pip install -U pip
 
-RUN pip install -r requirements.txt "boto3==1.14.14" ffmpeg-python
-
 RUN apt-get install -y ffmpeg
     # Setup cron
+    
+ADD ./requirements.txt /webodm/requirements.txt
+
+RUN pip install -r requirements.txt "boto3==1.14.14" ffmpeg-python
+
+RUN npm install --quiet -g webpack@5.89.0 && npm install --quiet -g webpack-cli@5.1.4 
+
+ADD . /webodm/
+
 RUN ln -s /webodm/nginx/crontab /var/spool/cron/crontabs/root
 
 RUN chmod 0644 /webodm/nginx/crontab
@@ -45,9 +51,9 @@ RUN service cron start
 
 RUN chmod +x /webodm/nginx/letsencrypt-autogen.sh
 
-RUN    /webodm/nodeodm/setup.sh && /webodm/nodeodm/cleanup.sh && cd /webodm
+RUN /webodm/nodeodm/setup.sh && /webodm/nodeodm/cleanup.sh && cd /webodm
 
-RUN npm install --quiet -g webpack@5.89.0 && npm install --quiet -g webpack-cli@5.1.4 && npm install --quiet && webpack --mode production && \
+RUN npm install --quiet && webpack --mode production && \
     echo "UTC" > /etc/timezone && \
     python manage.py collectstatic --noinput && \
     python manage.py rebuildplugins && \

@@ -240,15 +240,19 @@ def get_s3_object_metadata(key: str, bucket=settings.S3_BUCKET, s3_client=None) 
 def get_object_checksum(key: str, bucket=settings.S3_BUCKET, s3_client=None) -> str:
     obj_metadata = get_s3_object_metadata(key, s3_client=s3_client)
 
+    return calculate_object_checksum(obj_metadata)
+
+
+def calculate_object_checksum(object_metadata: dict) -> str:
     if (
-        not obj_metadata
-        or "DeleteMarker" in obj_metadata
-        or not ("Metadata" in obj_metadata)
-        or not ("Checksumsha256" in obj_metadata["Metadata"])
+        not object_metadata
+        or "DeleteMarker" in object_metadata
+        or not ("Metadata" in object_metadata)
+        or not ("Checksumsha256" in object_metadata["Metadata"])
     ):
         return None
 
-    return obj_metadata["Metadata"]["Checksumsha256"]
+    return object_metadata["Metadata"]["Checksumsha256"]
 
 
 def convert_task_path_to_s3(task_path: str):

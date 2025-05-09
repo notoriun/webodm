@@ -1,5 +1,24 @@
 # Changelog
 
+## Versão 1.0.26
+
+*08-05-25*
+
+- Corrige continuidade de tarefas do celery
+
+## Versão 1.0.25
+
+*08-05-25*
+
+- Corrige nome do path ao baixar arquivos do S3
+
+## Versão 1.0.24
+
+*08-05-25*
+
+- Corrige duplicação de arquivos baixados do S3.
+- Correge o local de armazenamento de arquivos ao baixar imagens do S3 pela segunda vez.
+
 ## Versão 1.0.23
 
 *28-04-25*
