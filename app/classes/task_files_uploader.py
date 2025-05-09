@@ -34,6 +34,10 @@ class TaskFilesUploader:
             all_files_uploadeds = self._parse_uploaded_files(
                 local_files_to_upload, s3_files_to_upload
             )
+            self.task.console += (
+                f"Starting upload images to webodm. Images: {all_files_uploadeds}"
+            )
+
             task_asset_upload_type = self._parse_upload_type(upload_type)
             response = self._create_task_assets(
                 all_files_uploadeds, task_asset_upload_type, ignore_upload_to_s3
@@ -48,6 +52,7 @@ class TaskFilesUploader:
                 self.task.save(update_fields=["s3_images", "images_count"])
 
             self.task_upload_in_progress(False)
+            self.task.console += "Finished upload images to webodm"
 
             return response
         except Exception as e:
@@ -152,6 +157,8 @@ class TaskFilesUploader:
         assets_uploadeds: list[TaskAsset] = []
         files_success = []
         files_with_error = {}
+        percent_per_file = 1.0 / len(all_files_uploadeds) if all_files_uploadeds else 1
+        progress = 0
 
         for file_uploaded in all_files_uploadeds:
             task_asset, upload_error = self._upload_task_asset(
@@ -162,9 +169,16 @@ class TaskFilesUploader:
 
             if task_asset.status == task_asset_status.ERROR:
                 files_with_error[filename] = upload_error or "UNKNOW_ERROR"
+
+                self.task.console += f"[{progress * 100:.2f}%] - Cannot upload file {file_uploaded}. ERROR: {files_with_error[filename]}"
             else:
+                progress += percent_per_file
                 files_success.append(filename)
                 assets_uploadeds.append(task_asset)
+
+                self.task.console += (
+                    f"[{progress * 100:.2f}%] - File {file_uploaded} upload success"
+                )
 
         if asset_type != task_asset_type.ORTHOPHOTO:
             if not ignore_upload_to_s3:
