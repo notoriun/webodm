@@ -522,7 +522,7 @@ class TaskAssetOrthophoto(TaskAsset):
 
     def path(self) -> str:
         if self.status == task_asset_status.PROCESSING:
-            return self.task.task_asset(self.name)
+            return self.task.task_path(self.name)
 
         try:
             return self.task.get_asset_download_path(self.name)
