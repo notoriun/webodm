@@ -157,7 +157,7 @@ class TaskFilesUploader:
         assets_uploadeds: list[TaskAsset] = []
         files_success = []
         files_with_error = {}
-        percent_per_file = 1.0 / len(all_files_uploadeds)
+        percent_per_file = 1.0 / len(all_files_uploadeds) if all_files_uploadeds else 1
         progress = 0
 
         for file_uploaded in all_files_uploadeds:
