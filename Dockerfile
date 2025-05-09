@@ -8,7 +8,6 @@ ENV PYTHONPATH $PYTHONPATH:/webodm
 ENV PROJ_LIB=/usr/share/proj
 
 # Prepare directory
-ADD . /webodm/
 WORKDIR /webodm
 
 # Use old-releases for 21.04
@@ -33,10 +32,13 @@ RUN apt-get -o Acquire::Retries=3 -qq update && apt-get -o Acquire::Retries=3 -q
 
 #RUN pip install -U pip
 
-RUN pip install -r requirements.txt "boto3==1.14.14" ffmpeg-python
-
 RUN apt-get install -y ffmpeg
     # Setup cron
+
+ADD . /webodm/
+
+RUN pip install -r requirements.txt "boto3==1.14.14" ffmpeg-python
+
 RUN ln -s /webodm/nginx/crontab /var/spool/cron/crontabs/root
 
 RUN chmod 0644 /webodm/nginx/crontab
