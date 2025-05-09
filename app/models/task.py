@@ -1013,6 +1013,7 @@ class Task(models.Model):
         try:
             s3_client = get_s3_client()
             downloaded_images = []
+            files_already_downloaded_count = 0
 
             if not s3_client:
                 logger.error(
@@ -1020,7 +1021,6 @@ class Task(models.Model):
                 )
             else:
                 fotos_s3_dir = self._create_task_s3_download_dir()
-                files_already_downloaded_count = 0
 
                 for image in self.s3_images:
                     bucket, image_path = split_s3_bucket_prefix(image)
@@ -1042,9 +1042,7 @@ class Task(models.Model):
                     )
 
                     if not need_download:
-                        self._update_download_progress(
-                            downloaded_images + [destiny_image_filename], total_size
-                        )
+                        self._update_download_progress(downloaded_images, total_size)
                         self.console += "100%\n"
 
                         files_already_downloaded_count += 1
@@ -2087,12 +2085,12 @@ class Task(models.Model):
                     continue
 
                 if not asset_to_upload.need_upload_to_s3():
-                    files_uploadeds.append(file_to_upload)
-
                     self._update_upload_progress(
                         files_uploadeds, len(assets_to_upload), 1
                     )
                     self.console += f"...{self.uploading_s3_progress * 100:.2f}%"
+
+                    files_uploadeds.append(file_to_upload)
 
                     continue
 

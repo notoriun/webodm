@@ -104,6 +104,13 @@ class TaskFilesUploader:
             return task_asset, is_valid_or_error
 
         task_asset.generate_name(uploaded_file)
+
+        if task_asset.name is None:
+            task_asset.status = task_asset_status.ERROR
+            task_asset.save()
+
+            return task_asset, "FILE_NAME_NOT_FOUND"
+
         file_created = task_asset.create_asset_file_on_task()
 
         if file_created is None:
@@ -111,7 +118,7 @@ class TaskFilesUploader:
 
         task_asset.save()
 
-        return task_asset, None
+        return task_asset, None if file_created else "CANNOT_SAVE_FILE_ON_DISK"
 
     def _parse_upload_type(self, upload_type: str):
         if upload_type == "foto":
