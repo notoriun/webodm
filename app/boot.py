@@ -95,10 +95,6 @@ def boot():
             try:
                 worker_tasks.update_nodes_info.delay()
                 seek_and_populate_redis_cache.delay()
-
-                Task.objects.filter(upload_in_progress=True).update(
-                    upload_in_progress=False
-                )
             except kombu.exceptions.OperationalError as e:
                 logger.error(
                     "Cannot connect to celery broker at {}. Make sure that your redis-server is running at that address: {}".format(

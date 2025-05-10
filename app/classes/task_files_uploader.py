@@ -8,6 +8,7 @@ from app.utils.file_utils import get_file_name
 from worker import cache_files as worker_cache_files_tasks
 from webodm import settings
 from django.utils.translation import gettext_lazy as _
+from datetime import datetime, timedelta
 
 logger = logging.getLogger("app.logger")
 
@@ -16,6 +17,7 @@ class TaskFilesUploader:
     def __init__(self, task_id):
         self._task_id = task_id
         self._task_loaded: Task = None
+        self._success_files_before_recover_count = 0
 
         upload_db_path = os.path.join(settings.MEDIA_ROOT, "task_files_uploader.db")
         self._uploads_db = FileDict(upload_db_path)
@@ -27,6 +29,37 @@ class TaskFilesUploader:
 
         return self._task_loaded
 
+    def recover_upload(self):
+        task_upload_db = self._uploads_db.get(self._task_id, None)
+
+        if not task_upload_db:
+            return {
+                "success": False,
+                "error": f"Cannot recover upload from {self._task_id}",
+            }
+
+        local_files_to_upload = task_upload_db.get("local_files_to_upload", [])
+        s3_files_to_upload = task_upload_db.get("s3_files_to_upload", [])
+        upload_type = task_upload_db.get("upload_type", "orthophoto")
+        files_uplodeds_success = [
+            file["path"] for file in task_upload_db.get("uploads_success", [])
+        ]
+
+        self._success_files_before_recover_count = len(files_uplodeds_success)
+        s3_processing_files = [
+            file for file in s3_files_to_upload if file not in files_uplodeds_success
+        ]
+
+        result = self.upload_files(
+            local_files_to_upload, s3_processing_files, upload_type
+        )
+
+        result["uploaded"] = [
+            get_file_name(file) for file in files_uplodeds_success
+        ] + result.get("uploaded", [])
+
+        return result
+
     def upload_files(
         self,
         local_files_to_upload: list[dict[str, str]],
@@ -34,40 +67,42 @@ class TaskFilesUploader:
         upload_type: str,
         ignore_upload_to_s3=False,
     ):
-        try:
-            self.task_upload_in_progress(True)
-            self._save_task_upload_params(
-                local_files_to_upload, s3_files_to_upload, upload_type
+        self.task_upload_in_progress(True)
+        self._save_task_upload_params(
+            local_files_to_upload, s3_files_to_upload, upload_type
+        )
+
+        all_files_uploadeds = self._parse_uploaded_files(
+            local_files_to_upload, s3_files_to_upload
+        )
+        self.task.console += (
+            f"Starting upload images to webodm. Files: {all_files_uploadeds}\n"
+        )
+
+        task_asset_upload_type = self._parse_upload_type(upload_type)
+        response = self._create_task_assets(
+            all_files_uploadeds, task_asset_upload_type, ignore_upload_to_s3
+        )
+
+        if task_asset_upload_type == task_asset_type.ORTHOPHOTO:
+            self.task.refresh_from_db()
+            self.task.images_count = len(self.task.scan_images())
+            self.task.s3_images = list(
+                TaskAsset.objects.filter(
+                    type=task_asset_type.ORTHOPHOTO,
+                    task=self.task,
+                    status=task_asset_status.PROCESSING,
+                    name__isnull=False,
+                    origin_path__startswith="s3://",
+                ).values_list("origin_path", flat=True)
             )
+            self.task.save(update_fields=("s3_images", "images_count"))
 
-            all_files_uploadeds = self._parse_uploaded_files(
-                local_files_to_upload, s3_files_to_upload
-            )
-            self.task.console += (
-                f"Starting upload images to webodm. Images: {all_files_uploadeds}\n"
-            )
+        self.task_upload_in_progress(False)
+        self._remove_task_from_db()
+        self.task.console += "Finished upload files to webodm\n"
 
-            task_asset_upload_type = self._parse_upload_type(upload_type)
-            response = self._create_task_assets(
-                all_files_uploadeds, task_asset_upload_type, ignore_upload_to_s3
-            )
-
-            if task_asset_upload_type == task_asset_type.ORTHOPHOTO:
-                self.task.refresh_from_db()
-                self.task.images_count = len(self.task.scan_images())
-                self.task.s3_images = list(
-                    set(s3_files_to_upload).union(self.task.s3_images)
-                )
-                self.task.save(update_fields=["s3_images", "images_count"])
-
-            self.task_upload_in_progress(False)
-            self._remove_task_from_db()
-            self.task.console += "Finished upload images to webodm\n"
-
-            return response
-        except Exception as e:
-            self.task_upload_in_progress(False)
-            raise e
+        return response
 
     def task_upload_in_progress(self, in_progress):
         self._update_task(upload_in_progress=in_progress)
@@ -78,6 +113,27 @@ class TaskFilesUploader:
     ):
         files = self._parse_uploaded_files([], local_files + s3_files)
         return self.upload_files(files, [], "foto360")
+
+    def clear_old_tasks_from_db(self):
+        uploads_dict = self._uploads_db.data_dict()
+        for task_id in uploads_dict:
+            task_dict = uploads_dict[task_id]
+            start_upload_date_iso = task_dict.get("start_upload_date", None)
+
+            if not start_upload_date_iso:
+                task_dict["start_upload_date"] = datetime.now().isoformat()
+                self._uploads_db.set(task_id, task_dict)
+                continue
+
+            start_upload_date = datetime.fromisoformat(start_upload_date_iso)
+            agora = datetime.now()
+
+            if (agora - start_upload_date) < timedelta(
+                minutes=settings.UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES
+            ):
+                continue
+
+            self._uploads_db.remove(task_id)
 
     def _refresh_task(self):
         self._task_loaded = Task.objects.get(pk=self._task_id)
@@ -167,8 +223,11 @@ class TaskFilesUploader:
         assets_uploadeds: list[TaskAsset] = []
         files_success = []
         files_with_error = {}
-        percent_per_file = 1.0 / len(all_files_uploadeds) if all_files_uploadeds else 1
-        progress = 0
+        total_files_count = (
+            len(all_files_uploadeds) + self._success_files_before_recover_count
+        )
+        percent_per_file = 1.0 / total_files_count if total_files_count else 1
+        progress = self._success_files_before_recover_count * percent_per_file
 
         for file_uploaded in all_files_uploadeds:
             task_asset, upload_error = self._upload_task_asset(
@@ -218,7 +277,10 @@ class TaskFilesUploader:
         task_upload_db["local_files_to_upload"] = local_files_to_upload
         task_upload_db["s3_files_to_upload"] = s3_files_to_upload
         task_upload_db["upload_type"] = upload_type
-        task_upload_db["uploads_success"] = []
+        task_upload_db["uploads_success"] = task_upload_db.get("uploads_success", [])
+        task_upload_db["start_upload_date"] = task_upload_db.get(
+            "start_upload_date", datetime.now().isoformat()
+        )
 
         self._uploads_db.set(self._task_id, task_upload_db)
 

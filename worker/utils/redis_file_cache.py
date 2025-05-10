@@ -1,5 +1,7 @@
 import json
 import os
+import threading
+
 
 from django.core.cache import caches
 
@@ -121,6 +123,34 @@ def cache_lock(key: str, timeout=10):
 
 def s3_cache_lock(timeout=10):
     return cache_lock(cache_files_lock_key, timeout)
+
+
+def create_heartbeat(key: str, interval=10):
+    redis_cache = _get_redis_cache()
+    redis_key = f"heartbeat:{key}"
+
+    def beat():
+        while True:
+            redis_cache.set(redis_key, "alive", timeout=interval + 5)
+            sleep(interval)
+
+    thread = threading.Thread(target=beat, daemon=True)
+    thread.start()
+    return thread
+
+
+def heartbeat_exists(key: str):
+    redis_cache = _get_redis_cache()
+    redis_key = f"heartbeat:{key}"
+
+    return redis_cache.has_key(redis_key)
+
+
+def remove_heartbeat(key: str):
+    redis_cache = _get_redis_cache()
+    redis_key = f"heartbeat:{key}"
+
+    redis_cache.delete(redis_key)
 
 
 def _get_redis_cache():

@@ -354,6 +354,7 @@ CELERY_TASK_ACKS_LATE = os.environ.get("WO_CELERY_TASK_ACKS_LATE", False)
 CELERY_TASK_REJECT_ON_WORKER_LOST = os.environ.get(
     "WO_CELERY_TASK_REJECT_ON_WORKER_LOST", False
 )
+CELERY_TASK_TRACK_STARTED = os.environ.get("WO_CELERY_TASK_TRACK_STARTED", True)
 
 CACHES = {
     "default": {
@@ -435,6 +436,14 @@ DYNAMODB_SECRET_KEY = os.environ.get("WO_DYNAMODB_SECRET_KEY", None)
 DYNAMODB_ACCESS_KEY = os.environ.get("WO_DYNAMODB_ACCESS_KEY", None)
 DYNAMODB_TABLE = os.environ.get("WO_DYNAMODB_TABLE", None)
 DYNAMODB_REGION = os.environ.get("WO_DYNAMODB_REGION", "us-east-1")
+
+UPLOADING_HEARTBEAT_INTERVAL_SECONDS = os.environ.get(
+    "WO_UPLOADING_HEARTBEAT_INTERVAL_SECONDS", 10
+)
+UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES = os.environ.get(
+    "WO_UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES", 24 * 60
+)
+
 try:
     from .local_settings import *
 except ImportError:

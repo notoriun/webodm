@@ -49,6 +49,16 @@ app.conf.beat_schedule = {
         "schedule": 30,
         "options": {"expires": 10, "retry": False, "priority": 5},
     },
+    "manage-recover-uploading-tasks": {
+        "task": "worker.tasks.manage_recover_uploading_tasks",
+        "schedule": 30,
+        "options": {"expires": 10, "retry": False, "priority": 8},
+    },
+    "clear-old-tasks-from-files-db": {
+        "task": "worker.tasks.clear_old_tasks_from_files_db",
+        "schedule": 60 * 60,
+        "options": {"expires": 10 * 60, "retry": False, "priority": 2},
+    },
     "check-quotas": {
         "task": "worker.tasks.check_quotas",
         "schedule": 3600,
@@ -84,6 +94,7 @@ class MockAsyncResult:
 
 MockAsyncResult.results = {}
 MockAsyncResult.set = lambda cti, r: MockAsyncResult(cti, r)
+
 
 if __name__ == "__main__":
     app.start()

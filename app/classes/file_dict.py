@@ -27,19 +27,19 @@ class FileDict:
             logger.warning(f"Cannot read {self.filepath}. Original error: {e}")
 
     def get(self, key: str, default: None):
-        current_dict = self._data_dict()
+        current_dict = self.data_dict()
 
         return current_dict.get(key, default)
 
     def set(self, key: str, value):
-        current_dict = self._data_dict()
+        current_dict = self.data_dict()
 
         current_dict[key] = value
 
         self._write_on_file(json.dumps(current_dict))
 
     def remove(self, key: str):
-        current_dict = self._data_dict()
+        current_dict = self.data_dict()
 
         current_dict.pop(key)
 
@@ -47,6 +47,9 @@ class FileDict:
 
     def reset(self, text=""):
         self._write_on_file(text)
+
+    def data_dict(self) -> dict:
+        return json.loads(str(self))
 
     def _write_on_file(self, data: str, write_flag="w"):
         file_utils.ensure_path_exists(os.path.dirname(self.filepath))
@@ -59,6 +62,3 @@ class FileDict:
             logger.warning(
                 f"Cannot write '{data}' on {self.filepath}. Original error: {e}"
             )
-
-    def _data_dict(self) -> dict:
-        return json.loads(str(self))

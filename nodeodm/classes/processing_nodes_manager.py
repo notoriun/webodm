@@ -110,6 +110,12 @@ class ProcessingNodesManager:
                     node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES
                 )
             )
+        ).exclude(
+            pending_action__in=(
+                pending_actions.CANCEL,
+                pending_actions.REMOVE,
+                pending_actions.RESTART,
+            )
         )
 
     def _free_nodes(self):
@@ -154,7 +160,8 @@ class ProcessingNodesManager:
     def _clear_old_tasks_of_nodes(self):
         nodes_with_greater_queues = ProcessingNode.objects.filter(
             last_refreshed__gte=timezone.now()
-            - timedelta(minutes=settings.NODE_OFFLINE_MINUTES)
+            - timedelta(minutes=settings.NODE_OFFLINE_MINUTES),
+            queue_count__gt=0,
         ).order_by("-queue_count")
 
         for node in nodes_with_greater_queues:

@@ -2332,16 +2332,14 @@ class Task(models.Model):
             return
 
         root_images = self._entry_root_images()
-        root_images_count = len(root_images)
 
         need_download = False
 
-        if s3_images_count != root_images_count:
-            need_download = True
-        else:
-            s3_file_names = [get_file_name(s3_image) for s3_image in self.s3_images]
-            root_images_name = [e.name for e in root_images]
-            need_download = s3_file_names == root_images_name
+        s3_file_names = [get_file_name(s3_image) for s3_image in self.s3_images]
+        root_images_name = [e.name for e in root_images]
+        need_download = not all(
+            s3_file in root_images_name for s3_file in s3_file_names
+        )
 
         if need_download:
             current_pending_action = self.pending_action
