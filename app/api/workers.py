@@ -19,7 +19,7 @@ class CheckTask(APIView):
         result_from_recover = _get_status_from_recover_db(celery_task_id)
 
         if result_from_recover:
-            return Response({"ready": result_from_recover["ready"]})
+            return Response({"ready": result_from_recover.get("ready", False)})
 
         res = TestSafeAsyncResult(celery_task_id)
 

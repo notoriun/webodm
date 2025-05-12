@@ -26,6 +26,8 @@ class FileDict:
         except IOError as e:
             logger.warning(f"Cannot read {self.filepath}. Original error: {e}")
 
+            return "{}"
+
     def get(self, key: str, default: None):
         current_dict = self.data_dict()
 

@@ -91,7 +91,6 @@ class TaskFilesUploader:
                 TaskAsset.objects.filter(
                     type=task_asset_type.ORTHOPHOTO,
                     task=self.task,
-                    status=task_asset_status.PROCESSING,
                     name__isnull=False,
                     origin_path__startswith="s3://",
                 ).values_list("origin_path", flat=True)

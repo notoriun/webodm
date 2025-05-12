@@ -329,7 +329,7 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
         logger.info(f"upload task finished with error {str(e)}")
         return {"error": str(e)}
     finally:
-        _remove_task_upload(task_id)
+        _remove_task_upload_heartbeat(task_id)
 
 
 @app.task(bind=True)
@@ -408,7 +408,7 @@ def recover_uploading_task(self, task_id: str):
         )
         return {"error": str(e)}
     finally:
-        _remove_task_upload(task_id)
+        _remove_task_upload_heartbeat(task_id)
 
 
 @app.task()
@@ -490,5 +490,5 @@ def _has_task_upload(task_id: str):
     return redis_file_cache.heartbeat_exists(f"upload_file_for_task_{task_id}")
 
 
-def _remove_task_upload(task_id: str):
+def _remove_task_upload_heartbeat(task_id: str):
     return redis_file_cache.remove_heartbeat(f"upload_file_for_task_{task_id}")
