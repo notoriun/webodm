@@ -1,6 +1,6 @@
 # Changelog
 
-## Versão 1.0.27
+## Versão 1.0.28
 
 *27-05-25*
 
