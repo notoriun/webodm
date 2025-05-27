@@ -1,5 +1,11 @@
 # Changelog
 
+## Versão 1.0.27
+
+*27-05-25*
+
+- Adiciona funcionalidade de controle de retomada de upload de imagens caso um worker caia no meio.
+
 ## Versão 1.0.26
 
 *08-05-25*
