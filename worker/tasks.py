@@ -22,8 +22,9 @@ from app.classes.task_assets_manager import TaskAssetsManager
 from nodeodm import status_codes
 from nodeodm.models import ProcessingNode
 from webodm import settings
-import worker
-from .celery import app
+from .celery import app, MockAsyncResult
+from .utils.recover_uploads_task_db import RecoverUploadsTaskDb
+from .utils import redis_file_cache
 from app.raster_utils import (
     export_raster as export_raster_sync,
     extension_for_export_format,
@@ -35,9 +36,7 @@ logger = get_task_logger("app.logger")
 redis_client = redis.Redis.from_url(settings.CELERY_BROKER_URL)
 
 # What class to use for async results, since during testing we need to mock it
-TestSafeAsyncResult = (
-    worker.celery.MockAsyncResult if settings.TESTING else app.AsyncResult
-)
+TestSafeAsyncResult = MockAsyncResult if settings.TESTING else app.AsyncResult
 
 
 @app.task(ignore_result=True)
@@ -309,11 +308,17 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
         f"Start upload files {files_to_upload} and s3 images {s3_images} of type {upload_type} to task {task_id}"
     )
 
+    recover_db = RecoverUploadsTaskDb()
+    recover_db.set_task(task_id, self.request.id)
+
     uploader = TaskFilesUploader(task_id)
 
     try:
+        _create_upload_heartbeat(task_id)
+
         result = uploader.upload_files(files_to_upload, s3_images, upload_type)
         logger.info(f"Upload task finished with result {result}")
+        recover_db.remove_by_task(task_id)
 
         if settings.TESTING:
             TestSafeAsyncResult.set(self.request.id, result)
@@ -323,6 +328,8 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
         logger.error(str(e))
         logger.info(f"upload task finished with error {str(e)}")
         return {"error": str(e)}
+    finally:
+        _remove_task_upload_heartbeat(task_id)
 
 
 @app.task(bind=True)
@@ -374,6 +381,58 @@ def generate_backup_zip(self, task_id):
         return {"error": str(e)}
 
 
+@app.task(bind=True)
+def recover_uploading_task(self, task_id: str):
+    try:
+        celery_id = self.request.id
+        recover_db = RecoverUploadsTaskDb()
+
+        already_uploading = _has_task_upload(task_id)
+
+        if already_uploading:
+            return {}
+
+        _create_upload_heartbeat(task_id)
+        recover_db.set_secondary_celery_task(celery_id, task_id)
+
+        uploader = TaskFilesUploader(task_id)
+        result = uploader.recover_upload()
+
+        if settings.TESTING:
+            TestSafeAsyncResult.set(self.request.id, result)
+
+        return {"output": result}
+    except Exception as e:
+        logger.error(
+            f"Error on recover uploading task {task_id}. Original error: {str(e)}"
+        )
+        return {"error": str(e)}
+    finally:
+        _remove_task_upload_heartbeat(task_id)
+
+
+@app.task()
+def manage_recover_uploading_tasks():
+    try:
+        tasks_uploading = Task.objects.filter(upload_in_progress=True)
+
+        for task in tasks_uploading:
+            recover_uploading_task.delay(task.id)
+    except Exception as e:
+        logger.error(f"Error on recover uploading tasks. Original error: {str(e)}")
+        return {"error": str(e)}
+
+
+@app.task()
+def clear_old_tasks_from_files_db():
+    try:
+        TaskFilesUploader(0).clear_old_tasks_from_db()
+        RecoverUploadsTaskDb().clear_old_tasks_from_db()
+    except Exception as e:
+        logger.error(f"Error on clear old tasks dbs. Original error: {str(e)}")
+        return {"error": str(e)}
+
+
 def _generate_zip_from_dir(task, zip_dir, exclude_files=tuple([])):
     try:
         tmpfile = tempfile.mktemp(".zip", dir=settings.MEDIA_TMP)
@@ -419,3 +478,17 @@ def _generate_zip_from_dir(task, zip_dir, exclude_files=tuple([])):
         logger.error(str(e))
         logger.info(f"upload task finished with error {str(e)}")
         return {"error": str(e)}
+
+
+def _create_upload_heartbeat(task_id: str):
+    return redis_file_cache.create_heartbeat(
+        f"upload_file_for_task_{task_id}", settings.UPLOADING_HEARTBEAT_INTERVAL_SECONDS
+    )
+
+
+def _has_task_upload(task_id: str):
+    return redis_file_cache.heartbeat_exists(f"upload_file_for_task_{task_id}")
+
+
+def _remove_task_upload_heartbeat(task_id: str):
+    return redis_file_cache.remove_heartbeat(f"upload_file_for_task_{task_id}")

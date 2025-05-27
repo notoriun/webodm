@@ -2,6 +2,7 @@ import os
 import mimetypes
 
 from worker.tasks import TestSafeAsyncResult
+from worker.utils.recover_uploads_task_db import RecoverUploadsTaskDb
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -15,6 +16,11 @@ class CheckTask(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, celery_task_id=None, **kwargs):
+        result_from_recover = _get_status_from_recover_db(celery_task_id)
+
+        if result_from_recover:
+            return Response({"ready": result_from_recover.get("ready", False)})
+
         res = TestSafeAsyncResult(celery_task_id)
 
         if not res.ready():
@@ -47,7 +53,13 @@ class GetTaskResult(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, celery_task_id=None, **kwargs):
+        result_from_recover = _get_status_from_recover_db(celery_task_id)
+
+        if result_from_recover:
+            return Response(result_from_recover)
+
         res = TestSafeAsyncResult(celery_task_id)
+
         if res.failed():
             return Response({"ready": True, "error": str(res.info)})
 
@@ -119,3 +131,43 @@ class GetCacheSize(APIView):
         return Response(
             {"available": available_size, "max": max_size, "current": current_size}
         )
+
+
+def _get_status_from_recover_db(celery_id: str):
+    from app.models import Task
+
+    recover_db = RecoverUploadsTaskDb()
+    secondary_celery_id = recover_db.get_secondary_celery_task_by_celery(
+        celery_id, None
+    )
+
+    if secondary_celery_id:
+        res = TestSafeAsyncResult(secondary_celery_id)
+
+        if not res.ready():
+            return {"ready": False, "error": "Task not ready"}
+
+        response = res.get()
+
+        if not response:
+            return {"ready": True, "error": None}
+
+        if response.get("error", None) is not None:
+            msg = response["error"]
+            return Response({"ready": True, "error": msg})
+
+        output = response.get("output", None)  # String/object
+
+        return {"ready": True, "output": output}
+
+    task_id = recover_db.get_task_by_celery(celery_id)
+
+    if not task_id:
+        return None
+
+    try:
+        task = Task.objects.get(pk=task_id)
+    except Task.DoesNotExist:
+        return None
+
+    return {"ready": task.upload_in_progress == False}
