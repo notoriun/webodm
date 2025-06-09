@@ -3,9 +3,10 @@ import mimetypes
 
 from worker.tasks import TestSafeAsyncResult
 from worker.utils.recover_uploads_task_db import RecoverUploadsTaskDb
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework.views import APIView
+from rest_framework import status
 
 from django.http import FileResponse
 from django.http import HttpResponse
@@ -13,7 +14,7 @@ from wsgiref.util import FileWrapper
 
 
 class CheckTask(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
         result_from_recover = _get_status_from_recover_db(celery_task_id)
@@ -50,7 +51,7 @@ class TaskResultOutputError(Exception):
 
 
 class GetTaskResult(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
         result_from_recover = _get_status_from_recover_db(celery_task_id)
@@ -121,7 +122,7 @@ class GetTaskResult(APIView):
 
 
 class GetCacheSize(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
         from worker.cache_files import get_cache_sizes

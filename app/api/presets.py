@@ -14,8 +14,12 @@ class PresetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Preset
 
-        exclude = ('owner', )
-        read_only_fields = ('owner', 'created_at', 'system', )
+        exclude = ("owner",)
+        read_only_fields = (
+            "owner",
+            "created_at",
+            "system",
+        )
 
 
 class PresetViewSet(viewsets.ModelViewSet):
@@ -28,9 +32,11 @@ class PresetViewSet(viewsets.ModelViewSet):
     pagination_class = None
     serializer_class = PresetSerializer
 
-    # We don't use object level permissions on presets
-    permission_classes = (permissions.DjangoModelPermissions, )
-    filter_backends = (DjangoFilterBackend, OrderingFilter, )
+    permission_classes = (permissions.DjangoModelPermissions,)
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+    )
 
     def get_queryset(self):
         return Preset.objects.filter(Q(owner=self.request.user.id) | Q(system=True))

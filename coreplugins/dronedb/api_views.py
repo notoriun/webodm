@@ -19,6 +19,7 @@ from coreplugins.dronedb.ddb import DEFAULT_HUB_URL, DroneDB, parse_url, verify_
 from django.dispatch import receiver
 
 from worker.celery import app
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -74,6 +75,9 @@ def to_web_protocol(registry_url):
 
 
 class CheckCredentialsTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
 
         # Read form data
@@ -98,6 +102,9 @@ class CheckCredentialsTaskView(TaskView):
 
 
 class OrganizationsTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
 
         try:
@@ -113,6 +120,9 @@ class OrganizationsTaskView(TaskView):
 
 
 class DatasetsTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, org=None):
 
         if org == None:
@@ -134,6 +144,9 @@ class DatasetsTaskView(TaskView):
 
 
 class FoldersTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, org=None, ds=None):
 
         if org == None or ds == None:
@@ -155,6 +168,9 @@ class FoldersTaskView(TaskView):
 
 
 class VerifyUrlTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request):
 
         # Read form data
@@ -199,6 +215,9 @@ class VerifyUrlTaskView(TaskView):
 
 
 class InfoTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
 
         registry_url, username, _, _ = get_settings(request)
@@ -209,6 +228,9 @@ class InfoTaskView(TaskView):
 
 
 class ImportDatasetTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, project_pk=None, pk=None):
 
         task = self.get_and_check_task(request, pk)
@@ -324,6 +346,9 @@ def import_files(task_id, carrier):
 
 
 class CheckUrlTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, project_pk=None, pk=None):
 
         # Assert that task exists
@@ -367,6 +392,9 @@ def ddb_cleanup(sender, task_id, **kwargs):
 
 
 class StatusTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk):
 
         task = self.get_and_check_task(request, pk)
@@ -405,6 +433,9 @@ DRONEDB_ASSETS = [
 
 
 class ShareTaskView(TaskView):
+
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, pk):
 
         from app.plugins import logger
