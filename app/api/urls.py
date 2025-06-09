@@ -15,7 +15,11 @@ from .imageuploads import Thumbnail, ImageDownload
 from .processingnodes import ProcessingNodeViewSet, ProcessingNodeOptionsView
 from .admin import AdminUserViewSet, AdminGroupViewSet, AdminProfileViewSet
 from rest_framework_nested import routers
-from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 from .tiler import TileJson, Bounds, Metadata, Tiles, Export
 from .potree import Scene, CameraView
 from .workers import CheckTask, GetTaskResult, GetCacheSize
@@ -102,7 +106,9 @@ urlpatterns = [
     url(r"workers/get/(?P<celery_task_id>.+)", GetTaskResult.as_view()),
     url(r"cache/size", GetCacheSize.as_view()),
     url(r"^auth/", include("rest_framework.urls")),
-    url(r"^token-auth/", obtain_jwt_token),
+    url(r"token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    url(r"token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    url(r"token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     url(r"^plugins/(?P<plugin_name>[^/.]+)/(.*)$", api_view_handler),
 ]
 
