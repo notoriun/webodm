@@ -398,14 +398,15 @@ if BROKER_CELERY_CERT:
     result_backend_db = os.environ.get("WO_BROKER_RESULT_BACKEND_DB", "")
     CELERY_RESULT_BACKEND += f"/{result_backend_db}?ssl_cert_reqs={broker_reqs}&ssl_ca_certs={BROKER_CELERY_CERT}"
 
-    CACHES["default"]["OPTIONS"] = {
-        **CACHES["default"]["OPTIONS"],
-        "SSL": True,
-        "CONNECTION_POOL_KWARGS": {
-            "ssl_cert_reqs": BROKER_CELERY_REQS,
-            "ssl_ca_certs": BROKER_CELERY_CERT,
-        },
-    }
+    if CACHES["default"]["BACKEND"] == "django_redis.cache.RedisCache":
+        CACHES["default"]["OPTIONS"] = {
+            **CACHES["default"]["OPTIONS"],
+            "SSL": True,
+            "CONNECTION_POOL_KWARGS": {
+                "ssl_cert_reqs": BROKER_CELERY_REQS,
+                "ssl_ca_certs": BROKER_CELERY_CERT,
+            },
+        }
     CACHES["s3_images_cache"]["OPTIONS"] = {
         **CACHES["s3_images_cache"]["OPTIONS"],
         "SSL": True,
