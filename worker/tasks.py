@@ -30,10 +30,11 @@ from app.raster_utils import (
     extension_for_export_format,
 )
 from app.pointcloud_utils import export_pointcloud as export_pointcloud_sync
+from app.utils.redis_client_factory import get_redis_client
 import redis
 
 logger = get_task_logger("app.logger")
-redis_client = redis.Redis.from_url(settings.CELERY_BROKER_URL)
+redis_client = get_redis_client()
 
 # What class to use for async results, since during testing we need to mock it
 TestSafeAsyncResult = MockAsyncResult if settings.TESTING else app.AsyncResult

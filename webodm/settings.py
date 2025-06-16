@@ -330,6 +330,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "app.auth.querystring_jwt_token.QueryStringJWTAuthentication",
     ),
     "PAGE_SIZE": 10,
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
@@ -340,11 +341,15 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # Celery
+BROKER_CELERY_REQS = os.environ.get("WO_BROKER_SSL_REQS", "")
+BROKER_CELERY_CERT = os.environ.get("WO_BROKER_SSL_CERT", None)
+
 CELERY_BROKER_URL = os.environ.get("WO_BROKER", "redis://localhost")
-CELERY_RESULT_BACKEND = os.environ.get("WO_BROKER", "redis://localhost")
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -382,6 +387,34 @@ CACHES["s3_images_cache"] = {
         "CLIENT_CLASS": "django_redis.client.DefaultClient",
     },
 }
+
+# Check need TLS conf on celery
+if BROKER_CELERY_CERT:
+    broker_reqs = {
+        "required": "CERT_REQUIRED",
+        "optional": "CERT_OPTIONAL",
+        "none": "CERT_NONE",
+    }.get(BROKER_CELERY_REQS, "")
+    result_backend_db = os.environ.get("WO_BROKER_RESULT_BACKEND_DB", "")
+    CELERY_RESULT_BACKEND += f"/{result_backend_db}?ssl_cert_reqs={broker_reqs}&ssl_ca_certs={BROKER_CELERY_CERT}"
+
+    CACHES["default"]["OPTIONS"] = {
+        **CACHES["default"]["OPTIONS"],
+        "SSL": True,
+        "CONNECTION_POOL_KWARGS": {
+            "ssl_cert_reqs": BROKER_CELERY_REQS,
+            "ssl_ca_certs": BROKER_CELERY_CERT,
+        },
+    }
+    CACHES["s3_images_cache"]["OPTIONS"] = {
+        **CACHES["s3_images_cache"]["OPTIONS"],
+        "SSL": True,
+        "CONNECTION_POOL_KWARGS": {
+            "ssl_cert_reqs": BROKER_CELERY_REQS,
+            "ssl_ca_certs": BROKER_CELERY_CERT,
+        },
+    }
+
 
 # Number of minutes a processing node hasn't been seen
 # before it should be considered offline
