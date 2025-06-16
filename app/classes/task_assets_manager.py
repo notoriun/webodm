@@ -125,9 +125,22 @@ class TaskAssetsManager:
         task_asset = self._task_asset(asset_local_path)
 
         if task_asset is None:
+            uploaded_s3_image = self._get_task_uploaded_s3_asset(asset_local_path)
+
+            if uploaded_s3_image:
+                return split_s3_bucket_prefix(uploaded_s3_image)
+
             return settings.S3_BUCKET, convert_task_path_to_s3(asset_local_path)
 
         if task_asset.is_from_s3():
             return split_s3_bucket_prefix(task_asset.origin_path)
 
         return settings.S3_BUCKET, convert_task_path_to_s3(task_asset.path())
+
+    def _get_task_uploaded_s3_asset(self, asset_path: str):
+        asset_name = get_file_name(asset_path)
+        for s3_image in self.task.s3_images:
+            if s3_image.endswith(asset_name):
+                return s3_image
+
+        return None
