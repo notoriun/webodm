@@ -345,7 +345,8 @@ SIMPLE_JWT = {
 }
 
 # Celery
-BROKER_CELERY_REQS = os.environ.get("WO_BROKER_SSL_REQS", "")
+BROKER_CELERY_USE_SSL = os.environ.get("WO_BROKER_USE_SSL", "NO").upper() == "YES"
+BROKER_CELERY_REQS = os.environ.get("WO_BROKER_SSL_REQS", "none")
 BROKER_CELERY_CERT = os.environ.get("WO_BROKER_SSL_CERT", None)
 
 CELERY_BROKER_URL = os.environ.get("WO_BROKER", "redis://localhost")
@@ -389,31 +390,33 @@ CACHES["s3_images_cache"] = {
 }
 
 # Check need TLS conf on celery
-if BROKER_CELERY_CERT:
+if BROKER_CELERY_USE_SSL:
     broker_reqs = {
         "required": "CERT_REQUIRED",
         "optional": "CERT_OPTIONAL",
         "none": "CERT_NONE",
-    }.get(BROKER_CELERY_REQS, "")
+    }.get(BROKER_CELERY_REQS, "CERT_NONE")
     result_backend_db = os.environ.get("WO_BROKER_RESULT_BACKEND_DB", "")
-    CELERY_RESULT_BACKEND += f"/{result_backend_db}?ssl_cert_reqs={broker_reqs}&ssl_ca_certs={BROKER_CELERY_CERT}"
+
+    params_dict = {"ssl_cert_reqs": BROKER_CELERY_REQS}
+    params_query = [f"ssl_cert_reqs={broker_reqs}"]
+
+    if BROKER_CELERY_CERT:
+        params_dict["ssl_ca_certs"] = BROKER_CELERY_CERT
+        params_query.append(f"ssl_ca_certs={BROKER_CELERY_CERT}")
+
+    CELERY_RESULT_BACKEND += f"/{result_backend_db}?{'&'.join(params_query)}"
 
     if CACHES["default"]["BACKEND"] == "django_redis.cache.RedisCache":
         CACHES["default"]["OPTIONS"] = {
             **CACHES["default"]["OPTIONS"],
             "SSL": True,
-            "CONNECTION_POOL_KWARGS": {
-                "ssl_cert_reqs": BROKER_CELERY_REQS,
-                "ssl_ca_certs": BROKER_CELERY_CERT,
-            },
+            "CONNECTION_POOL_KWARGS": {**params_dict},
         }
     CACHES["s3_images_cache"]["OPTIONS"] = {
         **CACHES["s3_images_cache"]["OPTIONS"],
         "SSL": True,
-        "CONNECTION_POOL_KWARGS": {
-            "ssl_cert_reqs": BROKER_CELERY_REQS,
-            "ssl_ca_certs": BROKER_CELERY_CERT,
-        },
+        "CONNECTION_POOL_KWARGS": {**params_dict},
     }
 
 
