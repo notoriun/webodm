@@ -107,6 +107,7 @@ package-lock.json
 .cronenv
 .initialized
 .DS_Store
+celerybeat-schedule.db
 
 # Debian builds
 dpkg/build

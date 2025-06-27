@@ -1,19 +1,23 @@
 import os
 import mimetypes
+import logging
 
 from worker.tasks import TestSafeAsyncResult
 from worker.utils.recover_uploads_task_db import RecoverUploadsTaskDb
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework.views import APIView
+from rest_framework import status
 
 from django.http import FileResponse
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 
+logger = logging.getLogger("app.logger")
+
 
 class CheckTask(APIView):
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
         result_from_recover = _get_status_from_recover_db(celery_task_id)
@@ -50,7 +54,7 @@ class TaskResultOutputError(Exception):
 
 
 class GetTaskResult(APIView):
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
         result_from_recover = _get_status_from_recover_db(celery_task_id)
@@ -61,17 +65,21 @@ class GetTaskResult(APIView):
         res = TestSafeAsyncResult(celery_task_id)
 
         if res.failed():
-            return Response({"ready": True, "error": str(res.info)})
+            if res.info is None:
+                logger.warning(f"Result of celery_task_id={celery_task_id} is None")
+
+            error = res.info or "Erro desconhecido"
+            return Response({"ready": True, "error": str(error)})
 
         if res.ready():
             result = res.get()
 
             if result is None:
-                return Response({"ready": True, "error": None})
+                return Response({"ready": True, "output": None})
 
-            if result.get("error", None) is not None:
-                msg = result["error"]
-                return Response({"ready": True, "error": msg})
+            error = result.get("error", None)
+            if error is not None:
+                return Response({"ready": True, "error": error})
 
             file = result.get("file", None)  # File path
             output = result.get("output", None)  # String/object
@@ -121,7 +129,7 @@ class GetTaskResult(APIView):
 
 
 class GetCacheSize(APIView):
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
         from worker.cache_files import get_cache_sizes
@@ -150,11 +158,12 @@ def _get_status_from_recover_db(celery_id: str):
         response = res.get()
 
         if not response:
-            return {"ready": True, "error": None}
+            return {"ready": True, "output": None}
 
-        if response.get("error", None) is not None:
-            msg = response["error"]
-            return Response({"ready": True, "error": msg})
+        error = response.get("error", None)
+
+        if error is not None:
+            return Response({"ready": True, "error": error})
 
         output = response.get("output", None)  # String/object
 

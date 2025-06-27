@@ -30,10 +30,11 @@ from app.raster_utils import (
     extension_for_export_format,
 )
 from app.pointcloud_utils import export_pointcloud as export_pointcloud_sync
+from app.utils.redis_client_factory import get_redis_client
 import redis
 
 logger = get_task_logger("app.logger")
-redis_client = redis.Redis.from_url(settings.CELERY_BROKER_URL)
+redis_client = get_redis_client()
 
 # What class to use for async results, since during testing we need to mock it
 TestSafeAsyncResult = MockAsyncResult if settings.TESTING else app.AsyncResult
@@ -325,8 +326,7 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
 
         return {"output": result}
     except Exception as e:
-        logger.error(str(e))
-        logger.info(f"upload task finished with error {str(e)}")
+        logger.error(f"Upload on task {task_id} error. Original error: {str(e)}")
         return {"error": str(e)}
     finally:
         _remove_task_upload_heartbeat(task_id)

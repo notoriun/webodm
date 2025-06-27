@@ -6,7 +6,7 @@ volumes:
   appmedia:
 services:
   db:
-    image: opendronemap/webodm_db
+    image: notoriun/postgres-15-postgis-34-esri11.2-timescaledb-pgvector:latest
     container_name: db
     expose:
       - "5432"
@@ -40,6 +40,10 @@ services:
       - WO_S3_BUCKET
       - WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS
       - WO_S3_CACHE_MAX_SIZE_MB
+      - WO_BROKER_USE_SSL
+      - WO_BROKER_SSL_CERT
+      - WO_BROKER_SSL_REQS
+      - WO_BROKER_RESULT_BACKEND_DB
     restart: unless-stopped
     oom_score_adj: 0
   broker:
@@ -66,5 +70,9 @@ services:
       - WO_S3_BUCKET
       - WO_S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS
       - WO_S3_CACHE_MAX_SIZE_MB
+      - WO_BROKER_USE_SSL
+      - WO_BROKER_SSL_CERT
+      - WO_BROKER_SSL_REQS
+      - WO_BROKER_RESULT_BACKEND_DB
     restart: unless-stopped
     oom_score_adj: 250

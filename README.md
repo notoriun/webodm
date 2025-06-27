@@ -518,6 +518,29 @@ These steps are for Google Cloud, but can also be used for Amazon AWS, and other
 
 To setup the firewall on Google Cloud, open the instance, on the middle of the instance settings page find NIC0. Open it, and then add the TCP Port 8000 for ingress, and egress on the Firewall.
 
+## Create redis certs
+
+```bash
+cd redis-tls-dev
+mkdir certs && cd certs
+
+# 1) Cria uma autoridade certificadora raiz (CA)
+openssl req -x509 -newkey rsa:4096 -sha256 -days 365 \
+  -nodes -keyout ca.key -out ca.pem \
+  -subj "/CN=Redis-Dev-CA"
+
+# 2) Gera a chave do servidor Redis
+openssl genrsa -out redis.key 4096
+
+# 3) Cria um CSR (certificate signing request) para o servidor
+openssl req -new -sha256 -key redis.key -out redis.csr \
+  -subj "/CN=redis.dev.local"
+
+# 4) Assina o CSR com a CA criando o certificado do servidor
+openssl x509 -req -sha256 -in redis.csr \
+  -CA ca.pem -CAkey ca.key -CAcreateserial \
+  -out redis.crt -days 365
+```
 
 ## License
 
