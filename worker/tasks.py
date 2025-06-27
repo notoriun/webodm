@@ -326,8 +326,7 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
 
         return {"output": result}
     except Exception as e:
-        logger.error(str(e))
-        logger.info(f"upload task finished with error {str(e)}")
+        logger.error(f"Upload on task {task_id} error. Original error: {str(e)}")
         return {"error": str(e)}
     finally:
         _remove_task_upload_heartbeat(task_id)
