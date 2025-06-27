@@ -1,5 +1,13 @@
 # Changelog
 
+## Versão 1.0.29
+
+*27-06-25*
+
+- ⁠Adicionado endpoint /upload-auth, que requer token de autenticação para poder consumir
+- ⁠⁠Adicionada configuração de TLS no broker do redis
+- ⁠⁠Melhorado tratamento de erros nos endpoints de tasks do celery
+
 ## Versão 1.0.28
 
 *27-05-25*
