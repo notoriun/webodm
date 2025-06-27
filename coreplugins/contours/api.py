@@ -129,7 +129,7 @@ def calc_contours(task_id, dem, epsg, interval, output_format, simplify, zfactor
 
 class TaskContoursGenerate(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
@@ -173,7 +173,7 @@ class TaskContoursGenerate(TaskView):
 
 class TaskContoursCheck(CheckTask):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def on_error(self, result):
         pass
@@ -186,4 +186,5 @@ class TaskContoursCheck(CheckTask):
 
 class TaskContoursDownload(GetTaskResult):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
+    pass

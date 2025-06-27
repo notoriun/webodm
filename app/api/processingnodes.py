@@ -65,7 +65,7 @@ class ProcessingNodeViewSet(viewsets.ModelViewSet):
     pagination_class = None
     serializer_class = ProcessingNodeSerializer
     queryset = ProcessingNode.objects.all()
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -87,7 +87,7 @@ class ProcessingNodeOptionsView(APIView):
     """
 
     queryset = ProcessingNode.objects.all()
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request):
 

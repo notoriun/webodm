@@ -32,7 +32,7 @@ def normalize(img):
 
 class Thumbnail(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, image_filename=""):
         """
@@ -169,7 +169,7 @@ class Thumbnail(TaskNestedView):
 
 class ImageDownload(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, image_filename=""):
         """

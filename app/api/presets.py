@@ -32,7 +32,7 @@ class PresetViewSet(viewsets.ModelViewSet):
     pagination_class = None
     serializer_class = PresetSerializer
 
-    permission_classes = (permissions.DjangoModelPermissions,)
+    # permission_classes = (permissions.DjangoModelPermissions,)
     filter_backends = (
         DjangoFilterBackend,
         OrderingFilter,

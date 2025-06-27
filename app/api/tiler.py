@@ -97,7 +97,7 @@ def get_pointcloud_path(task):
 
 class TileJson(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, tile_type=""):
         """
@@ -130,7 +130,7 @@ class TileJson(TaskNestedView):
 
 class Bounds(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, tile_type=""):
         """
@@ -148,7 +148,7 @@ class Bounds(TaskNestedView):
 
 class Metadata(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, tile_type=""):
         """
@@ -347,7 +347,7 @@ class Metadata(TaskNestedView):
 
 class Tiles(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(
         self,
@@ -666,7 +666,7 @@ class Tiles(TaskNestedView):
 
 class Export(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None, project_pk=None, asset_type=None):
         """

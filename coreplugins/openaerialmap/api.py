@@ -50,7 +50,7 @@ def oam_cleanup(sender, task_id, **kwargs):
 
 class Info(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
@@ -121,7 +121,7 @@ class JSONSerializer(serializers.Serializer):
 
 class Share(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)

@@ -31,7 +31,7 @@ def gen_short_string(num):
 
 class GetShortLink(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)

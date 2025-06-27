@@ -65,7 +65,7 @@ def dashboard(request):
     )
 
 
-@login_required
+# @login_required
 def map(request, project_pk=None, task_pk=None):
     title = _("Map")
 
@@ -102,7 +102,7 @@ def map(request, project_pk=None, task_pk=None):
     )
 
 
-@login_required
+# @login_required
 def model_display(request, project_pk=None, task_pk=None):
     title = _("3D Model Display")
 
@@ -141,7 +141,7 @@ def about(request):
     )
 
 
-@login_required
+# @login_required
 def processing_node(request, processing_node_id):
     pn = get_object_or_404(ProcessingNode, pk=processing_node_id)
     if not pn.update_node_info():

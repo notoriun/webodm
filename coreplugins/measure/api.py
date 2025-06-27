@@ -24,7 +24,7 @@ class VolumeRequestSerializer(serializers.Serializer):
 
 class TaskVolume(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
@@ -62,12 +62,13 @@ class TaskVolume(TaskView):
 
 
 class TaskVolumeCheck(CheckTask):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
+    pass
 
 
 class TaskVolumeResult(GetTaskResult):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, celery_task_id=None):
         task = Task.objects.only("dsm_extent").get(pk=pk)

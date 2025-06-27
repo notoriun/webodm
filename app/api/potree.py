@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 class Scene(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None):
         """
@@ -39,7 +39,7 @@ class Scene(TaskNestedView):
 
 class CameraView(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None, project_pk=None):
         """

@@ -194,7 +194,12 @@ class TaskViewSet(viewsets.ViewSet):
         parsers.FormParser,
     )
     ordering_fields = "__all__"
-    permission_classes = (permissions.DjangoModelPermissions,)
+    # permission_classes = (permissions.DjangoModelPermissions,
+
+    def get_permissions(self):
+        if self.action == "upload_auth":
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
 
     def set_pending_action(
         self,
@@ -335,6 +340,10 @@ class TaskViewSet(viewsets.ViewSet):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="upload-auth")
+    def upload_auth(self, request, pk=None, project_pk=None, type=""):
+        return self.upload(request, pk, project_pk, type)
 
     @action(detail=True, methods=["post"], url_path="set-s3-images")
     def set_s3_images(self, request, pk=None, project_pk=None):
@@ -483,7 +492,7 @@ class TaskNestedView(APIView):
         "dtm_extent",
         "dsm_extent",
     )
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get_and_check_task(self, request, pk, annotate={}):
         try:
@@ -525,7 +534,7 @@ Task downloads are simply aliases to download the task's assets
 
 class TaskDownloads(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, asset=""):
         """
@@ -584,7 +593,7 @@ Useful when accessing a textured 3d model, or the Potree point cloud data
 
 class TaskAssets(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, unsafe_asset_path=""):
         """
@@ -614,7 +623,7 @@ class TaskAssets(TaskNestedView):
 
 class TaskMetadataAssets(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None, asset_type=""):
         """
@@ -684,7 +693,7 @@ Task backup endpoint
 
 class TaskBackup(TaskNestedView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, project_pk=None):
         """
@@ -714,7 +723,7 @@ Task assets import
 
 
 class TaskAssetsImport(APIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
     parser_classes = (
         parsers.MultiPartParser,
         parsers.JSONParser,

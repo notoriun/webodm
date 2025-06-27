@@ -126,7 +126,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     )
     filterset_class = ProjectFilter
     ordering_fields = "__all__"
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     # Disable pagination when not requesting any page
     def paginate_queryset(self, queryset):

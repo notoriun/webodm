@@ -40,7 +40,7 @@ def getShortLinks(username):
 
 class DeleteShortLink(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
@@ -61,7 +61,7 @@ class DeleteShortLink(TaskView):
 
 class EditShortLink(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
@@ -99,7 +99,7 @@ class EditShortLink(TaskView):
 
 class GetShortLink(TaskView):
 
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
