@@ -1,5 +1,12 @@
 # Changelog
 
+## Versão 1.0.30
+
+*10-07-25*
+
+- Separado dockerfile em 2 para melhorar a performance do build
+- ⁠⁠Melhorado tratamento e rastreabilidade de erros de tasks de upload de imagens no celery
+
 ## Versão 1.0.29
 
 *27-06-25*
