@@ -21,8 +21,12 @@ class FileDict:
             return "{}"
 
         try:
+            content = None
+
             with open(self.filepath, "r", encoding="utf-8") as f:
-                return f.read()
+                content = f.read()
+
+            return content if content else "{}"
         except IOError as e:
             logger.warning(f"Cannot read {self.filepath}. Original error: {e}")
 
@@ -43,6 +47,9 @@ class FileDict:
     def remove(self, key: str):
         current_dict = self.data_dict()
 
+        if key not in current_dict:
+            return
+
         current_dict.pop(key)
 
         self._write_on_file(json.dumps(current_dict))
@@ -51,7 +58,16 @@ class FileDict:
         self._write_on_file(text)
 
     def data_dict(self) -> dict:
-        return json.loads(str(self))
+        file_content = None
+        try:
+            file_content = str(self)
+            return json.loads(file_content)
+        except Exception as e:
+            logger.warning(
+                f"Error on read file dict {self.filepath}, file content: {file_content}. Original error: {e}"
+            )
+
+            return {}
 
     def _write_on_file(self, data: str, write_flag="w"):
         file_utils.ensure_path_exists(os.path.dirname(self.filepath))
