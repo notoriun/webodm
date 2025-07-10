@@ -114,12 +114,9 @@ class TaskAssetsManager:
             remove_path_from_path(asset_local_path, self.task.assets_path())
         )
 
-        try:
-            return TaskAsset.objects.get(
-                task=self.task, name=asset_path_after_task_asset
-            )
-        except TaskAsset.DoesNotExist:
-            return None
+        return TaskAsset.objects.filter(
+            task=self.task, name=asset_path_after_task_asset
+        ).first()
 
     def _asset_s3_key(self, asset_local_path: str):
         task_asset = self._task_asset(asset_local_path)
