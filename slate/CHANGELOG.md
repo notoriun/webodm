@@ -1,11 +1,17 @@
 # Changelog
 
+## Versão 1.0.31
+
+*10-07-25*
+
+- Removidas pastas de pacotes para diminuir o tamanho da imagem do docker 
+
 ## Versão 1.0.30
 
 *10-07-25*
 
 - Separado dockerfile em 2 para melhorar a performance do build
-- ⁠⁠Melhorado tratamento e rastreabilidade de erros de tasks de upload de imagens no celery
+- ⁠⁠Melhorado tratamento e rastreabilidade de erros de tasks de upload de imagens no celery, corrigindo o erro de chaves no FileDict e especificado melhor os erros no logger, das tasks de upload no celery
 
 ## Versão 1.0.29
 
