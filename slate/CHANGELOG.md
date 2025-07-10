@@ -1,5 +1,11 @@
 # Changelog
 
+## Versão 1.0.31
+
+*10-07-25*
+
+- Removidas pastas de pacotes para diminuir o tamanho da imagem do docker 
+
 ## Versão 1.0.30
 
 *10-07-25*
