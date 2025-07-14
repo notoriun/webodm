@@ -1,10 +1,17 @@
 # Changelog
 
+## Versão 1.0.32
+
+*14-07-25*
+
+- Gerada versao das iamgens com as plataformas arm64 e amd64
+- Criado script para buildar as imagens do docker
+
 ## Versão 1.0.31
 
 *10-07-25*
 
-- Removidas pastas de pacotes para diminuir o tamanho da imagem do docker 
+- Removidas pastas de pacotes para diminuir o tamanho da imagem do docker
 
 ## Versão 1.0.30
 
