@@ -1236,7 +1236,9 @@ class Task(models.Model):
                     logger.info("Restarting {}".format(self))
 
                     if self.processing_node:
-                        self.console.reset()
+                        # @TODO criar forma de apagar o console
+                        # self.console.reset()
+                        self.console += f"\\n\\n\\nRestarting process, now using node: {self.processing_node}\\n\\n\\n"
                         self._ensure_s3_images_exists()
 
                         # Check if the UUID is still valid, as processing nodes purge
