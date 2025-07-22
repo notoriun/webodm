@@ -2024,12 +2024,6 @@ class Task(models.Model):
 
         return asset_task_path
 
-    def delete_data_path(self):
-        data_path = self.data_path()
-
-        if os.path.exists(data_path):
-            shutil.rmtree(data_path)
-
     def clear_empty_dirs(self):
         return delete_empty_dirs(self.task_path())
 
@@ -2135,7 +2129,7 @@ class Task(models.Model):
 
                 files_uploadeds.append(file_to_upload)
 
-            self.console += f"\nUploaded {len(files_uploadeds)} files to S3!"
+            self.console += f"\nUploaded {len(files_uploadeds)} files to S3!\n\n"
         except Exception as e:
             raise NodeServerError(e)
 
@@ -2156,14 +2150,6 @@ class Task(models.Model):
         task_path = self.task_path()
 
         return get_all_files_in_dir(task_path)
-
-    def _remove_assets(self):
-        task_path = self.task_path()
-
-        if task_path[-1] == "/":
-            task_path = task_path[0:-1]
-
-        shutil.rmtree(task_path)
 
     def _remove_root_images(self):
         for e in self._entry_root_images():

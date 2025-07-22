@@ -21,7 +21,6 @@ class TaskDirFiles:
         if not task:
             return True
 
-        task.delete_data_path()
         return task.clear_empty_dirs()
 
     def _task_query(self):
