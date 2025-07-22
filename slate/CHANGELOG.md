@@ -1,5 +1,33 @@
 # Changelog
 
+## Versão 1.0.32
+
+*14-07-25*
+
+- Gerada versao das iamgens com as plataformas arm64 e amd64
+- Criado script para buildar as imagens do docker
+
+## Versão 1.0.31
+
+*10-07-25*
+
+- Removidas pastas de pacotes para diminuir o tamanho da imagem do docker
+
+## Versão 1.0.30
+
+*10-07-25*
+
+- Separado dockerfile em 2 para melhorar a performance do build
+- ⁠⁠Melhorado tratamento e rastreabilidade de erros de tasks de upload de imagens no celery, corrigindo o erro de chaves no FileDict e especificado melhor os erros no logger, das tasks de upload no celery
+
+## Versão 1.0.29
+
+*27-06-25*
+
+- ⁠Adicionado endpoint /upload-auth, que requer token de autenticação para poder consumir
+- ⁠⁠Adicionada configuração de TLS no broker do redis
+- ⁠⁠Melhorado tratamento de erros nos endpoints de tasks do celery
+
 ## Versão 1.0.28
 
 *27-05-25*

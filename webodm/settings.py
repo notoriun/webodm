@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     "codemirror2",
     "app",
     "nodeodm",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 MIDDLEWARE = [
@@ -328,20 +329,28 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
-        "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
-        "app.api.authentication.JSONWebTokenAuthenticationQS",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "app.auth.querystring_jwt_token.QueryStringJWTAuthentication",
     ),
     "PAGE_SIZE": 10,
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
 }
 
-JWT_AUTH = {
-    "JWT_EXPIRATION_DELTA": datetime.timedelta(hours=6),
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # Celery
+BROKER_CELERY_USE_SSL = os.environ.get("WO_BROKER_USE_SSL", "NO").upper() == "YES"
+BROKER_CELERY_REQS = os.environ.get("WO_BROKER_SSL_REQS", "none")
+BROKER_CELERY_CERT = os.environ.get("WO_BROKER_SSL_CERT", None)
+
 CELERY_BROKER_URL = os.environ.get("WO_BROKER", "redis://localhost")
-CELERY_RESULT_BACKEND = os.environ.get("WO_BROKER", "redis://localhost")
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -379,6 +388,37 @@ CACHES["s3_images_cache"] = {
         "CLIENT_CLASS": "django_redis.client.DefaultClient",
     },
 }
+
+# Check need TLS conf on celery
+if BROKER_CELERY_USE_SSL:
+    broker_reqs = {
+        "required": "CERT_REQUIRED",
+        "optional": "CERT_OPTIONAL",
+        "none": "CERT_NONE",
+    }.get(BROKER_CELERY_REQS, "CERT_NONE")
+    result_backend_db = os.environ.get("WO_BROKER_RESULT_BACKEND_DB", "")
+
+    params_dict = {"ssl_cert_reqs": BROKER_CELERY_REQS}
+    params_query = [f"ssl_cert_reqs={broker_reqs}"]
+
+    if BROKER_CELERY_CERT:
+        params_dict["ssl_ca_certs"] = BROKER_CELERY_CERT
+        params_query.append(f"ssl_ca_certs={BROKER_CELERY_CERT}")
+
+    CELERY_RESULT_BACKEND += f"/{result_backend_db}?{'&'.join(params_query)}"
+
+    if CACHES["default"]["BACKEND"] == "django_redis.cache.RedisCache":
+        CACHES["default"]["OPTIONS"] = {
+            **CACHES["default"]["OPTIONS"],
+            "SSL": True,
+            "CONNECTION_POOL_KWARGS": {**params_dict},
+        }
+    CACHES["s3_images_cache"]["OPTIONS"] = {
+        **CACHES["s3_images_cache"]["OPTIONS"],
+        "SSL": True,
+        "CONNECTION_POOL_KWARGS": {**params_dict},
+    }
+
 
 # Number of minutes a processing node hasn't been seen
 # before it should be considered offline

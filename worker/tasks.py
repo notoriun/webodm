@@ -5,6 +5,7 @@ import traceback
 import json
 import socket
 import time
+import uuid
 
 from threading import Event, Thread
 from celery.utils.log import get_task_logger
@@ -30,10 +31,11 @@ from app.raster_utils import (
     extension_for_export_format,
 )
 from app.pointcloud_utils import export_pointcloud as export_pointcloud_sync
+from app.utils.redis_client_factory import get_redis_client
 import redis
 
 logger = get_task_logger("app.logger")
-redis_client = redis.Redis.from_url(settings.CELERY_BROKER_URL)
+redis_client = get_redis_client()
 
 # What class to use for async results, since during testing we need to mock it
 TestSafeAsyncResult = MockAsyncResult if settings.TESTING else app.AsyncResult
@@ -325,9 +327,11 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
 
         return {"output": result}
     except Exception as e:
-        logger.error(str(e))
-        logger.info(f"upload task finished with error {str(e)}")
-        return {"error": str(e)}
+        _log_error(f"Error on recover uploading task {task_id}", e)
+
+        error = "unknow_error" if not e or not str(e) or _is_uuid(str(e)) else str(e)
+
+        return {"error": error}
     finally:
         _remove_task_upload_heartbeat(task_id)
 
@@ -403,10 +407,11 @@ def recover_uploading_task(self, task_id: str):
 
         return {"output": result}
     except Exception as e:
-        logger.error(
-            f"Error on recover uploading task {task_id}. Original error: {str(e)}"
-        )
-        return {"error": str(e)}
+        _log_error(f"Error on recover uploading task {task_id}", e)
+
+        error = "unknow_error" if not e or not str(e) or _is_uuid(str(e)) else str(e)
+
+        return {"error": error}
     finally:
         _remove_task_upload_heartbeat(task_id)
 
@@ -492,3 +497,26 @@ def _has_task_upload(task_id: str):
 
 def _remove_task_upload_heartbeat(task_id: str):
     return redis_file_cache.remove_heartbeat(f"upload_file_for_task_{task_id}")
+
+
+def _is_uuid(value: str):
+    try:
+        uuid_instance = uuid.UUID(value)
+        return uuid_instance is not None
+    except:
+        return False
+
+
+def _log_error(prefix: str, error: Exception):
+    error_str = str(error)
+    need_more_info = (
+        not error or not error_str or error_str == "None" or _is_uuid(error_str)
+    )
+    error_message = f"{prefix}. Original error: {error_str}"
+    if need_more_info:
+        stack_trace = traceback.TracebackException.from_exception(error)
+        error_message += (
+            f" {repr(error_str)}. Traceback: {''.join(stack_trace.format())}"
+        )
+
+    logger.error(error_message)

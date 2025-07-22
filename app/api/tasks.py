@@ -25,7 +25,7 @@ from rest_framework import (
     parsers,
 )
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -194,21 +194,12 @@ class TaskViewSet(viewsets.ViewSet):
         parsers.FormParser,
     )
     ordering_fields = "__all__"
+    # permission_classes = (permissions.DjangoModelPermissions,
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        We don't use object level permissions on tasks, relying on
-        project's object permissions instead (but standard model permissions still apply)
-        and with the exception of 'retrieve' (task GET) for public tasks access
-        """
-        permission_classes = [permissions.AllowAny]
-        # if self.action == 'retrieve':
-        #    permission_classes = [permissions.AllowAny]
-        # else:
-        #    permission_classes = [permissions.DjangoModelPermissions, ]
-
-        return [permission() for permission in permission_classes]
+        if self.action == "upload_auth":
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
 
     def set_pending_action(
         self,
@@ -349,6 +340,10 @@ class TaskViewSet(viewsets.ViewSet):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="upload-auth")
+    def upload_auth(self, request, pk=None, project_pk=None, type=""):
+        return self.upload(request, pk, project_pk, type)
 
     @action(detail=True, methods=["post"], url_path="set-s3-images")
     def set_s3_images(self, request, pk=None, project_pk=None):
@@ -497,7 +492,7 @@ class TaskNestedView(APIView):
         "dtm_extent",
         "dsm_extent",
     )
-    permission_classes = (AllowAny,)
+    # permission_classes = (IsAuthenticated,)
 
     def get_and_check_task(self, request, pk, annotate={}):
         try:
@@ -538,6 +533,9 @@ Task downloads are simply aliases to download the task's assets
 
 
 class TaskDownloads(TaskNestedView):
+
+    # permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk=None, project_pk=None, asset=""):
         """
         Downloads a task asset (if available)
@@ -594,6 +592,9 @@ Useful when accessing a textured 3d model, or the Potree point cloud data
 
 
 class TaskAssets(TaskNestedView):
+
+    # permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk=None, project_pk=None, unsafe_asset_path=""):
         """
         Downloads a task asset (if available)
@@ -621,6 +622,9 @@ class TaskAssets(TaskNestedView):
 
 
 class TaskMetadataAssets(TaskNestedView):
+
+    # permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk=None, project_pk=None, asset_type=""):
         """
         Downloads a task asset (if available)
@@ -645,15 +649,15 @@ class TaskMetadataAssets(TaskNestedView):
         if settings.DYNAMODB_TABLE:
             # Verifica se a tabela existe
             try:
-                dynamodb = boto3.resource('dynamodb',
-                                          region_name=settings.DYNAMODB_REGION,
-                                          aws_access_key_id=settings.DYNAMODB_ACCESS_KEY,
-                                          aws_secret_access_key=settings.DYNAMODB_SECRET_KEY)
+                dynamodb = boto3.resource(
+                    "dynamodb",
+                    region_name=settings.DYNAMODB_REGION,
+                    aws_access_key_id=settings.DYNAMODB_ACCESS_KEY,
+                    aws_secret_access_key=settings.DYNAMODB_SECRET_KEY,
+                )
                 table = dynamodb.Table(settings.DYNAMODB_TABLE)
             except Exception as e:
                 logger.error(f"Erro ao conectar ao DynamoDB: {str(e)}")
-
-
 
         for asset in models.TaskAsset.sort_list(list(assets)):
             asset_name = asset.name.split("/")[1] if "/" in asset.name else asset.name
@@ -662,8 +666,8 @@ class TaskMetadataAssets(TaskNestedView):
                 "longitude": asset.longitude,
                 "altitude": asset.altitude,
                 "created_at": asset.created_at,
-                "description": '',
-                "field_label": ''
+                "description": "",
+                "field_label": "",
             }
 
             # Extração do nome do arquivo do campo origin_path
@@ -672,12 +676,10 @@ class TaskMetadataAssets(TaskNestedView):
                 print(f"Nome do arquivo: {file_name}")
 
                 # Busca no DynamoDB
-                response = table.query(
-                    KeyConditionExpression=Key('id').eq(file_name)
-                )
+                response = table.query(KeyConditionExpression=Key("id").eq(file_name))
                 print(f"Response do DynamoDB: {response}")
-                if 'Items' in response and len(response['Items']) > 0:
-                    item = response['Items']
+                if "Items" in response and len(response["Items"]) > 0:
+                    item = response["Items"]
                     metadata[asset_name]["description"] = item[0].get("description")
                     metadata[asset_name]["field_label"] = item[0].get("field_label")
 
@@ -690,6 +692,9 @@ Task backup endpoint
 
 
 class TaskBackup(TaskNestedView):
+
+    # permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk=None, project_pk=None):
         """
         Downloads a task's backup
@@ -718,7 +723,7 @@ Task assets import
 
 
 class TaskAssetsImport(APIView):
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (IsAuthenticated,)
     parser_classes = (
         parsers.MultiPartParser,
         parsers.JSONParser,
