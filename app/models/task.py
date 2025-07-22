@@ -1236,8 +1236,6 @@ class Task(models.Model):
                     logger.info("Restarting {}".format(self))
 
                     if self.processing_node:
-                        # @TODO criar forma de apagar o console
-                        # self.console.reset()
                         self.console += f"\\n\\n\\nRestarting process, now using node: {self.processing_node}\\n\\n\\n"
                         self._ensure_s3_images_exists()
 

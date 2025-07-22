@@ -39,7 +39,7 @@ services:
   #     --requirepass "devpassword"
   #     --appendonly yes
   worker-2:
-    image: notoriun/pgi_web:0.0.14
+    image: notoriun/pgi_web:1.0.31
     container_name: worker-2
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
