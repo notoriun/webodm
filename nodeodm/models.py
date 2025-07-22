@@ -328,6 +328,14 @@ class ProcessingNode(models.Model):
             if task.status.value in (status_codes.QUEUED, status_codes.RUNNING)
         )
 
+    def max_processing_parallel_tasks(self):
+        try:
+            api_client = self.api_client()
+            info = api_client.info()
+            return info.max_parallel_tasks
+        except exceptions.OdmError:
+            return 0
+
 
 # First time a processing node is created, automatically try to update
 @receiver(
