@@ -1117,7 +1117,19 @@ class Task(models.Model):
                 # No processing node assigned and need to auto assign
                 if self.processing_node is None:
                     # Assign first online node with lowest queue count
+                    current_node = self.processing_node
                     self.processing_node = ProcessingNode.find_best_available_node()
+
+                    if (
+                        self.processing_node
+                        and not self.processing_node.can_process_more_images()
+                    ):
+                        self.processing_node = None
+                        self.save(update_fields=("processing_node",))
+                        return
+
+                    self.console += f"\n\n[Task.process] Current status is: {self.status}\nMoving from node {current_node} to node {self.processing_node}\n\n"
+
                     if self.processing_node:
                         self.processing_node.queue_count += 1  # Doesn't have to be accurate, it will get overridden later
                         self.processing_node.save()
@@ -1126,11 +1138,6 @@ class Task(models.Model):
                             "Automatically assigned processing node {} to {}".format(
                                 self.processing_node, self
                             )
-                        )
-                        self.node_connection_retry = 0
-                        self.node_error_retry = 0
-                        self.save(
-                            update_fields=("node_connection_retry", "node_error_retry")
                         )
 
                 # Processing node assigned, but is offline and no errors
@@ -1204,6 +1211,7 @@ class Task(models.Model):
                     self.upload_progress = 1.0
                     self.uuid = uuid
                     self.save(update_fields=("upload_progress", "uuid"))
+                    self._print_start_of_processing_task()
 
             if self.pending_action is not None:
                 if self.pending_action == pending_actions.CANCEL:
@@ -1236,7 +1244,7 @@ class Task(models.Model):
                     logger.info("Restarting {}".format(self))
 
                     if self.processing_node:
-                        self.console.reset()
+                        self.console += f"\n\n\nRestarting process, now using node: {self.processing_node}\n\n\n"
                         self._ensure_s3_images_exists()
 
                         # Check if the UUID is still valid, as processing nodes purge
@@ -1337,7 +1345,12 @@ class Task(models.Model):
                     if not self.console.output():
                         current_lines_count = 0
                     else:
-                        current_lines_count = len(self.console.output().split("\n"))
+                        start_processing = (
+                            self._console_line_start_of_current_processing()
+                        )
+                        current_lines_count = (
+                            len(self.console.get_lines()) - start_processing
+                        )
 
                     info = self.processing_node.get_task_info(
                         self.uuid, current_lines_count
@@ -1440,6 +1453,10 @@ class Task(models.Model):
 
                                 plugin_signals.task_failed.send_robust(
                                     sender=self.__class__, task_id=self.id
+                                )
+
+                                self._increase_node_error_retry(
+                                    Exception(self.last_error or "UNKNOW_ERROR")
                                 )
 
                     else:
@@ -1770,7 +1787,6 @@ class Task(models.Model):
         self.last_error = error_message
         self.status = status_codes.FAILED
         self.pending_action = None
-        self.node_error_retry = 0
         self.save()
 
     def find_all_files_matching(self, regex):
@@ -1980,8 +1996,6 @@ class Task(models.Model):
                 self.pending_action = pending_actions.RESTART
                 self.last_error = None
                 self.uuid = ""
-                self.node_connection_retry = 0
-                self.node_error_retry = 0
                 self.save()
 
                 if task_node:
@@ -1989,9 +2003,9 @@ class Task(models.Model):
 
                 return True
             except OdmError:
-                pass
+                return False
 
-        return False
+        return True
 
     def list_s3_available_assets(self):
         s3_assets_key = convert_task_path_to_s3(self.assets_path())
@@ -2023,12 +2037,6 @@ class Task(models.Model):
                 return key
 
         return asset_task_path
-
-    def delete_data_path(self):
-        data_path = self.data_path()
-
-        if os.path.exists(data_path):
-            shutil.rmtree(data_path)
 
     def clear_empty_dirs(self):
         return delete_empty_dirs(self.task_path())
@@ -2135,7 +2143,7 @@ class Task(models.Model):
 
                 files_uploadeds.append(file_to_upload)
 
-            self.console += f"\nUploaded {len(files_uploadeds)} files to S3!"
+            self.console += f"\nUploaded {len(files_uploadeds)} files to S3!\n\n"
         except Exception as e:
             raise NodeServerError(e)
 
@@ -2156,14 +2164,6 @@ class Task(models.Model):
         task_path = self.task_path()
 
         return get_all_files_in_dir(task_path)
-
-    def _remove_assets(self):
-        task_path = self.task_path()
-
-        if task_path[-1] == "/":
-            task_path = task_path[0:-1]
-
-        shutil.rmtree(task_path)
 
     def _remove_root_images(self):
         for e in self._entry_root_images():
@@ -2267,12 +2267,10 @@ class Task(models.Model):
 
     def _increase_node_connection_retry(self):
         self.node_connection_retry += 1
+        node = str(self.processing_node)
+        self.remove_from_your_node()
 
         if self.node_connection_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
-            node_connection_retry = self.node_connection_retry
-            node = str(self.processing_node)
-            self.remove_from_your_node()
-            self.node_connection_retry = node_connection_retry
             self.set_failure(str(NodeConnectionError(f"Cannot connect to {node}")))
             return
 
@@ -2282,15 +2280,14 @@ class Task(models.Model):
             logger.warning(f"Failed on save node_connection_retry. Original error: {e}")
 
     def _increase_node_error_retry(self, error: Exception):
-        node_error_retry = self.node_error_retry + 1
+        self.node_error_retry += 1
+        self.remove_from_your_node()
 
-        if node_error_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+        if self.node_error_retry > settings.TASK_MAX_NODE_ERROR_RETRIES:
             self.set_failure(str(error))
             return
 
         try:
-            self.remove_from_your_node()
-            self.node_error_retry = node_error_retry
             self.save(update_fields=("node_error_retry",))
         except Exception as e:
             logger.warning(f"Failed on save node_error_retry. Original error: {e}")
@@ -2358,3 +2355,16 @@ class Task(models.Model):
             status=task_asset_status.PROCESSING,
             name__in=s3_filenames,
         ).delete()
+
+    def _generate_uuid_console_mesage(self):
+        return f"----Starting processing of {self.uuid} ----"
+
+    def _print_start_of_processing_task(self):
+        self.console += f"\n\n\n{self._generate_uuid_console_mesage()}\n\n\n"
+
+    def _console_line_start_of_current_processing(self):
+        line_of_processing_message = self.console.search_line_with(
+            self._generate_uuid_console_mesage()
+        )
+
+        return 0 if line_of_processing_message < 0 else line_of_processing_message + 3

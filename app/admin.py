@@ -44,6 +44,14 @@ class ProjectAdmin(GuardedModelAdmin):
 admin.site.register(Project, ProjectAdmin)
 
 
+def apagar_console_log(modeladmin, request, queryset):
+    for task in queryset:
+        task.console.reset()
+
+
+apagar_console_log.short_description = "Apagar log do console"
+
+
 class TaskAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
@@ -62,6 +70,7 @@ class TaskAdmin(admin.ModelAdmin):
         "project",
     )
     search_fields = ("id", "name", "project__name")
+    actions = [apagar_console_log]
 
 
 admin.site.register(Task, TaskAdmin)

@@ -10,6 +10,7 @@ services:
       - ./redis-tls-dev/certs:/certs:ro
     env_file:
       - ./.env
+
   worker:
     volumes:
       - .:/webodm
@@ -18,6 +19,13 @@ services:
       - ./.env
     ports:
       - "5679:5678"
+    deploy:
+      resources:
+        limits:
+          memory: 800M
+    mem_limit: 800m
+    restart: unless-stopped
+
   db:
     ports:
       - "5432:5432"
@@ -39,7 +47,7 @@ services:
   #     --requirepass "devpassword"
   #     --appendonly yes
   worker-2:
-    image: notoriun/pgi_web:0.0.14
+    image: notoriun/pgi_web:1.0.31
     container_name: worker-2
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
@@ -54,6 +62,11 @@ services:
       - ./.env
     ports:
       - "5680:5678"
+    deploy:
+      resources:
+        limits:
+          memory: 800M
+    mem_limit: 800m
   # worker-3:
   #   image: notoriun/pgi_web:0.0.14
   #   container_name: worker-3
@@ -72,5 +85,10 @@ services:
   #     - "5681:5678"
   node-odm:
     deploy:
-      replicas: 2
+      # replicas: 2
+      resources:
+        limits:
+          memory: 3072M
+    mem_limit: 3072m
+    restart: unless-stopped
 

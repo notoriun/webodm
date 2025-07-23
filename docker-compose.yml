@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     oom_score_adj: -100
   webapp:
-    image: notoriun/pgi_web:0.0.14
+    image: notoriun/pgi_web:1.0.31
     container_name: webapp
     entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh\""
     volumes:
@@ -45,14 +45,14 @@ services:
       - WO_BROKER_SSL_REQS
       - WO_BROKER_RESULT_BACKEND_DB
     restart: unless-stopped
-    oom_score_adj: 0
+    oom_score_adj: 100
   broker:
     image: redis:7.0.10
     container_name: broker
     restart: unless-stopped
     oom_score_adj: -500
   worker:
-    image: notoriun/pgi_web:0.0.14
+    image: notoriun/pgi_web:1.0.31
     container_name: worker
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
@@ -75,4 +75,4 @@ services:
       - WO_BROKER_SSL_REQS
       - WO_BROKER_RESULT_BACKEND_DB
     restart: unless-stopped
-    oom_score_adj: 250
+    oom_score_adj: 500

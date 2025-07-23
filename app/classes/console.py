@@ -1,6 +1,8 @@
 import os
 import logging
-logger = logging.getLogger('app.logger')
+
+logger = logging.getLogger("app.logger")
+
 
 class Console:
     def __init__(self, file):
@@ -16,7 +18,7 @@ class Console:
             return ""
 
         try:
-            with open(self.file, 'r', encoding="utf-8") as f:
+            with open(self.file, "r", encoding="utf-8") as f:
                 return f.read()
         except IOError:
             logger.warn("Cannot read console file: %s" % self.file)
@@ -35,19 +37,29 @@ class Console:
                 # Write
                 if not os.path.isdir(self.base_dir):
                     os.makedirs(self.base_dir, exist_ok=True)
-                
+
                 with open(self.file, "a", encoding="utf-8") as f:
                     f.write(text)
             except IOError:
                 logger.warn("Cannot append to console file: %s" % self.file)
 
-    def reset(self, text = ""):
+    def reset(self, text=""):
         if os.path.isdir(self.parent_dir):
             try:
                 if not os.path.isdir(self.base_dir):
                     os.makedirs(self.base_dir, exist_ok=True)
-                
+
                 with open(self.file, "w", encoding="utf-8") as f:
                     f.write(text)
             except IOError:
                 logger.warn("Cannot reset console file: %s" % self.file)
+
+    def get_lines(self):
+        return self.output().split("\n")
+
+    def search_line_with(self, search_text: str):
+        for line, text in enumerate(self.get_lines()):
+            if text == search_text:
+                return line
+
+        return -1

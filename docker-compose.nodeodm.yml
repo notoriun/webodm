@@ -14,4 +14,4 @@ services:
     expose:
       - "3000"
     restart: unless-stopped
-    oom_score_adj: 500
+    oom_score_adj: -500

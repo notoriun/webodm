@@ -15,7 +15,6 @@ class ProcessingNodesManager:
         self._logger = logger
 
     def improve_processing_nodes_performance(self):
-
         if self._has_more_than_one_node():
             self._remove_offline_nodes()
 
@@ -76,26 +75,29 @@ class ProcessingNodesManager:
         offline_nodes = []
 
         for task in tasks_needs_other_node:
-            next_free_node = free_nodes.exclude(pk__in=offline_nodes).first()
+            next_online_node = free_nodes.exclude(pk__in=offline_nodes).first()
 
-            while next_free_node and next_free_node.confirm_is_offline():
-                offline_nodes.append(next_free_node.pk)
-                next_free_node = free_nodes.exclude(pk__in=offline_nodes).first()
+            while next_online_node and next_online_node.confirm_is_offline():
+                offline_nodes.append(next_online_node.pk)
+                next_online_node = free_nodes.exclude(pk__in=offline_nodes).first()
 
-            if not next_free_node:
+            if not next_online_node:
                 return
-
-            self._assign_task_to_node(task, next_free_node)
 
             removed = self._remove_task_from_your_node(task)
 
             if not removed:
                 continue
 
+            next_online_node_is_free = next_online_node.can_process_more_images()
+
+            if not next_online_node_is_free:
+                next_online_node = None
+
             self._logger.info(
-                f"Removed {task} from your node and assingning to {next_free_node}..."
+                f"Removed {task} from your node and assingning to {next_online_node}..."
             )
-            self._assign_task_to_node(task, next_free_node)
+            self._assign_task_to_node(task, next_online_node)
 
     def _queued_tasks_or_without_node(self):
         return Task.objects.filter(
@@ -104,10 +106,17 @@ class ProcessingNodesManager:
                 Q(status=status_codes.QUEUED)
                 | (
                     Q(processing_node__isnull=True)
-                    & (Q(status__isnull=True) | Q(status=status_codes.FAILED))
-                )
-                | Q(
-                    node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES
+                    & (
+                        Q(status__isnull=True)
+                        | Q(
+                            status=status_codes.FAILED,
+                            node_error_retry__lt=settings.TASK_MAX_NODE_ERROR_RETRIES,
+                        )
+                        | Q(
+                            status=status_codes.FAILED,
+                            node_connection_retry__lt=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
+                        )
+                    )
                 )
             )
         ).exclude(
@@ -132,6 +141,7 @@ class ProcessingNodesManager:
 
     def _assign_task_to_node(self, task: Task, node: ProcessingNode):
         try:
+            log_message = f"\n\n[ProcessingNodesManager._assign_task_to_node] Current status is: {task.status}\nMoving from node {task.processing_node} to node {node}\n\n"
             current_status = task.status
             task.status = None
             task.auto_processing_node = True
@@ -143,9 +153,10 @@ class ProcessingNodesManager:
             )
             task.last_error = None
             task.uuid = ""
-            task.node_connection_retry = 0
-            task.node_error_retry = 0
             task.save()
+
+            self._logger.info(log_message)
+            task.console += log_message
 
             return True
         except:
