@@ -1117,7 +1117,19 @@ class Task(models.Model):
                 # No processing node assigned and need to auto assign
                 if self.processing_node is None:
                     # Assign first online node with lowest queue count
+                    current_node = self.processing_node
                     self.processing_node = ProcessingNode.find_best_available_node()
+
+                    if (
+                        self.processing_node
+                        and not self.processing_node.can_process_more_images()
+                    ):
+                        self.processing_node = None
+                        self.save(update_fields=("processing_node",))
+                        return
+
+                    self.console += f"\n\n[Task.process] Current status is: {self.status}\nMoving from node {current_node} to node {self.processing_node}\n\n"
+
                     if self.processing_node:
                         self.processing_node.queue_count += 1  # Doesn't have to be accurate, it will get overridden later
                         self.processing_node.save()
@@ -1204,6 +1216,7 @@ class Task(models.Model):
                     self.upload_progress = 1.0
                     self.uuid = uuid
                     self.save(update_fields=("upload_progress", "uuid"))
+                    self._print_start_of_processing_task()
 
             if self.pending_action is not None:
                 if self.pending_action == pending_actions.CANCEL:
@@ -1236,7 +1249,7 @@ class Task(models.Model):
                     logger.info("Restarting {}".format(self))
 
                     if self.processing_node:
-                        self.console += f"\\n\\n\\nRestarting process, now using node: {self.processing_node}\\n\\n\\n"
+                        self.console += f"\n\n\nRestarting process, now using node: {self.processing_node}\n\n\n"
                         self._ensure_s3_images_exists()
 
                         # Check if the UUID is still valid, as processing nodes purge
@@ -1337,7 +1350,12 @@ class Task(models.Model):
                     if not self.console.output():
                         current_lines_count = 0
                     else:
-                        current_lines_count = len(self.console.output().split("\n"))
+                        start_processing = (
+                            self._console_line_start_of_current_processing()
+                        )
+                        current_lines_count = (
+                            len(self.console.get_lines()) - start_processing
+                        )
 
                     info = self.processing_node.get_task_info(
                         self.uuid, current_lines_count
@@ -1989,9 +2007,9 @@ class Task(models.Model):
 
                 return True
             except OdmError:
-                pass
+                return False
 
-        return False
+        return True
 
     def list_s3_available_assets(self):
         s3_assets_key = convert_task_path_to_s3(self.assets_path())
@@ -2344,3 +2362,16 @@ class Task(models.Model):
             status=task_asset_status.PROCESSING,
             name__in=s3_filenames,
         ).delete()
+
+    def _generate_uuid_console_mesage(self):
+        return f"----Starting processing of {self.uuid} ----"
+
+    def _print_start_of_processing_task(self):
+        self.console += f"\n\n\n{self._generate_uuid_console_mesage()}\n\n\n"
+
+    def _console_line_start_of_current_processing(self):
+        line_of_processing_message = self.console.search_line_with(
+            self._generate_uuid_console_mesage()
+        )
+
+        return 0 if line_of_processing_message < 0 else line_of_processing_message + 3

@@ -53,3 +53,13 @@ class Console:
                     f.write(text)
             except IOError:
                 logger.warn("Cannot reset console file: %s" % self.file)
+
+    def get_lines(self):
+        return self.output().split("\n")
+
+    def search_line_with(self, search_text: str):
+        for line, text in enumerate(self.get_lines()):
+            if text == search_text:
+                return line
+
+        return -1
