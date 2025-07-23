@@ -10,12 +10,14 @@ from django.utils.translation import gettext_lazy as _
 
 from webodm import settings
 from nodeodm import status_codes
+from app import models as app_models
 
 import json
 from pyodm import Node
 from pyodm import exceptions
 from django.db.models import signals, Q
 from datetime import timedelta
+from typing import List
 import logging
 
 logger = logging.getLogger("app.logger")
@@ -322,19 +324,35 @@ class ProcessingNode(models.Model):
         return (self.get_task_info(uuid) for uuid in tasks_ids)
 
     def list_queued_or_running_tasks(self):
-        return (
-            task
-            for task in self.list_tasks()
-            if task.status.value in (status_codes.QUEUED, status_codes.RUNNING)
-        )
+        return self._list_tasks_with((status_codes.QUEUED, status_codes.RUNNING))
 
     def max_processing_parallel_tasks(self):
         try:
             api_client = self.api_client()
             info = api_client.info()
-            return info.max_parallel_tasks
+            return info.max_parallel_tasks or 0 if info else 0
         except exceptions.OdmError:
             return 0
+
+    def can_process_more_images(self):
+        max_parallel = self.max_processing_parallel_tasks()
+
+        if max_parallel < 1:
+            return False
+
+        processing_tasks = self._list_tasks_with((status_codes.RUNNING,))
+
+        return len(list(processing_tasks)) < max_parallel
+
+    def app_tasks_running(self):
+        processing_tasks = self._list_tasks_with((status_codes.RUNNING,))
+
+        return app_models.Task.objects.filter(
+            uuid__in=(task.uuid for task in processing_tasks)
+        )
+
+    def _list_tasks_with(self, statuses: List[int]):
+        return (task for task in self.list_tasks() if task.status.value in statuses)
 
 
 # First time a processing node is created, automatically try to update
