@@ -1139,11 +1139,6 @@ class Task(models.Model):
                                 self.processing_node, self
                             )
                         )
-                        self.node_connection_retry = 0
-                        self.node_error_retry = 0
-                        self.save(
-                            update_fields=("node_connection_retry", "node_error_retry")
-                        )
 
                 # Processing node assigned, but is offline and no errors
                 if self.processing_node and not self.processing_node.is_online():
@@ -1458,6 +1453,10 @@ class Task(models.Model):
 
                                 plugin_signals.task_failed.send_robust(
                                     sender=self.__class__, task_id=self.id
+                                )
+
+                                self._increase_node_error_retry(
+                                    Exception(self.last_error or "UNKNOW_ERROR")
                                 )
 
                     else:
@@ -1788,7 +1787,6 @@ class Task(models.Model):
         self.last_error = error_message
         self.status = status_codes.FAILED
         self.pending_action = None
-        self.node_error_retry = 0
         self.save()
 
     def find_all_files_matching(self, regex):
@@ -1998,8 +1996,6 @@ class Task(models.Model):
                 self.pending_action = pending_actions.RESTART
                 self.last_error = None
                 self.uuid = ""
-                self.node_connection_retry = 0
-                self.node_error_retry = 0
                 self.save()
 
                 if task_node:
@@ -2271,12 +2267,10 @@ class Task(models.Model):
 
     def _increase_node_connection_retry(self):
         self.node_connection_retry += 1
+        node = str(self.processing_node)
+        self.remove_from_your_node()
 
         if self.node_connection_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
-            node_connection_retry = self.node_connection_retry
-            node = str(self.processing_node)
-            self.remove_from_your_node()
-            self.node_connection_retry = node_connection_retry
             self.set_failure(str(NodeConnectionError(f"Cannot connect to {node}")))
             return
 
@@ -2286,15 +2280,14 @@ class Task(models.Model):
             logger.warning(f"Failed on save node_connection_retry. Original error: {e}")
 
     def _increase_node_error_retry(self, error: Exception):
-        node_error_retry = self.node_error_retry + 1
+        self.node_error_retry += 1
+        self.remove_from_your_node()
 
-        if node_error_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+        if self.node_error_retry > settings.TASK_MAX_NODE_ERROR_RETRIES:
             self.set_failure(str(error))
             return
 
         try:
-            self.remove_from_your_node()
-            self.node_error_retry = node_error_retry
             self.save(update_fields=("node_error_retry",))
         except Exception as e:
             logger.warning(f"Failed on save node_error_retry. Original error: {e}")

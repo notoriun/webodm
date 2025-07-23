@@ -106,10 +106,17 @@ class ProcessingNodesManager:
                 Q(status=status_codes.QUEUED)
                 | (
                     Q(processing_node__isnull=True)
-                    & (Q(status__isnull=True) | Q(status=status_codes.FAILED))
-                )
-                | Q(
-                    node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES
+                    & (
+                        Q(status__isnull=True)
+                        | Q(
+                            status=status_codes.FAILED,
+                            node_error_retry__lt=settings.TASK_MAX_NODE_ERROR_RETRIES,
+                        )
+                        | Q(
+                            status=status_codes.FAILED,
+                            node_connection_retry__lt=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
+                        )
+                    )
                 )
             )
         ).exclude(
@@ -134,7 +141,7 @@ class ProcessingNodesManager:
 
     def _assign_task_to_node(self, task: Task, node: ProcessingNode):
         try:
-            log_message = f"\n\nC[ProcessingNodesManager._assign_task_to_node] urrent status is: {task.status}\nMoving from node {task.processing_node} to node {node}\n\n"
+            log_message = f"\n\n[ProcessingNodesManager._assign_task_to_node] Current status is: {task.status}\nMoving from node {task.processing_node} to node {node}\n\n"
             current_status = task.status
             task.status = None
             task.auto_processing_node = True
@@ -146,8 +153,6 @@ class ProcessingNodesManager:
             )
             task.last_error = None
             task.uuid = ""
-            task.node_connection_retry = 0
-            task.node_error_retry = 0
             task.save()
 
             self._logger.info(log_message)
