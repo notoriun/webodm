@@ -1,5 +1,16 @@
 # Changelog
 
+## Versão 1.0.33
+
+*23-07-25*
+
+- Não apagado console da task depois de reiniciar
+- Criada função de apagar console da task
+- Revisado fluxo de retry automático das tasks
+- Corrigidos limites de memória dos containers locais
+- Corrigidos bugs de pegar próximo node para a task
+- Adicionada task em processamento pelo node na página do node
+
 ## Versão 1.0.32
 
 *14-07-25*
