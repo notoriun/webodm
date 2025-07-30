@@ -28,8 +28,8 @@ if [ -z "$TAG" ]; then
   usage
 fi
 
-TAG_AMD64="${TAG%:*}-amd64"
-TAG_ARM64="${TAG%:*}-arm64"
+TAG_AMD64="${TAG}-amd64"
+TAG_ARM64="${TAG}-arm64"
 
 echo "📦 Building images for:"
 echo "  🖥️  AMD64 -> $TAG_AMD64"
