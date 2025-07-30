@@ -39,6 +39,7 @@ DEFAULT_SSL="$WO_SSL"
 DEFAULT_SSL_INSECURE_PORT_REDIRECT="$WO_SSL_INSECURE_PORT_REDIRECT"
 DEFAULT_BROKER="$WO_BROKER"
 DEFAULT_NODES="$WO_DEFAULT_NODES"
+DEFAULT_ENABLE_OTEL="$WO_ENABLE_OTEL"
 
 # Parse args for overrides
 POSITIONAL=()
@@ -157,6 +158,10 @@ case $key in
     use_podman=true
     shift # past argument
     ;;
+    --otel)
+    WO_ENABLE_OTEL=YES
+    shift # past argument
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -203,6 +208,7 @@ usage(){
   echo "	--worker-memory	Maximum amount of memory allocated for the worker process (default: unlimited)"
   echo "	--worker-cpus	Maximum number of CPUs allocated for the worker process (default: all)"
   echo "	--podman	Use podman instead docker, for containers manager"
+  echo "	--otel	Enable OpenTelemetry observability"
 
   exit
 }
@@ -419,6 +425,7 @@ start(){
 	echo "Settings: $WO_SETTINGS"
 	echo "Worker memory limit: $WO_WORKER_MEMORY"
 	echo "Worker cpus limit: $WO_WORKER_CPUS"
+	echo "OpenTelemetry Enabled: $WO_ENABLE_OTEL"
 	echo "================================"
 	echo "Make sure to issue a $0 down if you decide to change the environment."
 	echo ""
@@ -446,6 +453,10 @@ start(){
     if [[ $test_build_mode = true ]]; then
         command+=" -f docker-compose.test-build.yml"
     fi
+
+	if [ "$WO_ENABLE_OTEL" = "YES" ]; then
+        command+=" -f ./observability/docker-compose.yaml"
+	fi
 
 	if [ "$WO_SSL" = "YES" ]; then
 		if [ -n "$WO_SSL_KEY" ] && [ ! -e "$WO_SSL_KEY" ]; then
