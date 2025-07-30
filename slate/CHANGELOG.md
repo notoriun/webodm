@@ -1,5 +1,11 @@
 # Changelog
 
+## Versão 1.0.35
+
+*30-07-25*
+
+- Apagado rquivos staticos usados no build, melhorando o esço usado pelo sistema
+
 ## Versão 1.0.34
 
 *30-07-25*
