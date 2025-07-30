@@ -19,6 +19,7 @@ if [[ $platform = "Windows" ]]; then
 fi
 
 dev_mode=false
+test_build_mode=false
 gpu=false
 
 # define realpath replacement function
@@ -101,6 +102,10 @@ case $key in
     export WO_DEBUG=YES
     export WO_DEV=YES
     dev_mode=true
+    shift # past argument
+    ;;
+    --test-build)
+    test_build_mode=true
     shift # past argument
     ;;
     --gpu)
@@ -189,6 +194,7 @@ usage(){
   echo "	--ssl-insecure-port-redirect	<port>	Insecure port number to redirect from when SSL is enabled (default: $DEFAULT_SSL_INSECURE_PORT_REDIRECT)"
   echo "	--debug	Enable debug for development environments (default: disabled)"
   echo "	--dev	Enable development mode. In development mode you can make modifications to WebODM source files and changes will be reflected live. (default: disabled)"
+  echo "	--test-build	Enable test build mode. Its normal mode, but with env from file, and db conection to dev local. (default: disabled)"
   echo "	--dev-watch-plugins	Automatically build plugins while in dev mode. (default: disabled)"
   echo "	--broker	Set the URL used to connect to the celery broker (default: $DEFAULT_BROKER)"
   echo "	--detached	Run WebODM in detached mode. This means WebODM will run in the background, without blocking the terminal (default: disabled)"
@@ -197,7 +203,7 @@ usage(){
   echo "	--worker-memory	Maximum amount of memory allocated for the worker process (default: unlimited)"
   echo "	--worker-cpus	Maximum number of CPUs allocated for the worker process (default: all)"
   echo "	--podman	Use podman instead docker, for containers manager"
-  
+
   exit
 }
 
@@ -392,6 +398,8 @@ start(){
 	if [[ $dev_mode = true ]]; then
 		echo "Starting WebODM in development mode..."
 		down
+	elif [[ $test_build_mode = true ]]; then
+		echo "Starting WebODM for test image build..."
 	else
 		echo "Starting WebODM..."
 	fi
@@ -433,6 +441,10 @@ start(){
 
     if [[ $dev_mode = true ]]; then
         command+=" -f docker-compose.dev.yml"
+    fi
+
+    if [[ $test_build_mode = true ]]; then
+        command+=" -f docker-compose.test-build.yml"
     fi
 
 	if [ "$WO_SSL" = "YES" ]; then
