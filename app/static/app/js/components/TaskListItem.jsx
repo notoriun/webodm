@@ -535,7 +535,7 @@ class TaskListItem extends React.Component {
                   data-toggle="dropdown"><span className="caret"></span></button>,
                 <ul key="dropdown-menu" className="dropdown-menu">
                   {subItems.map(subItem => <li key={subItem.label}>
-                    <a href="javascript:void(0);" onClick={subItem.onClick}><i className={subItem.icon + ' fa-fw '}></i>{subItem.label}</a>
+                    <a onClick={subItem.onClick}><i className={subItem.icon + ' fa-fw '}></i>{subItem.label}</a>
                   </li>)}
                 </ul>]}
             </div>);
@@ -700,7 +700,7 @@ class TaskListItem extends React.Component {
     const taskActions = [];
     const addTaskAction = (label, icon, onClick) => {
       taskActions.push(
-        <li key={label}><a href="javascript:void(0)" onClick={onClick}><i className={icon}></i>{label}</a></li>
+        <li key={label}><a onClick={onClick}><i className={icon}></i>{label}</a></li>
       );
     };
 
@@ -711,13 +711,13 @@ class TaskListItem extends React.Component {
 
     // Ability to change options
     if (editable || (!task.processing_node && this.props.hasPermission("change"))) {
-      taskActions.push(<li key="edit"><a href="javascript:void(0)" onClick={this.startEditing}><i className="glyphicon glyphicon-pencil"></i>{_("Edit")}</a></li>);
+      taskActions.push(<li key="edit"><a onClick={this.startEditing}><i className="glyphicon glyphicon-pencil"></i>{_("Edit")}</a></li>);
     }
 
     if (editable) {
       taskActions.push(
-        <li key="move"><a href="javascript:void(0)" onClick={this.handleMoveTask}><i className="fa fa-arrows-alt"></i>{_("Move")}</a></li>,
-        <li key="duplicate"><a href="javascript:void(0)" onClick={this.handleDuplicateTask}><i className="fa fa-copy"></i>{_("Duplicate")}</a></li>
+        <li key="move"><a onClick={this.handleMoveTask}><i className="fa fa-arrows-alt"></i>{_("Move")}</a></li>,
+        <li key="duplicate"><a onClick={this.handleDuplicateTask}><i className="fa fa-copy"></i>{_("Duplicate")}</a></li>
       );
     }
 
@@ -749,7 +749,7 @@ class TaskListItem extends React.Component {
           : ""}
         <div className="row">
           <div className="col-sm-5 col-xs-12 name">
-            <i onClick={this.toggleExpanded} className={"clickable far " + (this.state.expanded ? "fa-minus-square" : " fa-plus-square")}></i> <a href="javascript:void(0);" onClick={this.toggleExpanded} className="name-link">{name}</a>
+            <i onClick={this.toggleExpanded} className={"clickable far " + (this.state.expanded ? "fa-minus-square" : " fa-plus-square")}></i> <a onClick={this.toggleExpanded} className="name-link">{name}</a>
             {userTags.length > 0 ?
               userTags.map((t, i) => <div key={i} className="tag-badge small-badge" onClick={this.handleTagClick(t)}>{t}</div>)
               : ""}
@@ -774,7 +774,7 @@ class TaskListItem extends React.Component {
           </div>
           <div className="col-sm-3 col-xs-12">
             {showEditLink ?
-              <a href="javascript:void(0);" onClick={this.startEditing}>{statusLabel}</a>
+              <a onClick={this.startEditing}>{statusLabel}</a>
               : statusLabel}
           </div>
           <div className="col-sm-1 text-right hidden-xs">

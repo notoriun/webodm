@@ -337,7 +337,7 @@ class ImportFromS3TaskPanel extends React.Component {
       .fail(() => {
         this.setState({
           importingFromS3Url: false,
-          loading: false, 
+          loading: false,
           error: _(
             "Cannot import from this S3 URL. Check your internet connection."
           ),
@@ -394,7 +394,6 @@ class ImportFromS3TaskPanel extends React.Component {
                         {ResizeModes.all().map((mode) => (
                           <li key={mode}>
                             <a
-                              href="javascript:void(0);"
                               onClick={this.setResizeMode(mode)}
                             >
                               <i
@@ -516,7 +515,7 @@ class ImportFromS3TaskPanel extends React.Component {
                       type="submit"
                       className="btn btn-primary"
                       onClick={this.save}
-                      // disabled={this.props.filesCount < 1 || !filesCountOk}
+                    // disabled={this.props.filesCount < 1 || !filesCountOk}
                     >
                       <i className="glyphicon glyphicon-saved"></i>{" "}
                       {!this.state.inReview

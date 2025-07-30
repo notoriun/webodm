@@ -8,7 +8,7 @@ import Tags from '../classes/Tags';
 class TagsField extends React.Component {
   static defaultProps = {
     tags: [],
-    onUpdate: () => {}
+    onUpdate: () => { }
   };
 
   static propTypes = {
@@ -16,7 +16,7 @@ class TagsField extends React.Component {
     onUpdate: PropTypes.func
   };
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.state = {
@@ -28,19 +28,19 @@ class TagsField extends React.Component {
     this.domTags = [];
   }
 
-  componentDidUpdate(){
+  componentDidUpdate() {
     this.props.onUpdate(Tags.combine(this.state.userTags, this.state.systemTags));
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     this.restoreDropzones();
   }
 
-  disableDropzones(){
+  disableDropzones() {
     if (this.disabledDz) return;
     let parent = this.domNode.parentElement;
-    while(parent){
-      if (parent.dropzone){
+    while (parent) {
+      if (parent.dropzone) {
         parent.dropzone.removeListeners();
         this.dzList.push(parent.dropzone);
       }
@@ -49,7 +49,7 @@ class TagsField extends React.Component {
     this.disabledDz = true;
   }
 
-  restoreDropzones(){
+  restoreDropzones() {
     if (!this.disabledDz) return;
 
     this.dzList.forEach(dz => {
@@ -60,11 +60,11 @@ class TagsField extends React.Component {
   }
 
   handleKeyDown = e => {
-    if (e.key === "Tab" || e.key === "Enter" || e.key === "," || e.key === " "){
+    if (e.key === "Tab" || e.key === "Enter" || e.key === "," || e.key === " ") {
       e.preventDefault();
       e.stopPropagation();
       this.addTag();
-    }else if (e.key === "Backspace" && this.inputText.innerText === ""){
+    } else if (e.key === "Backspace" && this.inputText.innerText === "") {
       this.removeTag(this.state.userTags.length - 1);
     }
   }
@@ -90,17 +90,17 @@ class TagsField extends React.Component {
 
   addTag = () => {
     let text = this.inputText.innerText;
-    if (text !== ""){
+    if (text !== "") {
       // Do not allow system tags
-      if (!text.startsWith(".")){
+      if (!text.startsWith(".")) {
 
         // Only lower case text allowed
         text = text.toLowerCase();
 
         // Check for dulicates
-        if (this.state.userTags.indexOf(text) === -1){
+        if (this.state.userTags.indexOf(text) === -1) {
           this.setState(update(this.state, {
-            userTags: {$push: [text]}
+            userTags: { $push: [text] }
           }));
         }
       }
@@ -123,22 +123,22 @@ class TagsField extends React.Component {
     const [moveTag, side] = this.findClosestTag(e.clientX, e.clientY);
 
     const { userTags } = this.state;
-    if (moveTag){
+    if (moveTag) {
       const dragIdx = userTags.indexOf(dragTag);
       const moveIdx = userTags.indexOf(moveTag);
-      if (dragIdx !== -1 && moveIdx !== -1){
+      if (dragIdx !== -1 && moveIdx !== -1) {
         if (dragIdx === moveIdx) return;
-        else{
+        else {
           // Put drag tag in front of move tag
           let insertIdx = side === "right" ? moveIdx + 1 : moveIdx;
           userTags.splice(insertIdx, 0, dragTag);
-          for (let i = 0; i < userTags.length; i++){
-            if (userTags[i] === dragTag && i !== insertIdx){
+          for (let i = 0; i < userTags.length; i++) {
+            if (userTags[i] === dragTag && i !== insertIdx) {
               userTags.splice(i, 1);
               break;
             }
           }
-          this.setState({userTags});
+          this.setState({ userTags });
         }
       }
     }
@@ -165,9 +165,9 @@ class TagsField extends React.Component {
       const b = domTag.getBoundingClientRect();
       const tagY = b.y + (b.height / 2);
       let dy = clientY - tagY,
-          sqDistY = dy*dy;
-      
-      if (sqDistY < minDistY){
+        sqDistY = dy * dy;
+
+      if (sqDistY < minDistY) {
         minDistY = sqDistY;
         rowTagY = tagY;
       }
@@ -179,11 +179,11 @@ class TagsField extends React.Component {
     this.domTags.forEach((domTag, i) => {
       const b = domTag.getBoundingClientRect();
       const tagY = b.y + (b.height / 2);
-      if (Math.abs(tagY - rowTagY) < 0.001){
+      if (Math.abs(tagY - rowTagY) < 0.001) {
         const tagX = b.x + b.width;
         let dx = clientX - tagX,
-            sqDistX = dx*dx;
-        if (sqDistX < minDistX){
+          sqDistX = dx * dx;
+        if (sqDistX < minDistX) {
           closestTag = userTags[i];
           minDistX = sqDistX;
         }
@@ -191,7 +191,7 @@ class TagsField extends React.Component {
     });
 
     let side = "right";
-    if (closestTag){
+    if (closestTag) {
       const b = this.domTags[this.state.userTags.indexOf(closestTag)].getBoundingClientRect();
       const centerX = b.x + b.width / 2.0;
       if (clientX < centerX) side = "left";
@@ -202,23 +202,23 @@ class TagsField extends React.Component {
 
   render() {
     return (<div
-                ref={domNode => this.domNode = domNode}
-                spellCheck="false"
-                autoComplete="off"
-                onClick={this.focus}
-                onDrop={this.handleDrop}
-                onDragOver={this.handleDragOver}
-                onDragEnter={this.handleDragEnter}
-                className="form-control tags-field">{this.state.userTags.map((tag, i) => 
-                  <div draggable="true" className="tag-badge" key={i} ref={domNode => this.domTags[i] = domNode} 
-                      onClick={this.stop} 
-                      onDragStart={this.handleDragStart(tag)} 
-                      onDragEnd={this.handleDragEnd}>{tag} <a href="javascript:void(0)" onClick={this.handleRemoveTag(i)}>×</a>&nbsp;&nbsp;</div>
-                )}
-                <div className="inputText" contentEditable="true" ref={(domNode) => this.inputText = domNode}
-                     onKeyDown={this.handleKeyDown}
-                     onBlur={this.addTag}></div>
-        </div>);
+      ref={domNode => this.domNode = domNode}
+      spellCheck="false"
+      autoComplete="off"
+      onClick={this.focus}
+      onDrop={this.handleDrop}
+      onDragOver={this.handleDragOver}
+      onDragEnter={this.handleDragEnter}
+      className="form-control tags-field">{this.state.userTags.map((tag, i) =>
+        <div draggable="true" className="tag-badge" key={i} ref={domNode => this.domTags[i] = domNode}
+          onClick={this.stop}
+          onDragStart={this.handleDragStart(tag)}
+          onDragEnd={this.handleDragEnd}>{tag} <a onClick={this.handleRemoveTag(i)}>×</a>&nbsp;&nbsp;</div>
+      )}
+      <div className="inputText" contentEditable="true" ref={(domNode) => this.inputText = domNode}
+        onKeyDown={this.handleKeyDown}
+        onBlur={this.addTag}></div>
+    </div>);
   }
 }
 

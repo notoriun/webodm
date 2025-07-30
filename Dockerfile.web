@@ -28,7 +28,9 @@ RUN ln -s /webodm/nginx/crontab /var/spool/cron/crontabs/root && \
     apt remove -y g++ python3-dev libpq-dev && \
     apt autoremove -y && \
     apt clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /webodm/__pycache__/ /webodm/**/*.pyc /webodm/**/*.pyo /webodm/**/*.egg-info /webodm/**/*.dist-info /webodm/node_modules && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /webodm/__pycache__/ \
+    /webodm/**/*.pyc /webodm/**/*.pyo /webodm/**/*.egg-info /webodm/**/*.dist-info \
+    /webodm/node_modules /webodm/app/static/* && \
     rm /webodm/webodm/secret_key.py
 
 VOLUME /webodm/app/media

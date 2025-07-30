@@ -17,7 +17,7 @@ import ResizeModes from "../classes/ResizeModes";
 import Tags from "../classes/Tags";
 import exifr from "../vendor/exifr";
 import { _, interpolate } from "../classes/gettext";
-  import Workers from '../classes/Workers';
+import Workers from '../classes/Workers';
 import $ from "jquery";
 
 class ProjectListItem extends React.Component {
@@ -298,21 +298,21 @@ class ProjectListItem extends React.Component {
                       this.state.upload.totalBytesSent + file.size;
                     if (file.trackedBytesSent)
                       totalBytesSent -= file.trackedBytesSent;
-    
+
                     const progress =
                       (totalBytesSent / this.state.upload.totalBytes) * 100;
-    
+
                     this.setUploadState({
                       progress,
                       totalBytesSent,
                       uploadedCount: this.state.upload.uploadedCount + 1,
                     });
-    
+
 
                     const remainingFilesCount =
                       this.state.upload.totalCount - this.state.upload.uploadedCount;
                     if (remainingFilesCount === 0 &&
-                        this.state.upload.uploadedCount > 0) {
+                      this.state.upload.uploadedCount > 0) {
                       this.dz.emit('queuecomplete');
                     }
                   } else {
@@ -777,7 +777,6 @@ class ProjectListItem extends React.Component {
           "project-list-item list-group-item " +
           (refreshing ? "refreshing" : "")
         }
-        href="javascript:void(0);"
         ref={this.setRef("dropzone")}
       >
         {canEdit ? (
@@ -866,14 +865,14 @@ class ProjectListItem extends React.Component {
             {data.name}
             {userTags.length > 0
               ? userTags.map((t, i) => (
-                  <div
-                    key={i}
-                    className="tag-badge small-badge"
-                    onClick={this.handleTagClick(t)}
-                  >
-                    {t}
-                  </div>
-                ))
+                <div
+                  key={i}
+                  className="tag-badge small-badge"
+                  onClick={this.handleTagClick(t)}
+                >
+                  {t}
+                </div>
+              ))
               : ""}
           </div>
           <div className="project-description">{data.description}</div>
@@ -881,7 +880,7 @@ class ProjectListItem extends React.Component {
             {numTasks > 0 ? (
               <span>
                 <i className="fa fa-tasks"></i>
-                <a href="javascript:void(0);" onClick={this.toggleTaskList}>
+                <a onClick={this.toggleTaskList}>
                   {interpolate(_("%(count)s Tasks"), { count: numTasks })}{" "}
                   <i
                     className={
@@ -899,10 +898,9 @@ class ProjectListItem extends React.Component {
               <div className="task-filters">
                 <div className="btn-group">
                   {this.state.selectedTags.length ||
-                  this.state.filterText !== "" ? (
+                    this.state.filterText !== "" ? (
                     <a
                       className="quick-clear-filter"
-                      href="javascript:void(0)"
                       onClick={this.clearFilter}
                     >
                       ×
@@ -912,7 +910,6 @@ class ProjectListItem extends React.Component {
                   )}
                   <i className="fa fa-filter"></i>
                   <a
-                    href="javascript:void(0);"
                     onClick={this.onOpenFilter}
                     className="dropdown-toggle"
                     data-toggle-outside
@@ -968,7 +965,6 @@ class ProjectListItem extends React.Component {
                 <div className="btn-group">
                   <i className="fa fa-sort-alpha-down"></i>
                   <a
-                    href="javascript:void(0);"
                     className="dropdown-toggle"
                     data-toggle="dropdown"
                     aria-haspopup="true"
@@ -989,46 +985,43 @@ class ProjectListItem extends React.Component {
 
             {numTasks > 0
               ? [
-                  <i key="edit-icon" className="fa fa-globe"></i>,
-                  <a
-                    key="edit-text"
-                    href="javascript:void(0);"
-                    onClick={this.viewMap}
-                  >
-                    {_("View Map")}
-                  </a>,
-                ]
+                <i key="edit-icon" className="fa fa-globe"></i>,
+                <a
+                  key="edit-text"
+                  onClick={this.viewMap}
+                >
+                  {_("View Map")}
+                </a>,
+              ]
               : ""}
 
             {canEdit
               ? [
-                  <i key="edit-icon" className="far fa-edit"></i>,
-                  <a
-                    key="edit-text"
-                    href="javascript:void(0);"
-                    onClick={this.handleEditProject}
-                  >
-                    {" "}
-                    {_("Edit")}
-                  </a>,
-                ]
+                <i key="edit-icon" className="far fa-edit"></i>,
+                <a
+                  key="edit-text"
+                  onClick={this.handleEditProject}
+                >
+                  {" "}
+                  {_("Edit")}
+                </a>,
+              ]
               : ""}
 
             {!canEdit && !data.owned
               ? [
-                  <i key="edit-icon" className="far fa-eye-slash"></i>,
-                  <a
-                    key="edit-text"
-                    href="javascript:void(0);"
-                    onClick={this.handleHideProject(
-                      deleteWarning,
-                      this.handleDelete
-                    )}
-                  >
-                    {" "}
-                    {_("Delete")}
-                  </a>,
-                ]
+                <i key="edit-icon" className="far fa-eye-slash"></i>,
+                <a
+                  key="edit-text"
+                  onClick={this.handleHideProject(
+                    deleteWarning,
+                    this.handleDelete
+                  )}
+                >
+                  {" "}
+                  {_("Delete")}
+                </a>,
+              ]
               : ""}
           </div>
         </div>
