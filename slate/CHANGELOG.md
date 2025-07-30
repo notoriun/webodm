@@ -1,5 +1,11 @@
 # Changelog
 
+## Versão 1.0.34
+
+*30-07-25*
+
+- Corrigido problema de segurança do form-data no nodejs
+
 ## Versão 1.0.33
 
 *23-07-25*
