@@ -37,10 +37,12 @@ echo "  🍏 ARM64 -> $TAG_ARM64"
 echo ""
 
 echo "🔨 Building amd64..."
-podman build --arch amd64 -f "$DOCKERFILE" -t "$TAG_AMD64" --build-arg VER_PGI_INFRA=$BASE_IMAGE_VERSION-amd64  .
+podman build --arch amd64 -f "$DOCKERFILE" -t "$TAG_AMD64" --build-arg VER_PGI_INFRA=${BASE_IMAGE_VERSION}-amd64  .
+podman rmi notoriun/pgi_infra:${BASE_IMAGE_VERSION}-amd64
 
 echo "🔨 Building arm64..."
-podman build --arch arm64 -f "$DOCKERFILE" -t "$TAG_ARM64" --build-arg VER_PGI_INFRA=$BASE_IMAGE_VERSION-arm64 .
+podman build --arch arm64 -f "$DOCKERFILE" -t "$TAG_ARM64" --build-arg VER_PGI_INFRA=${BASE_IMAGE_VERSION}-arm64 .
+podman rmi notoriun/pgi_infra:${BASE_IMAGE_VERSION}-arm64
 
 echo "🚀 Pushing amd64..."
 podman push "$TAG_AMD64"
@@ -55,5 +57,6 @@ podman manifest add "$TAG" "docker://$TAG_ARM64"
 
 echo "📤 Pushing manifest..."
 podman manifest push "$TAG" "docker://$TAG"
+podman manifest rm "$TAG"
 
 echo "✅ Done. Multiarch image '$TAG' is available on Docker Hub."
