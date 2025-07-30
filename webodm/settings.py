@@ -484,6 +484,9 @@ UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES = os.environ.get(
     "WO_UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES", 24 * 60
 )
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+
 try:
     from .local_settings import *
 except ImportError:

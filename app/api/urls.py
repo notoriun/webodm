@@ -1,4 +1,4 @@
-from django.conf.urls import url, include
+from django.conf.urls import re_path, include
 
 from app.api.presets import PresetViewSet
 from app.plugins.views import api_view_handler
@@ -41,79 +41,79 @@ admin_router.register(r"admin/groups", AdminGroupViewSet, basename="admin-groups
 admin_router.register(r"admin/profiles", AdminProfileViewSet, basename="admin-groups")
 
 urlpatterns = [
-    url(r"processingnodes/options/$", ProcessingNodeOptionsView.as_view()),
-    url(r"^", include(router.urls)),
-    url(r"^", include(tasks_router.urls)),
-    url(r"^", include(admin_router.urls)),
-    url(
+    re_path(r"processingnodes/options/$", ProcessingNodeOptionsView.as_view()),
+    re_path(r"^", include(router.urls)),
+    re_path(r"^", include(tasks_router.urls)),
+    re_path(r"^", include(admin_router.urls)),
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/(?P<tile_type>orthophoto|dsm|dtm)/tiles\.json$",
         TileJson.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/(?P<tile_type>orthophoto|dsm|dtm)/bounds$",
         Bounds.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/(?P<tile_type>orthophoto|dsm|dtm)/metadata$",
         Metadata.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/(?P<tile_type>orthophoto|dsm|dtm)/tiles/(?P<z>[\d]+)/(?P<x>[\d]+)/(?P<y>[\d]+)\.?(?P<ext>png|jpg|webp)?$",
         Tiles.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/(?P<tile_type>orthophoto|dsm|dtm)/tiles/(?P<z>[\d]+)/(?P<x>[\d]+)/(?P<y>[\d]+)@(?P<scale>[\d]+)x\.?(?P<ext>png|jpg|webp)?$",
         Tiles.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/(?P<asset_type>orthophoto|dsm|dtm|georeferenced_model)/export$",
         Export.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/download/(?P<asset>.+)$",
         TaskDownloads.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/assets/(?P<asset_type>fotos|fotos_360|videos)/metadata$",
         TaskMetadataAssets.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/assets/(?P<unsafe_asset_path>.+)$",
         TaskAssets.as_view(),
     ),
-    url(r"projects/(?P<project_pk>[^/.]+)/tasks/import$", TaskAssetsImport.as_view()),
-    url(
+    re_path(r"projects/(?P<project_pk>[^/.]+)/tasks/import$", TaskAssetsImport.as_view()),
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/backup$",
         TaskBackup.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/images/thumbnail/(?P<image_filename>.+)$",
         Thumbnail.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/images/download/(?P<image_filename>.+)$",
         ImageDownload.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/3d/scene$",
         Scene.as_view(),
     ),
-    url(
+    re_path(
         r"projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/3d/cameraview$",
         CameraView.as_view(),
     ),
-    url(r"workers/check/(?P<celery_task_id>.+)", CheckTask.as_view()),
-    url(r"workers/get/(?P<celery_task_id>.+)", GetTaskResult.as_view()),
-    url(r"cache/size", GetCacheSize.as_view()),
-    url(r"^auth/", include("rest_framework.urls")),
-    url(r"token/refresh/$", TokenRefreshView.as_view(), name="token_refresh"),
-    url(r"token/verify/$", TokenVerifyView.as_view(), name="token_verify"),
-    url(r"token/$", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    url(r"^plugins/(?P<plugin_name>[^/.]+)/(.*)$", api_view_handler),
+    re_path(r"workers/check/(?P<celery_task_id>.+)", CheckTask.as_view()),
+    re_path(r"workers/get/(?P<celery_task_id>.+)", GetTaskResult.as_view()),
+    re_path(r"cache/size", GetCacheSize.as_view()),
+    re_path(r"^auth/", include("rest_framework.urls")),
+    re_path(r"token/refresh/$", TokenRefreshView.as_view(), name="token_refresh"),
+    re_path(r"token/verify/$", TokenVerifyView.as_view(), name="token_verify"),
+    re_path(r"token/$", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    re_path(r"^plugins/(?P<plugin_name>[^/.]+)/(.*)$", api_view_handler),
 ]
 
 if settings.ENABLE_USERS_API:
-    urlpatterns.append(url(r"users", UsersList.as_view()))
+    urlpatterns.append(re_path(r"users", UsersList.as_view()))
 
 if settings.EXTERNAL_AUTH_ENDPOINT != "":
-    urlpatterns.append(url(r"^external-token-auth/", ExternalTokenAuth.as_view()))
+    urlpatterns.append(re_path(r"^external-token-auth/", ExternalTokenAuth.as_view()))

@@ -3,7 +3,7 @@ import tempfile
 import zipfile
 import shutil
 
-from django.conf.urls import url
+from django.conf.urls import re_path
 from django.contrib import admin
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -53,7 +53,7 @@ apagar_console_log.short_description = "Apagar log do console"
 
 
 class TaskAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     list_display = (
@@ -77,7 +77,7 @@ admin.site.register(Task, TaskAdmin)
 
 
 class TaskAssetAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     list_display = (
@@ -100,7 +100,7 @@ admin.site.register(Preset, admin.ModelAdmin)
 
 class SettingAdmin(admin.ModelAdmin):
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         # if there's already an entry, do not allow adding
         count = Setting.objects.all().count()
         return count == 0
@@ -168,7 +168,7 @@ class PluginAdmin(admin.ModelAdmin):
     readonly_fields = ("name",)
     change_list_template = "admin/change_list_plugin.html"
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -201,22 +201,22 @@ class PluginAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            url(
+            re_path(
                 r"^(?P<plugin_name>.+)/enable/$",
                 self.admin_site.admin_view(self.plugin_enable),
                 name="plugin-enable",
             ),
-            url(
+            re_path(
                 r"^(?P<plugin_name>.+)/disable/$",
                 self.admin_site.admin_view(self.plugin_disable),
                 name="plugin-disable",
             ),
-            url(
+            re_path(
                 r"^(?P<plugin_name>.+)/delete/$",
                 self.admin_site.admin_view(self.plugin_delete),
                 name="plugin-delete",
             ),
-            url(
+            re_path(
                 r"^actions/upload/$",
                 self.admin_site.admin_view(self.plugin_upload),
                 name="plugin-upload",
