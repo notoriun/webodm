@@ -10,7 +10,7 @@ class GCPPopup extends React.Component {
         task: PropTypes.object.isRequired,
     };
 
-    constructor(props){
+    constructor(props) {
         super(props);
 
         this.state = {
@@ -23,8 +23,8 @@ class GCPPopup extends React.Component {
     }
 
     selectShot = (shotId) => {
-        if (shotId !== this.state.selectedShot){
-            this.setState({loading: true, selectedShot: shotId, error: ""});
+        if (shotId !== this.state.selectedShot) {
+            this.setState({ loading: true, selectedShot: shotId, error: "" });
         }
     }
 
@@ -34,9 +34,9 @@ class GCPPopup extends React.Component {
         const { feature } = this.props;
         const ob = feature.properties.observations.find(o => o.shot_id === shotId);
 
-        if (ob){
+        if (ob) {
             return ob[key];
-        }else{
+        } else {
             return [0.5, 0.5];
         }
     }
@@ -54,11 +54,11 @@ class GCPPopup extends React.Component {
         const { selectedShot, zoom } = this.state;
         const annotated = this.getAnnotationCoords(selectedShot);
         const reprojected = this.getReprojectedCoords(selectedShot);
-    
+
         return `/api/projects/${task.project}/tasks/${task.id}/images/thumbnail/${selectedShot}?size=${size}&center_x=${annotated[0]}&center_y=${annotated[1]}&draw_point=${annotated[0]},${annotated[1]}&point_color=f29900&point_radius=2&draw_point=${reprojected[0]},${reprojected[1]}&&point_color=00ff00&point_radius=2&zoom=${zoom}`;
     }
 
-    componentDidMount(){
+    componentDidMount() {
         const { feature } = this.props;
 
         document.addEventListener("fullscreenchange", this.onFullscreenChange);
@@ -66,23 +66,23 @@ class GCPPopup extends React.Component {
         if (this.imageContainer) this.imageContainer.addEventListener("mousewheel", this.onImageWheel); // onWheel doesn't work :/
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         document.removeEventListener("fullscreenchange", this.onFullscreenChange);
         if (this.imageContainer) this.imageContainer.removeEventListener("mousewheel", this.onImageWheel);
     }
 
     onFullscreenChange = (e) => {
-        if (!document.fullscreenElement){
-            this.setState({expandGCPImage: false});
+        if (!document.fullscreenElement) {
+            this.setState({ expandGCPImage: false });
         }
     }
 
     imageOnError = () => {
-        this.setState({error: _("Image missing"), loading: false});
+        this.setState({ error: _("Image missing"), loading: false });
     }
 
     imageOnLoad = () => {
-        this.setState({loading: false});
+        this.setState({ loading: false });
     }
 
     canZoomIn = () => {
@@ -94,21 +94,21 @@ class GCPPopup extends React.Component {
     }
 
     zoomIn = () => {
-        if (this.canZoomIn()){
-            this.setState({loading: true, zoom: this.state.zoom + 1});
+        if (this.canZoomIn()) {
+            this.setState({ loading: true, zoom: this.state.zoom + 1 });
         }
     }
 
     zoomOut = () => {
-        if (this.canZoomOut()){
-            this.setState({loading: true, zoom: this.state.zoom - 1});
+        if (this.canZoomOut()) {
+            this.setState({ loading: true, zoom: this.state.zoom - 1 });
         }
     }
 
     onImageWheel = e => {
-        if (e.deltaY > 0){
+        if (e.deltaY > 0) {
             this.zoomIn();
-        }else{
+        } else {
             this.zoomOut();
         }
     }
@@ -116,32 +116,32 @@ class GCPPopup extends React.Component {
     onImgClick = () => {
         const { expandGCPImage } = this.state;
 
-        if (!expandGCPImage){
+        if (!expandGCPImage) {
             this.image.requestFullscreen();
-            this.setState({ loading: true, expandGCPImage: true});
-        }else{
+            this.setState({ loading: true, expandGCPImage: true });
+        } else {
             document.exitFullscreen();
             this.setState({ loading: true, expandGCPImage: false });
         }
     }
 
-    render(){
+    render() {
         const { error, loading, expandGCPImage, selectedShot } = this.state;
         const { feature, task } = this.props;
-        
-        const downloadGCPLink =  `/api/projects/${task.project}/tasks/${task.id}/download/ground_control_points.geojson`;
+
+        const downloadGCPLink = `/api/projects/${task.project}/tasks/${task.id}/download/ground_control_points.geojson`;
         const assetDownload = AssetDownloads.only(["ground_control_points.geojson"])[0];
         const imageUrl = expandGCPImage ? this.getThumbUrl(999999999) : this.getThumbUrl(320);
 
         const shotLinks = [];
-        for (let i = 0; i < feature.properties.observations.length; i++){
+        for (let i = 0; i < feature.properties.observations.length; i++) {
             const obs = feature.properties.observations[i];
-            if (obs.shot_id === selectedShot){
+            if (obs.shot_id === selectedShot) {
                 shotLinks.push(<span key={obs.shot_id}>{obs.shot_id}</span>);
-            }else{
-                shotLinks.push(<a key={obs.shot_id} className="gcp-image-link" href="javascript:void(0)" onClick={() => this.selectShot(obs.shot_id)}>{obs.shot_id}</a>);
+            } else {
+                shotLinks.push(<a key={obs.shot_id} className="gcp-image-link" onClick={() => this.selectShot(obs.shot_id)}>{obs.shot_id}</a>);
             }
-            if (i+1 < feature.properties.observations.length) shotLinks.push(<span key={"divider-" + i}> | </span>);
+            if (i + 1 < feature.properties.observations.length) shotLinks.push(<span key={"divider-" + i}> | </span>);
         }
 
         const imgStyle = {
@@ -155,15 +155,15 @@ class GCPPopup extends React.Component {
                 {shotLinks}
             </div>
 
-            <div className="image-container" ref={(domNode) => this.imageContainer = domNode }>
+            <div className="image-container" ref={(domNode) => this.imageContainer = domNode}>
                 {loading ? <div className="spinner"><i className="fa fa-circle-notch fa-spin fa-fw"></i></div> : ""}
-                {error ? <div style={{marginTop: "8px"}}>{error}</div> : ""}
-                
-                {!error && selectedShot !== "" ? 
-                <div className={`image ${expandGCPImage ? "fullscreen" : ""} ${loading ? "loading" : ""}`} style={{marginTop: "8px"}}  ref={(domNode) => { this.image = domNode;}}>
-                    {loading && expandGCPImage ? <div><i className="fa fa-circle-notch fa-spin fa-fw"></i></div> : ""}
-                    <a onClick={this.onImgClick} href="javascript:void(0);" title={selectedShot}><img style={imgStyle} src={imageUrl} onLoad={this.imageOnLoad} onError={this.imageOnError} /></a>
-                </div> : ""}
+                {error ? <div style={{ marginTop: "8px" }}>{error}</div> : ""}
+
+                {!error && selectedShot !== "" ?
+                    <div className={`image ${expandGCPImage ? "fullscreen" : ""} ${loading ? "loading" : ""}`} style={{ marginTop: "8px" }} ref={(domNode) => { this.image = domNode; }}>
+                        {loading && expandGCPImage ? <div><i className="fa fa-circle-notch fa-spin fa-fw"></i></div> : ""}
+                        <a onClick={this.onImgClick} title={selectedShot}><img style={imgStyle} src={imageUrl} onLoad={this.imageOnLoad} onError={this.imageOnError} /></a>
+                    </div> : ""}
             </div>
 
             <div className="btn-group zoom-buttons">
