@@ -1,18 +1,18 @@
 version: "3.2"
 
-networks:
-  otel:
+# networks:
+#   otel:
 
 services:
   loki:
     image: grafana/loki:latest
     volumes:
-      - ./data/loki/chunks:/loki/chunks
-      - ./data/loki/rules:/loki/rules
-      - ./config/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./observability/data/loki/chunks:/loki/chunks
+      - ./observability/data/loki/rules:/loki/rules
+      - ./observability/config/loki-config.yaml:/etc/loki/local-config.yaml
     user: "0"
-    networks:
-      - otel
+  # networks:
+  #   - otel
 
   tempo:
     image: grafana/tempo:latest
@@ -25,11 +25,11 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     user: "0"
     volumes:
-      - ./data/tempo/wal:/var/tempo/wal
-      - ./data/tempo/blocks:/var/tempo/blocks
-      - ./config/tempo-config.yaml:/etc/tempo.yaml
-    networks:
-      - otel
+      - ./observability/data/tempo/wal:/var/tempo/wal
+      - ./observability/data/tempo/blocks:/var/tempo/blocks
+      - ./observability/config/tempo-config.yaml:/etc/tempo.yaml
+  # networks:
+  #   - otel
 
   prometheus:
     image: prom/prometheus:latest
@@ -38,13 +38,13 @@ services:
       - --web.enable-remote-write-receiver
       - --enable-feature=native-histograms
     ports:
-        - "9090:9090"
+      - "9090:9090"
     volumes:
-      - ./config/prometheus-config.yaml:/etc/prometheus.yaml
-      - ./data/prometheus:/prometheus
+      - ./observability/config/prometheus-config.yaml:/etc/prometheus.yaml
+      - ./observability/data/prometheus:/prometheus
     user: "0"
-    networks:
-      - otel
+  # networks:
+  #   - otel
 
   grafana:
     environment:
@@ -61,17 +61,17 @@ services:
       - prometheus
     user: "0"
     volumes:
-      - ./data/grafana/data:/var/lib/grafana
-      - ./config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./dashboards:/etc/grafana/dashboards
-      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
-    networks:
-      - otel
+      - ./observability/data/grafana/data:/var/lib/grafana
+      - ./observability/config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./observability/dashboards:/etc/grafana/dashboards
+      - ./observability/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+  # networks:
+  #   - otel
 
   collector:
     image: otel/opentelemetry-collector-contrib:latest
     volumes:
-      - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./observability/config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
       - 1888:1888 # pprof extension
       - 8888:8888 # Prometheus metrics exposed by the Collector
@@ -85,12 +85,12 @@ services:
       - loki
       - prometheus
     command: ["--config=/etc/otel-collector-config.yaml"]
-    networks:
-      - otel
+  # networks:
+  #   - otel
 
   node_exporter:
     image: prom/node-exporter:latest
     ports:
       - "9100:9100"
-    networks:
-      - otel
+    # networks:
+    #   - otel

@@ -528,6 +528,10 @@ start(){
 down(){
 	command="$docker_compose -f docker-compose.yml"
 
+	if [ "$WO_ENABLE_OTEL" = "YES" ]; then
+        command+=" -f ./observability/docker-compose.yaml"
+	fi
+
 	if [ "${GPU_NVIDIA}" = true ]; then
 		command+=" -f docker-compose.nodeodm.gpu.nvidia.yml"
 	elif [ "${GPU_INTEL}" = true ]; then

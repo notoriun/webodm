@@ -117,3 +117,4 @@ dpkg/deb
 appmedia
 database
 webpack-stats.json
+observability/data

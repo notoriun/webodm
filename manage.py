@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 import os
 import sys
+from observability.otel_setup import setup_otel
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webodm.settings")
+
+    try:
+        setup_otel()
+    except Exception as e:
+        print(f"Failed to setup OpenTelemetry. Original error: {e}")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError:
