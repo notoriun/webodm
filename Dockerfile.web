@@ -1,4 +1,4 @@
-ARG VER_PGI_INFRA=1.0.1
+ARG VER_PGI_INFRA=1.0.2
 
 FROM notoriun/pgi_infra:${VER_PGI_INFRA}
 
