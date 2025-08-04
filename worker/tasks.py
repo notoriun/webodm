@@ -185,17 +185,20 @@ def get_pending_tasks():
         Q(
             processing_node__isnull=True,
             auto_processing_node=True,
-            partial=False,
-            upload_in_progress=False,
         )
         | Q(
             Q(status=None) | Q(status__in=[status_codes.QUEUED, status_codes.RUNNING]),
             processing_node__isnull=False,
-            partial=False,
-            upload_in_progress=False,
         )
-        | Q(pending_action__isnull=False, partial=False, upload_in_progress=False)
-    ).exclude(status=status_codes.COMPLETED, pending_action__isnull=True)
+        | Q(pending_action__isnull=False)
+    ).exclude(
+        status=status_codes.COMPLETED,
+        pending_action__isnull=True,
+        node_error_retry__gte=settings.TASK_MAX_NODE_ERROR_RETRIES,
+        node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
+        partial=True,
+        upload_in_progress=True,
+    )
 
 
 @app.task(ignore_result=True)

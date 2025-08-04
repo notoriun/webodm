@@ -101,30 +101,21 @@ class ProcessingNodesManager:
 
     def _queued_tasks_or_without_node(self):
         return Task.objects.filter(
-            Q(partial=False)
-            & (
-                Q(status=status_codes.QUEUED)
-                | (
-                    Q(processing_node__isnull=True)
-                    & (
-                        Q(status__isnull=True)
-                        | Q(
-                            status=status_codes.FAILED,
-                            node_error_retry__lt=settings.TASK_MAX_NODE_ERROR_RETRIES,
-                        )
-                        | Q(
-                            status=status_codes.FAILED,
-                            node_connection_retry__lt=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
-                        )
-                    )
-                )
+            Q(status=status_codes.QUEUED)
+            | (
+                Q(processing_node__isnull=True)
+                & (Q(status__isnull=True) | Q(status=status_codes.FAILED))
             )
         ).exclude(
             pending_action__in=(
                 pending_actions.CANCEL,
                 pending_actions.REMOVE,
                 pending_actions.RESTART,
-            )
+            ),
+            node_error_retry__gte=settings.TASK_MAX_NODE_ERROR_RETRIES,
+            node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
+            partial=True,
+            upload_in_progress=True,
         )
 
     def _free_nodes(self):
