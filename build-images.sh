@@ -30,6 +30,7 @@ fi
 
 TAG_AMD64="${TAG}-amd64"
 TAG_ARM64="${TAG}-arm64"
+TAG_LATEST="${TAG%:*}:latest"
 
 echo "📦 Building images for:"
 echo "  🖥️  AMD64 -> $TAG_AMD64"
@@ -55,8 +56,17 @@ podman manifest create "$TAG"
 podman manifest add "$TAG" "docker://$TAG_AMD64"
 podman manifest add "$TAG" "docker://$TAG_ARM64"
 
-echo "📤 Pushing manifest..."
+echo "📤 Pushing manifest with version..."
 podman manifest push "$TAG" "docker://$TAG"
 podman manifest rm "$TAG"
+
+echo "📦 Creating multiarch manifest: $TAG_LATEST"
+podman manifest create "$TAG_LATEST"
+podman manifest add "$TAG_LATEST" "docker://$TAG_AMD64"
+podman manifest add "$TAG_LATEST" "docker://$TAG_ARM64"
+
+echo "📤 Pushing manifest latest..."
+podman manifest push "$TAG_LATEST" "docker://$TAG_LATEST"
+podman manifest rm "$TAG_LATEST"
 
 echo "✅ Done. Multiarch image '$TAG' is available on Docker Hub."
