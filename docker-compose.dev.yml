@@ -1,6 +1,7 @@
 version: '2.1'
 services:
   webapp:
+    image: notoriun/pgi_web:latest
     entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh --create-default-pnode --setup-devenv\""
     ports:
       - "35729:35729"
@@ -10,8 +11,19 @@ services:
       - ./redis-tls-dev/certs:/certs:ro
     env_file:
       - ./.env
+    build:
+      dockerfile: ./Dockerfile.web
+      context: '.'
+  # develop:
+  #   watch:
+  #     - path: .
+  #       action: sync
+  #       target: /webodm
+  #       ignore:
+  #         - .vscode
 
   worker:
+    image: notoriun/pgi_web:latest
     volumes:
       - .:/webodm
       - ./redis-tls-dev/certs:/certs:ro
@@ -25,6 +37,17 @@ services:
           memory: 800M
     mem_limit: 800m
     restart: unless-stopped
+    build:
+      dockerfile: ./Dockerfile.web
+      context: '.'
+  # develop:
+  #   watch:
+  #     - path: .
+  #       action: sync+restart
+  #       target: /webodm
+  #       ignore:
+  #         - .vscode
+
 
   db:
     ports:
@@ -47,7 +70,7 @@ services:
   #     --requirepass "devpassword"
   #     --appendonly yes
   worker-2:
-    image: notoriun/pgi_web:1.0.31
+    image: notoriun/pgi_web:latest
     container_name: worker-2
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
@@ -67,6 +90,16 @@ services:
         limits:
           memory: 800M
     mem_limit: 800m
+    build:
+      dockerfile: ./Dockerfile.web
+      context: '.'
+  # develop:
+  #   watch:
+  #     - path: .
+  #       action: sync+restart
+  #       target: /webodm
+  #       ignore:
+  #         - .vscode
   # worker-3:
   #   image: notoriun/pgi_web:0.0.14
   #   container_name: worker-3
