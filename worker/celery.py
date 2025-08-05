@@ -4,6 +4,7 @@ import signal
 import sys
 from celery import Celery
 from webodm import settings
+from observability.otel_setup import setup_otel_celery
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,20 @@ def graceful_shutdown(signum, frame):
     sys.exit(0)
 
 
-signal.signal(signal.SIGTERM, graceful_shutdown)
-signal.signal(signal.SIGINT, graceful_shutdown)
+if settings.WORKER_RUNNING:
+    try:
+        import debugpy
+
+        debugpy.listen(("0.0.0.0", 5678))
+        debugpy.wait_for_client()
+    except:
+        pass
+
+    signal.signal(signal.SIGTERM, graceful_shutdown)
+    signal.signal(signal.SIGINT, graceful_shutdown)
+
+    setup_otel_celery()
+
 
 app.conf.beat_schedule = {
     "update-nodes-info": {

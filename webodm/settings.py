@@ -486,6 +486,7 @@ UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES = os.environ.get(
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 OTEL_ENABLED = os.environ.get("WO_ENABLE_OTEL", "NO") == "YES"
+OTEL_ENDPOINT = os.environ.get("WO_OTEL_ENDPOINT", "http://collector:4318")
 
 
 try:

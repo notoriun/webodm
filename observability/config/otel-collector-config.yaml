@@ -38,8 +38,8 @@ exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
 
-  # loki:
-  #   endpoint: http://loki:3100/loki/api/v1/push
+  otlphttp:
+    endpoint: http://loki:3100/otlp
   # Debug logging
   debug:
     verbosity: detailed
@@ -68,5 +68,4 @@ service:
     logs:
       receivers: [otlp, hostmetrics]
       processors: [batch]
-      # exporters: [loki, debug]
-      exporters: [debug]
+      exporters: [otlphttp, debug]

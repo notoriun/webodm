@@ -160,6 +160,7 @@ case $key in
     ;;
     --otel)
     WO_ENABLE_OTEL=YES
+    export WO_ENABLE_OTEL
     shift # past argument
     ;;
     *)    # unknown option

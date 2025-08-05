@@ -8,7 +8,6 @@ https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/
 """
 
 import os
-from multiprocessing import Value
 from django.core.wsgi import get_wsgi_application
 from observability.otel_setup import setup_otel
 
@@ -18,4 +17,4 @@ setup_otel()
 
 application = get_wsgi_application()
 
-booted = Value("b", False)
+from webodm.wsgi_booted import booted
