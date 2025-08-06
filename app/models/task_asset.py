@@ -229,6 +229,7 @@ class TaskAsset(models.Model):
     @staticmethod
     def build_from_type(type: int, task_asset: "TaskAsset") -> "TaskAsset":
         kwargs = {
+            "pk": task_asset.pk,
             "id": task_asset.id,
             "name": task_asset.name,
             "task": task_asset.task,
@@ -242,7 +243,11 @@ class TaskAsset(models.Model):
 
         cls = TaskAsset.class_from_type(type)
 
-        return cls(**kwargs) if cls else None
+        result = cls(**kwargs) if cls else task_asset
+
+        result._state.adding = task_asset._state.adding
+
+        return result
 
     @staticmethod
     def sort_list(assets: Iterable["TaskAsset"]):

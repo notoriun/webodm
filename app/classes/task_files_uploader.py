@@ -150,7 +150,7 @@ class TaskFilesUploader:
         self.task.upload_and_cache_assets(assets)
 
     def _upload_task_asset(self, uploaded_file: dict[str, str], asset_type: int):
-        task_asset, _ = TaskAsset.objects.update_or_create(
+        _task_asset, _ = TaskAsset.objects.update_or_create(
             type=asset_type,
             task=self.task,
             origin_path=uploaded_file["path"],
@@ -158,7 +158,7 @@ class TaskFilesUploader:
                 "status": task_asset_status.PROCESSING,
             },
         )
-        task_asset = task_asset.copy_to_type()
+        task_asset = _task_asset.copy_to_type()
 
         is_valid_or_error = task_asset.is_valid()
 
