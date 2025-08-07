@@ -1,5 +1,17 @@
 # Changelog
 
+## Versão 1.0.36
+
+*07-08-25*
+
+- Criado modo de testar build
+- Migrado para o Django 3
+- Adicionada boservabilidade com o OTel
+- Corrigido fluxo de não reprocessar imagens automaticamente
+- Corrigido bug de não obter status do upload de imagens do s3 quando deu erro e o worker caiu
+- Separado requirements em prod e dev
+- Configurados pacotes de debug quando rodando em modo de dev
+
 ## Versão 1.0.35
 
 *30-07-25*

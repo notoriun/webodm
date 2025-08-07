@@ -3,14 +3,14 @@
 set -e
 
 DOCKERFILE="Dockerfile.web"
-BASE_IMAGE_VERSION="1.0.1"
+BASE_IMAGE_VERSION="1.0.3"
 
 usage() {
   echo "Usage: $0 -t <image_tag> [-f <dockerfile>] [-b <base_image_version>]"
   echo ""
   echo "  -t <image_tag>     Required. Full image tag (e.g., user/app:latest)"
-  echo "  -f <dockerfile>    Optional. Dockerfile to use (default: Dockerfile.web)"
-  echo "  -b <base_image_version>    Optional. Base image version to use on build (default: 1.0.1)"
+  echo "  -f <dockerfile>    Optional. Dockerfile to use (default: ${DOCKERFILE})"
+  echo "  -b <base_image_version>    Optional. Base image version to use on build (default: ${BASE_IMAGE_VERSION})"
   exit 1
 }
 
