@@ -9,10 +9,9 @@ ARG REQUIREMENTS_FILE=requirements
 ENV WO_DEV=${WO_DEV}
 ENV REQUIREMENTS_FILE=${REQUIREMENTS_FILE}
 
-COPY ./requirements.txt /webodm/${REQUIREMENTS_FILE}.txt
-COPY ./package.json ./package-lock.json /webodm/
+COPY ./package.json ./package-lock.json ./requirements.txt ./requirements.dev.txt /webodm/
 
-RUN pip install -r requirements.txt ffmpeg-python && \
+RUN pip install -r ${REQUIREMENTS_FILE}.txt ffmpeg-python && \
     npm install --quiet -g webpack@5.89.0 webpack-cli@5.1.4 && \
     npm ci --quiet
 

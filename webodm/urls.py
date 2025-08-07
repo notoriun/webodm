@@ -17,7 +17,7 @@ Including another URLconf
 import os
 
 from django.conf.urls import include
-from django.urls import re_path
+from django.urls import re_path, path
 from django.contrib import admin
 from . import settings
 from django.views.static import serve
@@ -73,6 +73,9 @@ if settings.DEBUG or settings.FORCE_MEDIA_STATICFILES:
             {"document_root": os.path.join(settings.MEDIA_ROOT, "settings")},
         ),
     ]
+
+if settings.DEV and not settings.WORKER_RUNNING:
+    urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]
 
 # from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # urlpatterns += staticfiles_urlpatterns()

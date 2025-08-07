@@ -26,4 +26,14 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
+    from django.conf import settings
+
+    if os.environ.get("RUN_MAIN") and settings.DEBUG:
+        try:
+            import debugpy
+
+            debugpy.listen(("0.0.0.0", 5678))
+        except:
+            pass
+
     execute_from_command_line(sys.argv)
