@@ -220,6 +220,7 @@ class TaskViewSet(viewsets.ViewSet):
         task.last_error = None
         task.node_connection_retry = 0
         task.node_error_retry = 0
+        task.status = None if pending_action == pending_actions.RESTART else task.status
         task.save()
 
         # Process task right away

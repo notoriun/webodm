@@ -1308,9 +1308,10 @@ class Task(models.Model):
                         self.running_progress = 0
                         self.save()
                     else:
-                        raise NodeServerError(
-                            gettext("Cannot restart a task that has no processing node")
+                        logger.info(
+                            f"Trying to restart task {self}, but dont have Processing node, trying again..."
                         )
+                        return
 
                 elif self.pending_action == pending_actions.REMOVE:
                     logger.info("Removing {}".format(self))
