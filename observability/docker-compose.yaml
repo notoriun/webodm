@@ -1,8 +1,5 @@
 version: "3.2"
 
-# networks:
-#   otel:
-
 services:
   loki:
     image: grafana/loki:latest
@@ -11,8 +8,6 @@ services:
       - ./observability/data/loki/rules:/loki/rules
       - ./observability/config/loki-config.yaml:/etc/loki/local-config.yaml
     user: "0"
-  # networks:
-  #   - otel
 
   tempo:
     image: grafana/tempo:latest
@@ -28,8 +23,6 @@ services:
       - ./observability/data/tempo/wal:/var/tempo/wal
       - ./observability/data/tempo/blocks:/var/tempo/blocks
       - ./observability/config/tempo-config.yaml:/etc/tempo.yaml
-  # networks:
-  #   - otel
 
   prometheus:
     image: prom/prometheus:latest
@@ -43,8 +36,6 @@ services:
       - ./observability/config/prometheus-config.yaml:/etc/prometheus.yaml
       - ./observability/data/prometheus:/prometheus
     user: "0"
-  # networks:
-  #   - otel
 
   grafana:
     environment:
@@ -65,8 +56,6 @@ services:
       - ./observability/config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - ./observability/dashboards:/etc/grafana/dashboards
       - ./observability/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-  # networks:
-  #   - otel
 
   collector:
     image: otel/opentelemetry-collector-contrib:0.131.1
@@ -85,12 +74,8 @@ services:
       - loki
       - prometheus
     command: ["--config=/etc/otel-collector-config.yaml"]
-  # networks:
-  #   - otel
 
   node_exporter:
     image: prom/node-exporter:latest
     ports:
       - "9100:9100"
-    # networks:
-    #   - otel
