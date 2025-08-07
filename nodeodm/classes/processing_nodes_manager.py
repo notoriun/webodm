@@ -107,15 +107,17 @@ class ProcessingNodesManager:
                 & (Q(status__isnull=True) | Q(status=status_codes.FAILED))
             )
         ).exclude(
-            pending_action__in=(
-                pending_actions.CANCEL,
-                pending_actions.REMOVE,
-                pending_actions.RESTART,
-            ),
-            node_error_retry__gte=settings.TASK_MAX_NODE_ERROR_RETRIES,
-            node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
-            partial=True,
-            upload_in_progress=True,
+            Q(
+                pending_action__in=(
+                    pending_actions.CANCEL,
+                    pending_actions.REMOVE,
+                    pending_actions.RESTART,
+                )
+            )
+            | Q(node_error_retry__gte=settings.TASK_MAX_NODE_ERROR_RETRIES)
+            | Q(node_connection_retry__gte=settings.TASK_MAX_NODE_CONNECTION_RETRIES)
+            | Q(partial=True)
+            | Q(upload_in_progress=True)
         )
 
     def _free_nodes(self):
