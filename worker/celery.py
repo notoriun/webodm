@@ -23,9 +23,10 @@ def graceful_shutdown(signum, frame):
 
 if settings.WORKER_RUNNING:
     try:
-        import debugpy
+        if settings.DEBUG:
+            import debugpy
 
-        debugpy.listen(("0.0.0.0", 5678))
+            debugpy.listen(("0.0.0.0", 5678))
     except:
         pass
 
