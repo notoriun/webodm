@@ -10,7 +10,7 @@ from guardian.shortcuts import assign_perm
 
 from worker import tasks as worker_tasks
 from worker.cache_files import seek_and_populate_redis_cache
-from app.models import Preset, Theme, Task
+from app.models import Preset, Theme
 from app.plugins import init_plugins
 from nodeodm.models import ProcessingNode
 
@@ -18,7 +18,7 @@ from nodeodm.models import ProcessingNode
 import logging
 from .models import Setting
 from webodm import settings
-from webodm.wsgi import booted
+from webodm.wsgi_booted import booted
 
 
 def boot():

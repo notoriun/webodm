@@ -9,6 +9,7 @@ import piexif
 import re
 import zipfile
 import rasterio
+import traceback
 import uuid as uuid_module
 import worker.cache_files as worker_cache_files_tasks
 
@@ -1085,7 +1086,10 @@ class Task(models.Model):
         """
 
         try:
-            if self.upload_in_progress:
+            if (
+                self.upload_in_progress
+                and self.pending_action != pending_actions.REMOVE
+            ):
                 return
 
             if self.pending_action == pending_actions.UPLOAD_TO_S3:
@@ -1304,9 +1308,10 @@ class Task(models.Model):
                         self.running_progress = 0
                         self.save()
                     else:
-                        raise NodeServerError(
-                            gettext("Cannot restart a task that has no processing node")
+                        logger.info(
+                            f"Trying to restart task {self}, but dont have Processing node, trying again..."
                         )
+                        return
 
                 elif self.pending_action == pending_actions.REMOVE:
                     logger.info("Removing {}".format(self))
@@ -1455,9 +1460,9 @@ class Task(models.Model):
                                     sender=self.__class__, task_id=self.id
                                 )
 
-                                self._increase_node_error_retry(
-                                    Exception(self.last_error or "UNKNOW_ERROR")
-                                )
+                            self._increase_node_error_retry(
+                                Exception(self.last_error or "UNKNOW_ERROR")
+                            )
 
                     else:
                         # Still waiting...
@@ -2270,8 +2275,13 @@ class Task(models.Model):
         node = str(self.processing_node)
         self.remove_from_your_node()
 
-        if self.node_connection_retry > settings.TASK_MAX_NODE_CONNECTION_RETRIES:
-            self.set_failure(str(NodeConnectionError(f"Cannot connect to {node}")))
+        if self.node_connection_retry >= settings.TASK_MAX_NODE_CONNECTION_RETRIES:
+            error = NodeConnectionError(f"Cannot connect to {node}")
+            self.set_failure(str(error))
+            trace_for_console = "\n".join(
+                traceback.format_exception(type(error), error, error.__traceback__)
+            )
+            self.console += f"Task failed to connect to node after {self.node_error_retry} times.\nWith error: {str(error)}\nTraceback: {trace_for_console}"
             return
 
         try:
@@ -2283,8 +2293,12 @@ class Task(models.Model):
         self.node_error_retry += 1
         self.remove_from_your_node()
 
-        if self.node_error_retry > settings.TASK_MAX_NODE_ERROR_RETRIES:
+        if self.node_error_retry >= settings.TASK_MAX_NODE_ERROR_RETRIES:
             self.set_failure(str(error))
+            trace_for_console = "\n".join(
+                traceback.format_exception(type(error), error, error.__traceback__)
+            )
+            self.console += f"Task failed to process images after {self.node_error_retry} times.\nWith error: {str(error)}\nTraceback: {trace_for_console}"
             return
 
         try:

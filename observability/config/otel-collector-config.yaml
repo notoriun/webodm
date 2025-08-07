@@ -1,0 +1,71 @@
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu: { }
+      memory: { }
+      disk: { }
+      filesystem: { }
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+connectors: # conector que permite a exportação de métricas de spans para o Prometheus
+  spanmetrics:
+    dimensions:
+      - name: http.method # extract http.method attribute from span to Prometheus label http_method
+      - name: http.status_code  # extract http.status_code attribute from span to Prometheus label http_status_code
+      - name: http.route  # extract http.route attribute from span to Prometheus label http_route
+
+
+exporters:
+  # Traces to Tempo
+  otlp:
+    endpoint: http://tempo:4317
+    tls:
+      insecure: true
+
+  # Metrics to Prometheus
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  otlphttp:
+    endpoint: http://loki:3100/otlp
+  # Debug logging
+  debug:
+    verbosity: detailed
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1888
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [spanmetrics, otlp]
+
+    metrics/spanmetrics:
+      receivers: [spanmetrics, otlp, hostmetrics]
+      processors: [batch]
+      exporters: [prometheus, debug]
+
+    logs:
+      receivers: [otlp, hostmetrics]
+      processors: [batch]
+      exporters: [otlphttp, debug]

@@ -484,6 +484,21 @@ UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES = os.environ.get(
     "WO_UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES", 24 * 60
 )
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+OTEL_ENABLED = os.environ.get("WO_ENABLE_OTEL", "NO") == "YES"
+OTEL_ENDPOINT = os.environ.get("WO_OTEL_ENDPOINT", "http://collector:4318")
+
+
+if DEV and not WORKER_RUNNING:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
+
+    import os  # only if you haven't already imported this
+    import socket  # only if you haven't already imported this
+
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS += [ip[:-1] + "1" for ip in ips] + ["10.0.2.2"]
+
 try:
     from .local_settings import *
 except ImportError:

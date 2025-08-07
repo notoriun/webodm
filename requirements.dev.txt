@@ -1,0 +1,3 @@
+-r requirements.txt
+debugpy==1.8.16
+django-debug-toolbar==3.2.4

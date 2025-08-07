@@ -163,7 +163,7 @@ def _get_status_from_recover_db(celery_id: str):
         error = response.get("error", None)
 
         if error is not None:
-            return Response({"ready": True, "error": error})
+            return {"ready": True, "error": error}
 
         output = response.get("output", None)  # String/object
 

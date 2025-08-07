@@ -481,7 +481,6 @@ class TaskListItem extends React.Component {
       }
 
       if ([statusCodes.FAILED, statusCodes.COMPLETED, statusCodes.CANCELED].indexOf(task.status) !== -1 &&
-        task.processing_node &&
         this.props.hasPermission("change") &&
         !imported) {
         // By default restart reruns every pipeline

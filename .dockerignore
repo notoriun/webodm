@@ -9,3 +9,4 @@ celerybeat-schedule.db
 .cronenv
 slate
 screenshots
+observability/data

@@ -12,8 +12,9 @@ from celery.utils.log import get_task_logger
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.db.models import Q
-from app.models import Profile
 
+from app import pending_actions
+from app.models import Profile
 from app.models import Project, Task
 from app.vendor import zipfly
 from app.utils.s3_utils import list_s3_objects, convert_task_path_to_s3
@@ -126,7 +127,8 @@ def process_task(taskId):
     delete_lock = True
 
     try:
-        task_lock_last_update = redis_client.getset(lock_id, time.time())
+        task_lock_last_update = redis_client.get(lock_id)
+        redis_client.set(lock_id, time.time(), 30)
         if task_lock_last_update is not None:
             # Check if lock has expired
             if time.time() - float(task_lock_last_update) <= 30:
@@ -143,7 +145,7 @@ def process_task(taskId):
 
         # Set lock
         def update_lock():
-            redis_client.set(lock_id, time.time())
+            redis_client.set(lock_id, time.time(), 30)
 
         cancel_monitor = setInterval(5, update_lock)
 
@@ -170,9 +172,10 @@ def process_task(taskId):
         if delete_lock:
             try:
                 redis_client.delete(lock_id)
-            except redis.exceptions.RedisError:
-                # Ignore errors, the lock will expire at some point
-                pass
+            except redis.exceptions.RedisError as e:
+                logger.info(
+                    f"Error on delete redis lock for process task. Original error: {e}\nTracebak: {traceback.format_exc()}"
+                )
 
 
 def get_pending_tasks():
@@ -182,20 +185,28 @@ def get_pending_tasks():
     # or tasks that have a pending action
     # no partial tasks allowed
     return Task.objects.filter(
-        Q(
-            processing_node__isnull=True,
-            auto_processing_node=True,
-            partial=False,
-            upload_in_progress=False,
+        (
+            Q(
+                node_error_retry__lt=settings.TASK_MAX_NODE_ERROR_RETRIES,
+                node_connection_retry__lt=settings.TASK_MAX_NODE_CONNECTION_RETRIES,
+                partial=False,
+                upload_in_progress=False,
+            )
+            & (
+                Q(processing_node__isnull=True, auto_processing_node=True)
+                | Q(
+                    Q(status=None)
+                    | Q(status__in=[status_codes.QUEUED, status_codes.RUNNING]),
+                    processing_node__isnull=False,
+                )
+                | Q(pending_action__isnull=False)
+            )
         )
-        | Q(
-            Q(status=None) | Q(status__in=[status_codes.QUEUED, status_codes.RUNNING]),
-            processing_node__isnull=False,
-            partial=False,
-            upload_in_progress=False,
-        )
-        | Q(pending_action__isnull=False, partial=False, upload_in_progress=False)
-    ).exclude(status=status_codes.COMPLETED, pending_action__isnull=True)
+        | Q(pending_action=pending_actions.REMOVE)
+    ).exclude(
+        status=status_codes.COMPLETED,
+        pending_action__isnull=True,
+    )
 
 
 @app.task(ignore_result=True)
@@ -327,7 +338,7 @@ def task_upload_file(self, task_id, files_to_upload, s3_images, upload_type):
 
         return {"output": result}
     except Exception as e:
-        _log_error(f"Error on recover uploading task {task_id}", e)
+        _log_error(f"Error on uploading task {task_id}", e)
 
         error = "unknow_error" if not e or not str(e) or _is_uuid(str(e)) else str(e)
 
@@ -509,14 +520,7 @@ def _is_uuid(value: str):
 
 def _log_error(prefix: str, error: Exception):
     error_str = str(error)
-    need_more_info = (
-        not error or not error_str or error_str == "None" or _is_uuid(error_str)
-    )
-    error_message = f"{prefix}. Original error: {error_str}"
-    if need_more_info:
-        stack_trace = traceback.TracebackException.from_exception(error)
-        error_message += (
-            f" {repr(error_str)}. Traceback: {''.join(stack_trace.format())}"
-        )
+    stack_trace = traceback.TracebackException.from_exception(error)
+    error_message = f"{prefix}. Original error: {error_str} {repr(error_str)}. Traceback: {''.join(stack_trace.format())}"
 
     logger.error(error_message)
