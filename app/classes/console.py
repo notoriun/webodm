@@ -63,3 +63,7 @@ class Console:
                 return line
 
         return -1
+
+    def get_size(self):
+        file_stat = os.stat(self.file)
+        return file_stat.st_size
