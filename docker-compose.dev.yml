@@ -144,4 +144,6 @@ services:
     #       memory: 3072M
     # mem_limit: 3072m
     restart: unless-stopped
+    ports:
+      - 3000:3000
 
