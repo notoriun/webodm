@@ -10,3 +10,4 @@ celerybeat-schedule.db
 slate
 screenshots
 observability/data
+nodedm/external
