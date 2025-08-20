@@ -227,6 +227,7 @@ class TaskFilesUploader:
         )
         percent_per_file = 1.0 / total_files_count if total_files_count else 1
         progress = self._success_files_before_recover_count * percent_per_file
+        self.task.console += f"Starting upload of {total_files_count} files\n"
 
         for file_uploaded in all_files_uploadeds:
             task_asset, upload_error = self._upload_task_asset(

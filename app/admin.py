@@ -27,6 +27,7 @@ from app.plugins import (
     clear_plugins_cache,
     init_plugins,
 )
+from app.utils.file_utils import human_readable_size
 from .models import Project, Task, TaskAsset, Setting, Theme
 from django import forms
 from codemirror2.widgets import CodeMirrorEditor
@@ -53,9 +54,6 @@ apagar_console_log.short_description = "Apagar log do console"
 
 
 class TaskAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request, obj=None):
-        return False
-
     list_display = (
         "id",
         "name",
@@ -71,6 +69,18 @@ class TaskAdmin(admin.ModelAdmin):
     )
     search_fields = ("id", "name", "project__name")
     actions = [apagar_console_log]
+    readonly_fields = ("console_size",)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def console_size(self, obj: Task):
+        if obj is None:  # quando for criar um novo, ainda não tem instância
+            return ""
+
+        return human_readable_size(obj.console.get_size())
+
+    console_size.short_description = "Tamanho do console"
 
 
 admin.site.register(Task, TaskAdmin)

@@ -16,6 +16,7 @@ import datetime
 
 import tzlocal
 from django.contrib.messages import constants as messages
+from .utils import create_default_odm_task_options
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -487,6 +488,10 @@ UPLOADING_STORAGE_TASK_RESULT_TTL_MINUTES = os.environ.get(
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 OTEL_ENABLED = os.environ.get("WO_ENABLE_OTEL", "NO") == "YES"
 OTEL_ENDPOINT = os.environ.get("WO_OTEL_ENDPOINT", "http://collector:4318")
+
+TASK_DEFAULT_ODM_PARAMS = create_default_odm_task_options(
+    os.environ.get("WO_TASK_DEFAULT_ODM_PARAMS", None) or ""
+)
 
 
 if DEV and not WORKER_RUNNING:

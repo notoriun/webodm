@@ -880,7 +880,7 @@ class ProjectListItem extends React.Component {
             {numTasks > 0 ? (
               <span>
                 <i className="fa fa-tasks"></i>
-                <a onClick={this.toggleTaskList}>
+                <a href="#" onClick={this.toggleTaskList}>
                   {interpolate(_("%(count)s Tasks"), { count: numTasks })}{" "}
                   <i
                     className={
@@ -900,6 +900,7 @@ class ProjectListItem extends React.Component {
                   {this.state.selectedTags.length ||
                     this.state.filterText !== "" ? (
                     <a
+                      href="#"
                       className="quick-clear-filter"
                       onClick={this.clearFilter}
                     >
@@ -910,6 +911,7 @@ class ProjectListItem extends React.Component {
                   )}
                   <i className="fa fa-filter"></i>
                   <a
+                    href="#"
                     onClick={this.onOpenFilter}
                     className="dropdown-toggle"
                     data-toggle-outside
@@ -987,6 +989,7 @@ class ProjectListItem extends React.Component {
               ? [
                 <i key="edit-icon" className="fa fa-globe"></i>,
                 <a
+                  href="#"
                   key="edit-text"
                   onClick={this.viewMap}
                 >
@@ -999,6 +1002,7 @@ class ProjectListItem extends React.Component {
               ? [
                 <i key="edit-icon" className="far fa-edit"></i>,
                 <a
+                  href="#"
                   key="edit-text"
                   onClick={this.handleEditProject}
                 >
@@ -1012,6 +1016,7 @@ class ProjectListItem extends React.Component {
               ? [
                 <i key="edit-icon" className="far fa-eye-slash"></i>,
                 <a
+                  href="#"
                   key="edit-text"
                   onClick={this.handleHideProject(
                     deleteWarning,

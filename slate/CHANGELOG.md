@@ -1,5 +1,14 @@
 # Changelog
 
+## Versão 1.0.37
+
+*20-08-25*
+
+- Corrigidos bugs no layout do dashboard
+- Adicionado tamanho do console na visualizacao da task
+- Adicionado botão de visualizção avançada da task
+- Adicionada variavel de env para as configs padrão do processamento da task
+
 ## Versão 1.0.36
 
 *07-08-25*
