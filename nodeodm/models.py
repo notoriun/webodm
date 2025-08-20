@@ -201,7 +201,7 @@ class ProcessingNode(models.Model):
         :param options: options
         :return: dict
         """
-        opts = {}
+        opts = settings.TASK_DEFAULT_ODM_PARAMS
         if options is not None:
             for o in options:
                 opts[o["name"]] = o["value"]
