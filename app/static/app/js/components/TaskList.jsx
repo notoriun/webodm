@@ -8,16 +8,16 @@ import { _, interpolate } from '../classes/gettext';
 
 class TaskList extends React.Component {
   static propTypes = {
-      history: PropTypes.object.isRequired,
-      source: PropTypes.string.isRequired, // URL where to load task list
-      onDelete: PropTypes.func,
-      onTaskMoved: PropTypes.func,
-      hasPermission: PropTypes.func.isRequired,
-      onTagsChanged: PropTypes.func,
-      onTagClicked: PropTypes.func
+    history: PropTypes.object.isRequired,
+    source: PropTypes.string.isRequired, // URL where to load task list
+    onDelete: PropTypes.func,
+    onTaskMoved: PropTypes.func,
+    hasPermission: PropTypes.func.isRequired,
+    onTagsChanged: PropTypes.func,
+    onTagClicked: PropTypes.func
   }
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.historyNav = new HistoryNav(props.history);
@@ -35,40 +35,40 @@ class TaskList extends React.Component {
     this.deleteTask = this.deleteTask.bind(this);
   }
 
-  componentDidMount(){
-    this.loadTaskList(); 
-  }
-
-  refresh(){
+  componentDidMount() {
     this.loadTaskList();
   }
 
-  retry(){
-    this.setState({error: "", loading: true});
+  refresh() {
+    this.loadTaskList();
+  }
+
+  retry() {
+    this.setState({ error: "", loading: true });
     this.refresh();
   }
 
-  applyFilter(text, tags){
-    this.setState({filterText: text, filterTags: tags});
+  applyFilter(text, tags) {
+    this.setState({ filterText: text, filterTags: tags });
   }
 
-  loadTaskList(){
-    this.setState({loading: true});
+  loadTaskList() {
+    this.setState({ loading: true });
 
-    this.taskListRequest = 
+    this.taskListRequest =
       $.getJSON(this.props.source, json => {
-          if (json.length === 1){
-            this.historyNav.addToQSList("project_task_expanded", json[0].id);
-          }
+        if (json.length === 1) {
+          this.historyNav.addToQSList("project_task_expanded", json[0].id);
+        }
 
-          this.setState({
-              tasks: json
-          });
-          setTimeout(() => this.notifyTagsChanged(), 0);
-        })
+        this.setState({
+          tasks: json
+        });
+        setTimeout(() => this.notifyTagsChanged(), 0);
+      })
         .fail((jqXHR, textStatus, errorThrown) => {
-          this.setState({ 
-              error: interpolate(_("Could not load task list: %(error)s"), { error: textStatus} ),
+          this.setState({
+            error: interpolate(_("Could not load task list: %(error)s"), { error: textStatus }),
           });
         })
         .always(() => {
@@ -78,11 +78,11 @@ class TaskList extends React.Component {
         });
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     this.taskListRequest.abort();
   }
 
-  deleteTask(id){
+  deleteTask(id) {
     this.setState({
       tasks: this.state.tasks.filter(t => t.id !== id)
     });
@@ -97,9 +97,9 @@ class TaskList extends React.Component {
   notifyTagsChanged = () => {
     const { tasks } = this.state;
     const tags = [];
-    if (tasks){
+    if (tasks) {
       tasks.forEach(t => {
-        if (t.tags){
+        if (t.tags) {
           t.tags.forEach(x => {
             if (tags.indexOf(x) === -1) tags.push(x);
           });
@@ -114,13 +114,13 @@ class TaskList extends React.Component {
   taskEdited = (task) => {
     // Update
     const { tasks } = this.state;
-    for (let i = 0; i < tasks.length; i++){
-      if (tasks[i].id === task.id){
+    for (let i = 0; i < tasks.length; i++) {
+      if (tasks[i].id === task.id) {
         tasks[i] = task;
         break;
       }
     }
-    this.setState({tasks});
+    this.setState({ tasks });
 
     // Tags might have changed
     setTimeout(() => this.notifyTagsChanged(), 0);
@@ -128,8 +128,8 @@ class TaskList extends React.Component {
 
   arrayContainsAll = (a, b) => {
     let miss = false;
-    for (let i = 0; i < b.length; i++){
-      if (a.indexOf(b[i]) === -1){
+    for (let i = 0; i < b.length; i++) {
+      if (a.indexOf(b[i]) === -1) {
         miss = true;
         break;
       }
@@ -139,11 +139,11 @@ class TaskList extends React.Component {
 
   render() {
     let message = "";
-    if (this.state.loading){
+    if (this.state.loading) {
       message = (<span>{_("Loading...")} <i className="fa fa-sync fa-spin fa-fw"></i></span>);
-    }else if (this.state.error){
-      message = (<span>{interpolate(_("Error: %(error)s"), {error: this.state.error})} <a href="javascript:void(0);" onClick={this.retry}>{_("Try again")}</a></span>);
-    }else if (this.state.tasks.length === 0){
+    } else if (this.state.error) {
+      message = (<span>{interpolate(_("Error: %(error)s"), { error: this.state.error })} <a onClick={this.retry}>{_("Try again")}</a></span>);
+    } else if (this.state.tasks.length === 0) {
       message = (<span></span>);
     }
 
@@ -152,12 +152,12 @@ class TaskList extends React.Component {
         {this.state.tasks.filter(t => {
           const name = t.name !== null ? t.name : interpolate(_("Task #%(number)s"), { number: t.id });
           return name.toLocaleLowerCase().indexOf(this.state.filterText.toLocaleLowerCase()) !== -1 &&
-                  this.arrayContainsAll(t.tags, this.state.filterTags);
+            this.arrayContainsAll(t.tags, this.state.filterTags);
         }).map(task => (
-          <TaskListItem 
-            data={task} 
-            key={task.id} 
-            refreshInterval={3000} 
+          <TaskListItem
+            data={task}
+            key={task.id}
+            refreshInterval={3000}
             onDelete={this.deleteTask}
             onMove={this.moveTask}
             onDuplicate={this.refresh}

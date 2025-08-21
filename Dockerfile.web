@@ -1,0 +1,44 @@
+ARG VER_PGI_INFRA=1.0.3
+
+FROM notoriun/pgi_infra:${VER_PGI_INFRA}
+
+ARG TEST_BUILD
+ARG WO_DEV=NO
+ARG REQUIREMENTS_FILE=requirements
+
+ENV WO_DEV=${WO_DEV}
+ENV REQUIREMENTS_FILE=${REQUIREMENTS_FILE}
+
+COPY ./package.json ./package-lock.json ./requirements.txt ./requirements.dev.txt /webodm/
+
+RUN pip install -r ${REQUIREMENTS_FILE}.txt ffmpeg-python && \
+    npm install --quiet -g webpack@5.89.0 webpack-cli@5.1.4 && \
+    npm ci --quiet
+
+COPY . /webodm/
+
+RUN ln -s /webodm/nginx/crontab /var/spool/cron/crontabs/root && \
+    chmod 0644 /webodm/nginx/crontab && \
+    chmod +x /webodm/nginx/letsencrypt-autogen.sh && \
+    /webodm/nodeodm/setup.sh && \
+    /webodm/nodeodm/cleanup.sh && \
+    cd /webodm && \
+    webpack --mode production && \
+    echo "UTC" > /etc/timezone && \
+    python manage.py collectstatic --noinput && \
+    python manage.py rebuildplugins && \
+    python manage.py translate build --safe && \
+    # Cleanup
+    apt remove -y g++ python3-dev libpq-dev && \
+    apt autoremove -y && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /webodm/__pycache__/ \
+    /webodm/**/*.pyc /webodm/**/*.pyo /webodm/**/*.egg-info /webodm/**/*.dist-info \
+    /webodm/node_modules /webodm/app/static/* && \
+    rm /webodm/webodm/secret_key.py
+
+RUN if [ "$WO_DEV" = "NO" ]; then \
+    apt remove -y nodejs && apt-get autoremove -y && apt-get clean; \
+    fi
+
+VOLUME /webodm/app/media

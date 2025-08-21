@@ -11,45 +11,44 @@ class ContoursButton extends React.Component {
     map: PropTypes.object.isRequired
   }
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.state = {
-        showPanel: false
+      showPanel: false
     };
   }
 
   handleOpen = () => {
-    this.setState({showPanel: true});
+    this.setState({ showPanel: true });
   }
 
   handleClose = () => {
-    this.setState({showPanel: false});
+    this.setState({ showPanel: false });
   }
 
-  render(){
+  render() {
     const { showPanel } = this.state;
 
     return (<div className={showPanel ? "open" : ""}>
-        <a href="javascript:void(0);" 
-            onClick={this.handleOpen} 
-            className="leaflet-control-contours-button leaflet-bar-part theme-secondary"></a>
-        <ContoursPanel map={this.props.map} isShowed={showPanel} tasks={this.props.tasks} onClose={this.handleClose} />
+      <a onClick={this.handleOpen}
+        className="leaflet-control-contours-button leaflet-bar-part theme-secondary"></a>
+      <ContoursPanel map={this.props.map} isShowed={showPanel} tasks={this.props.tasks} onClose={this.handleClose} />
     </div>);
   }
 }
 
 export default L.Control.extend({
-    options: {
-        position: 'topright'
-    },
+  options: {
+    position: 'topright'
+  },
 
-    onAdd: function (map) {
-        var container = L.DomUtil.create('div', 'leaflet-control-contours leaflet-bar leaflet-control');
-        L.DomEvent.disableClickPropagation(container);
-        ReactDOM.render(<ContoursButton map={this.options.map} tasks={this.options.tasks} />, container);
+  onAdd: function (map) {
+    var container = L.DomUtil.create('div', 'leaflet-control-contours leaflet-bar leaflet-control');
+    L.DomEvent.disableClickPropagation(container);
+    ReactDOM.render(<ContoursButton map={this.options.map} tasks={this.options.tasks} />, container);
 
-        return container;
-    }
+    return container;
+  }
 });
 

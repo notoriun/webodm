@@ -1,0 +1,81 @@
+version: "3.2"
+
+services:
+  loki:
+    image: grafana/loki:latest
+    volumes:
+      - ./observability/data/loki/chunks:/loki/chunks
+      - ./observability/data/loki/rules:/loki/rules
+      - ./observability/config/loki-config.yaml:/etc/loki/local-config.yaml
+    user: "0"
+
+  tempo:
+    image: grafana/tempo:latest
+    ports:
+      - "14268"  # jaeger ingest
+      - "3200"   # tempo
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
+      - "9411"   # zipkin
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    user: "0"
+    volumes:
+      - ./observability/data/tempo/wal:/var/tempo/wal
+      - ./observability/data/tempo/blocks:/var/tempo/blocks
+      - ./observability/config/tempo-config.yaml:/etc/tempo.yaml
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=native-histograms
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/config/prometheus-config.yaml:/etc/prometheus.yaml
+      - ./observability/data/prometheus:/prometheus
+    user: "0"
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=tempoSearch,timeSeriesTable
+    image: grafana/grafana:latest
+    ports:
+      - "3600:3000"
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+    user: "0"
+    volumes:
+      - ./observability/data/grafana/data:/var/lib/grafana
+      - ./observability/config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./observability/dashboards:/etc/grafana/dashboards
+      - ./observability/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.131.1
+    volumes:
+      - ./observability/config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - 1888:1888 # pprof extension
+      - 8888:8888 # Prometheus metrics exposed by the Collector
+      - 8889:8889 # Prometheus exporter metrics
+      - 13133:13133 # health_check extension
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP http receiver
+      - 55679:55679 # zpages extension
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+    command: ["--config=/etc/otel-collector-config.yaml"]
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"

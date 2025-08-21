@@ -6,8 +6,14 @@ module.exports = {
     "SystemJS": "<rootDir>/app/static/app/js/tests/mocks/system.js",
     "ReactDOM": "react-dom"
   },
-  setupFiles: ["<rootDir>/app/static/app/js/tests/setup/shims.js",
-  				"<rootDir>/app/static/app/js/tests/setup/setupTests.js", 
-  				"<rootDir>/app/static/app/js/tests/setup/browserMock.js"],
-  testURL: "http://localhost:8000/"
+  setupFiles: [
+    "<rootDir>/app/static/app/js/tests/setup/shims.js",
+    "<rootDir>/app/static/app/js/tests/setup/setupTests.js",
+    "<rootDir>/app/static/app/js/tests/setup/browserMock.js"
+  ],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  testEnvironmentOptions: {
+    url: "http://localhost:8000/",
+  },
+  testEnvironment: 'jsdom'
 };

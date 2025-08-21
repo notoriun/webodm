@@ -1,2 +1,13 @@
 **/.git
 .secret_key
+**/__pycache__
+node_modules
+appmedia
+database
+webodm.log
+celerybeat-schedule.db
+.cronenv
+slate
+screenshots
+observability/data
+nodedm/external

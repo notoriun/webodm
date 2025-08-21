@@ -1,59 +1,93 @@
 import os
 import mimetypes
+import logging
 
 from worker.tasks import TestSafeAsyncResult
-from rest_framework.views import APIView
+from worker.utils.recover_uploads_task_db import RecoverUploadsTaskDb
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework.views import APIView
+from rest_framework import status
 
 from django.http import FileResponse
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 
+logger = logging.getLogger("app.logger")
+
+
 class CheckTask(APIView):
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
+        result_from_recover = _get_status_from_recover_db(celery_task_id)
+
+        if result_from_recover:
+            return Response({"ready": result_from_recover.get("ready", False)})
+
         res = TestSafeAsyncResult(celery_task_id)
 
         if not res.ready():
-            return Response({'ready': False}, status=status.HTTP_200_OK)
+            return Response({"ready": False}, status=status.HTTP_200_OK)
         else:
             result = res.get()
 
-            if result.get('error', None) is not None:
+            if result.get("error", None) is not None:
                 msg = self.on_error(result)
-                return Response({'ready': True, 'error': msg})
+                return Response({"ready": True, "error": msg})
 
             if self.error_check(result) is not None:
                 msg = self.on_error(result)
-                return Response({'ready': True, 'error': msg})
+                return Response({"ready": True, "error": msg})
 
-            return Response({'ready': True})
+            return Response({"ready": True})
 
     def on_error(self, result):
-        return result['error']
+        return result["error"]
 
     def error_check(self, result):
         pass
 
+
 class TaskResultOutputError(Exception):
     pass
 
+
 class GetTaskResult(APIView):
-    permission_classes = (permissions.AllowAny,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, celery_task_id=None, **kwargs):
+        result_from_recover = _get_status_from_recover_db(celery_task_id)
+
+        if result_from_recover:
+            return Response(result_from_recover)
+
         res = TestSafeAsyncResult(celery_task_id)
+
+        if res.failed():
+            if res.info is None:
+                logger.warning(f"Result of celery_task_id={celery_task_id} is None")
+
+            error = res.info or "Erro desconhecido"
+            return Response({"ready": True, "error": str(error)})
+
         if res.ready():
             result = res.get()
-            file = result.get('file', None) # File path
-            output = result.get('output', None) # String/object
+
+            if result is None:
+                return Response({"ready": True, "output": None})
+
+            error = result.get("error", None)
+            if error is not None:
+                return Response({"ready": True, "error": error})
+
+            file = result.get("file", None)  # File path
+            output = result.get("output", None)  # String/object
         else:
-            return Response({'error': 'Task not ready'})
+            return Response({"ready": False, "error": "Task not ready"})
 
         if file is not None:
-            filename = request.query_params.get('filename', os.path.basename(file))
+            filename = request.query_params.get("filename", os.path.basename(file))
             filesize = os.stat(file).st_size
 
             f = open(file, "rb")
@@ -64,23 +98,85 @@ class GetTaskResult(APIView):
             if stream:
                 response = FileResponse(f)
             else:
-                response = HttpResponse(FileWrapper(f),
-                                        content_type=(mimetypes.guess_type(filename)[0] or "application/zip"))
+                response = HttpResponse(
+                    FileWrapper(f),
+                    content_type=(
+                        mimetypes.guess_type(filename)[0] or "application/zip"
+                    ),
+                )
 
-            response['Content-Type'] = mimetypes.guess_type(filename)[0] or "application/zip"
-            response['Content-Disposition'] = "attachment; filename={}".format(filename)
-            response['Content-Length'] = filesize
+            response["Content-Type"] = (
+                mimetypes.guess_type(filename)[0] or "application/zip"
+            )
+            response["Content-Disposition"] = "attachment; filename={}".format(filename)
+            response["Content-Length"] = filesize
 
             return response
         elif output is not None:
             try:
                 output = self.handle_output(output, result, **kwargs)
             except TaskResultOutputError as e:
-                return Response({'error': str(e)})
+                return Response({"ready": True, "error": str(e)})
 
-            return Response({'output': output})
+            return Response({"ready": True, "output": output})
         else:
-            return Response({'error': 'Invalid task output (cannot find valid key)'})
+            return Response(
+                {"ready": True, "error": "Invalid task output (cannot find valid key)"}
+            )
 
     def handle_output(self, output, result, **kwargs):
         return output
+
+
+class GetCacheSize(APIView):
+    # permission_classes = (IsAuthenticated,)
+
+    def get(self, request, celery_task_id=None, **kwargs):
+        from worker.cache_files import get_cache_sizes
+
+        available_size, max_size, current_size = get_cache_sizes()
+
+        return Response(
+            {"available": available_size, "max": max_size, "current": current_size}
+        )
+
+
+def _get_status_from_recover_db(celery_id: str):
+    from app.models import Task
+
+    recover_db = RecoverUploadsTaskDb()
+    secondary_celery_id = recover_db.get_secondary_celery_task_by_celery(
+        celery_id, None
+    )
+
+    if secondary_celery_id:
+        res = TestSafeAsyncResult(secondary_celery_id)
+
+        if not res.ready():
+            return {"ready": False, "error": "Task not ready"}
+
+        response = res.get()
+
+        if not response:
+            return {"ready": True, "output": None}
+
+        error = response.get("error", None)
+
+        if error is not None:
+            return {"ready": True, "error": error}
+
+        output = response.get("output", None)  # String/object
+
+        return {"ready": True, "output": output}
+
+    task_id = recover_db.get_task_by_celery(celery_id)
+
+    if not task_id:
+        return None
+
+    try:
+        task = Task.objects.get(pk=task_id)
+    except Task.DoesNotExist:
+        return None
+
+    return {"ready": task.upload_in_progress == False}

@@ -5,13 +5,13 @@ import PluginsAPI from '../classes/plugins/API';
 import { Checkbox, ExpandButton } from './Toggle';
 import { _ } from '../classes/gettext';
 
-class AnnotationLayer extends React.Component{
+class AnnotationLayer extends React.Component {
   static propTypes = {
     parent: PropTypes.object,
     layer: PropTypes.object
   }
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.state = {
@@ -19,22 +19,22 @@ class AnnotationLayer extends React.Component{
     }
   }
 
-  componentDidUpdate(prevProps, prevState){
-    if (prevState.visible !== this.state.visible && this.props.parent.state.visible){
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.visible !== this.state.visible && this.props.parent.state.visible) {
       PluginsAPI.Map.toggleAnnotation(this.props.layer, this.state.visible);
     }
   }
 
-  componentDidMount(){
+  componentDidMount() {
     PluginsAPI.Map.onUpdateAnnotation(this.handleUpdate);
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     PluginsAPI.Map.offUpdateAnnotation(this.handleUpdate);
   }
 
   handleUpdate = (layer, name) => {
-    if (this.props.layer === layer){
+    if (this.props.layer === layer) {
       const meta = layer[Symbol.for("meta")];
       meta.name = name;
       this.forceUpdate();
@@ -45,12 +45,12 @@ class AnnotationLayer extends React.Component{
     const { layer } = this.props;
     if (!layer._map) return;
 
-    if (layer.options.bounds || layer.getBounds){
-      const bounds = layer.options.bounds !== undefined ? 
-                     layer.options.bounds :
-                     layer.getBounds();
+    if (layer.options.bounds || layer.getBounds) {
+      const bounds = layer.options.bounds !== undefined ?
+        layer.options.bounds :
+        layer.getBounds();
       layer._map.fitBounds(bounds);
-    }else if (layer._latlng){
+    } else if (layer._latlng) {
       layer._map.setView(layer._latlng, 22);
     }
 
@@ -58,19 +58,19 @@ class AnnotationLayer extends React.Component{
   }
 
   handleDelete = () => {
-    if (window.confirm(_('Are you sure you want to delete this?'))){
+    if (window.confirm(_('Are you sure you want to delete this?'))) {
       PluginsAPI.Map.deleteAnnotation(this.props.layer);
     }
   }
 
-  render(){
+  render() {
     const { layer } = this.props;
     const meta = layer[Symbol.for("meta")];
 
     return (<div className="layers-control-layer layers-control-annotations">
       <div className="layer-control-title">
-        <Checkbox bind={[this, 'visible']}/> <a className="layer-label" href="javascript:void(0)" onClick={this.handleFocus}><div className="annotation-name">{meta.name}</div></a> 
-        <a className="layer-action" href="javascript:void(0)" onClick={this.handleDelete} title={_("Delete")}><i className="fa fa-trash"></i></a>
+        <Checkbox bind={[this, 'visible']} /> <a className="layer-label" onClick={this.handleFocus}><div className="annotation-name">{meta.name}</div></a>
+        <a className="layer-action" onClick={this.handleDelete} title={_("Delete")}><i className="fa fa-trash"></i></a>
       </div>
     </div>);
   }
@@ -82,38 +82,38 @@ export default class LayersControlAnnotations extends React.Component {
     visible: true,
     layers: []
   };
-  
+
   static propTypes = {
     expanded: PropTypes.bool,
     visible: PropTypes.bool,
     layers: PropTypes.array
   }
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     let visible = false;
-    for (let i = 0; i < props.layers.length; i++){
-      if (props.layers[i]._map){
+    for (let i = 0; i < props.layers.length; i++) {
+      if (props.layers[i]._map) {
         visible = true;
         break;
       }
     }
 
     this.state = {
-        visible,
-        expanded: props.expanded
+      visible,
+      expanded: props.expanded
     };
 
     this.annRefs = new Array(props.layers.length);
   }
 
   handleAnnotationsClick = () => {
-    this.setState({expanded: !this.state.expanded});
+    this.setState({ expanded: !this.state.expanded });
   }
 
-  componentDidUpdate(prevProps, prevState){
-    if (prevState.visible !== this.state.visible){
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.visible !== this.state.visible) {
       this.annRefs.forEach(ann => {
         let visible = this.state.visible ? ann.state.visible : false;
         PluginsAPI.Map.toggleAnnotation(ann.props.layer, visible);
@@ -123,13 +123,13 @@ export default class LayersControlAnnotations extends React.Component {
 
   handleExportGeoJSON = e => {
     if (PluginsAPI.Map.downloadAnnotations("geojson")) return;
-    else{
+    else {
       // TODO?
     }
   }
 
   handleDelete = () => {
-    if (window.confirm(_('Are you sure you want to delete this?'))){
+    if (window.confirm(_('Are you sure you want to delete this?'))) {
       this.props.layers.forEach(layer => {
         PluginsAPI.Map.deleteAnnotation(layer);
       });
@@ -137,22 +137,22 @@ export default class LayersControlAnnotations extends React.Component {
   }
 
 
-  render(){
+  render() {
     const { layers } = this.props;
 
-    
-    return (<div className="layers-control-layer">
-        <div className="layer-control-title">
-          <ExpandButton bind={[this, 'expanded']} /><Checkbox bind={[this, 'visible']} className="annotation-toggle" />
-          <a title={_("Annotations")} className="layer-label" href="javascript:void(0);" onClick={this.handleAnnotationsClick}><div className="layer-title"><i className="layer-icon fa fa-sticky-note fa-fw"></i> {_("Annotations")}</div></a> 
-          <a className="layer-action" href="javascript:void(0)" onClick={this.handleExportGeoJSON}><i title={_("Export to GeoJSON")} className="fa fa-download"></i></a>
-          <a className="layer-action" href="javascript:void(0)" onClick={this.handleDelete}><i title={_("Delete")} className="fa fa-trash"></i></a>
-        </div>
 
-        <div className={"layer-expanded " + (!this.state.expanded ? "hide" : "")}>
-          {layers.map((layer, i) => <AnnotationLayer parent={this} ref={domNode => this.annRefs[i] = domNode} key={i} layer={layer} />)}
-        </div>
+    return (<div className="layers-control-layer">
+      <div className="layer-control-title">
+        <ExpandButton bind={[this, 'expanded']} /><Checkbox bind={[this, 'visible']} className="annotation-toggle" />
+        <a title={_("Annotations")} className="layer-label" onClick={this.handleAnnotationsClick}><div className="layer-title"><i className="layer-icon fa fa-sticky-note fa-fw"></i> {_("Annotations")}</div></a>
+        <a className="layer-action" onClick={this.handleExportGeoJSON}><i title={_("Export to GeoJSON")} className="fa fa-download"></i></a>
+        <a className="layer-action" onClick={this.handleDelete}><i title={_("Delete")} className="fa fa-trash"></i></a>
+      </div>
+
+      <div className={"layer-expanded " + (!this.state.expanded ? "hide" : "")}>
+        {layers.map((layer, i) => <AnnotationLayer parent={this} ref={domNode => this.annRefs[i] = domNode} key={i} layer={layer} />)}
+      </div>
     </div>);
 
-   }
+  }
 }

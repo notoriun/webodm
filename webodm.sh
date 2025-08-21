@@ -19,6 +19,7 @@ if [[ $platform = "Windows" ]]; then
 fi
 
 dev_mode=false
+test_build_mode=false
 gpu=false
 
 # define realpath replacement function
@@ -38,6 +39,7 @@ DEFAULT_SSL="$WO_SSL"
 DEFAULT_SSL_INSECURE_PORT_REDIRECT="$WO_SSL_INSECURE_PORT_REDIRECT"
 DEFAULT_BROKER="$WO_BROKER"
 DEFAULT_NODES="$WO_DEFAULT_NODES"
+DEFAULT_ENABLE_OTEL="$WO_ENABLE_OTEL"
 
 # Parse args for overrides
 POSITIONAL=()
@@ -103,6 +105,10 @@ case $key in
     dev_mode=true
     shift # past argument
     ;;
+    --test-build)
+    test_build_mode=true
+    shift # past argument
+    ;;
     --gpu)
     gpu=true
     shift # past argument
@@ -148,6 +154,15 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --podman)
+    use_podman=true
+    shift # past argument
+    ;;
+    --otel)
+    WO_ENABLE_OTEL=YES
+    export WO_ENABLE_OTEL
+    shift # past argument
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -185,6 +200,7 @@ usage(){
   echo "	--ssl-insecure-port-redirect	<port>	Insecure port number to redirect from when SSL is enabled (default: $DEFAULT_SSL_INSECURE_PORT_REDIRECT)"
   echo "	--debug	Enable debug for development environments (default: disabled)"
   echo "	--dev	Enable development mode. In development mode you can make modifications to WebODM source files and changes will be reflected live. (default: disabled)"
+  echo "	--test-build	Enable test build mode. Its normal mode, but with env from file, and db conection to dev local. (default: disabled)"
   echo "	--dev-watch-plugins	Automatically build plugins while in dev mode. (default: disabled)"
   echo "	--broker	Set the URL used to connect to the celery broker (default: $DEFAULT_BROKER)"
   echo "	--detached	Run WebODM in detached mode. This means WebODM will run in the background, without blocking the terminal (default: disabled)"
@@ -192,7 +208,9 @@ usage(){
   echo "	--settings	Path to a settings.py file to enable modifications of system settings (default: None)"
   echo "	--worker-memory	Maximum amount of memory allocated for the worker process (default: unlimited)"
   echo "	--worker-cpus	Maximum number of CPUs allocated for the worker process (default: all)"
-  
+  echo "	--podman	Use podman instead docker, for containers manager"
+  echo "	--otel	Enable OpenTelemetry observability"
+
   exit
 }
 
@@ -266,14 +284,29 @@ if [[ $gpu = true ]]; then
 fi
 
 docker_compose="docker-compose"
+
+if [[ $use_podman = true ]]; then
+	docker_compose="podman-compose"
+fi
 check_docker_compose(){
 	dc_msg_ok="\033[92m\033[1m OK\033[0m\033[39m"
 
 	# Check if docker-compose exists
-	hash "docker-compose" 2>/dev/null || not_found=true
+	if [[ $use_podman = true ]]; then
+		hash "podman-compose" 2>/dev/null || not_found=true
+	else
+		hash "docker-compose" 2>/dev/null || not_found=true
+	fi
+
 	if [[ $not_found ]]; then
 		# Check if compose plugin is installed
-		if ! docker compose > /dev/null 2>&1; then
+		if [[ $use_podman = true ]]; then
+			has_new_compose=$(podman compose > /dev/null 2>&1)
+		else
+			has_new_compose=$(docker compose > /dev/null 2>&1)
+		fi
+		
+		if ! $has_new_compose; then
 
 			if [ "${platform}" = "Linux" ] && [ -z "$1" ] && [ ! -z "$HOME" ]; then
 				echo -e "Checking for docker compose... \033[93mnot found, we'll attempt to install it\033[39m"
@@ -292,10 +325,18 @@ check_docker_compose(){
 				return 1
 			fi
 		else
-			docker_compose="docker compose"
+			if [[ $use_podman = true ]]; then
+				docker_compose="podman compose"
+			else
+				docker_compose="docker compose"
+			fi
 		fi
 	else
-		docker_compose="docker-compose"
+		if [[ $use_podman = true ]]; then
+			docker_compose="podman-compose"
+		else
+			docker_compose="docker-compose"
+		fi
 	fi
 
 	if [ -z "$1" ]; then
@@ -333,7 +374,11 @@ check_command(){
 }
 
 environment_check(){
-	check_command "docker" "https://www.docker.com/"
+	if [[ $use_podman = true ]]; then
+		check_command "podman" "https://www.podman.io/"
+	else
+		check_command "docker" "https://www.docker.com/"
+	fi
 	check_docker_compose
 }
 
@@ -360,6 +405,8 @@ start(){
 	if [[ $dev_mode = true ]]; then
 		echo "Starting WebODM in development mode..."
 		down
+	elif [[ $test_build_mode = true ]]; then
+		echo "Starting WebODM for test image build..."
 	else
 		echo "Starting WebODM..."
 	fi
@@ -379,6 +426,7 @@ start(){
 	echo "Settings: $WO_SETTINGS"
 	echo "Worker memory limit: $WO_WORKER_MEMORY"
 	echo "Worker cpus limit: $WO_WORKER_CPUS"
+	echo "OpenTelemetry Enabled: $WO_ENABLE_OTEL"
 	echo "================================"
 	echo "Make sure to issue a $0 down if you decide to change the environment."
 	echo ""
@@ -402,6 +450,14 @@ start(){
     if [[ $dev_mode = true ]]; then
         command+=" -f docker-compose.dev.yml"
     fi
+
+    if [[ $test_build_mode = true ]]; then
+        command+=" -f docker-compose.test-build.yml"
+    fi
+
+	if [ "$WO_ENABLE_OTEL" = "YES" ]; then
+        command+=" -f ./observability/docker-compose.yaml"
+	fi
 
 	if [ "$WO_SSL" = "YES" ]; then
 		if [ -n "$WO_SSL_KEY" ] && [ ! -e "$WO_SSL_KEY" ]; then
@@ -472,6 +528,10 @@ start(){
 
 down(){
 	command="$docker_compose -f docker-compose.yml"
+
+	if [ "$WO_ENABLE_OTEL" = "YES" ]; then
+        command+=" -f ./observability/docker-compose.yaml"
+	fi
 
 	if [ "${GPU_NVIDIA}" = true ]; then
 		command+=" -f docker-compose.nodeodm.gpu.nvidia.yml"

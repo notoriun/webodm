@@ -1,10 +1,11 @@
 import { _ } from './gettext';
 
 const QUEUED = 10,
-      RUNNING = 20,
-      FAILED = 30,
-      COMPLETED = 40,
-      CANCELED = 50;
+    RUNNING = 20,
+    FAILED = 30,
+    COMPLETED = 40,
+    CANCELED = 50,
+    WAITING_NODE = 60;
 
 let statusCodes = {
     [QUEUED]: {
@@ -35,15 +36,16 @@ export default {
     FAILED: FAILED,
     COMPLETED: COMPLETED,
     CANCELED: CANCELED,
+    WAITING_NODE: WAITING_NODE,
 
-    description: function(statusCode) {
-      if (statusCodes[statusCode]) return statusCodes[statusCode].descr;
-      else return "";
+    description: function (statusCode) {
+        if (statusCodes[statusCode]) return statusCodes[statusCode].descr;
+        else return "";
     },
 
-    icon: function(statusCode){
-      if (statusCodes[statusCode]) return statusCodes[statusCode].icon;
-      else return "fa fa-cog fa-spin";
+    icon: function (statusCode) {
+        if (statusCodes[statusCode]) return statusCodes[statusCode].icon;
+        else return "fa fa-cog fa-spin";
     }
 };
 

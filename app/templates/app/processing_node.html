@@ -32,6 +32,14 @@
 		<td>{{ processing_node.queue_count }}</td>
 	</tr>
 	<tr>
+		<td>Queue Tasks</td>
+		<td>{{ processing_node.app_tasks_running }}</td>
+	</tr>
+	<tr>
+		<td>Max processing Tasks</td>
+		<td>{{ processing_node.max_processing_parallel_tasks }}</td>
+	</tr>
+	<tr>
 		<td>{% trans "Max Images Limit" %}</td>
 		<td>{{ processing_node.max_images }}</td>
 	</tr>
@@ -41,17 +49,22 @@
 	</tr>
 	<tr>
 		<td>{% trans "Last Refreshed" %}</td>
-		<td>{{ processing_node.last_refreshed|timesince }} {% trans 'ago' context '5 minutes ago' %} ({{ processing_node.last_refreshed|localtime }})</td> <!-- TODO: timezone? -->
+		<td>{{ processing_node.last_refreshed|timesince }} {% trans 'ago' context '5 minutes ago' %} ({{
+			processing_node.last_refreshed|localtime }})</td> <!-- TODO: timezone? -->
 	</tr>
 	<tr>
 		<td>{% trans "Options (JSON)" %}</td>
-		<td><div data-console data-console-lang="js" data-console-height="300">{{ available_options_json}}</div></td>
+		<td>
+			<div data-console data-console-lang="js" data-console-height="300">{{ available_options_json}}</div>
+		</td>
 	</tr>
 </table>
-{% if user.is_superuser %} 
+{% if user.is_superuser %}
 <div class="text-center">
-	<button class="btn btn-default" onclick="location.href='{% url "admin:nodeodm_processingnode_change" processing_node.id %}';"><i class="glyphicon glyphicon-pencil"></i> {% trans "Edit" %}</button>
-	<button class="btn btn-danger" onclick="location.href='{% url "admin:nodeodm_processingnode_delete" processing_node.id  %}';"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>
+	<button class="btn btn-default" onclick="location.href='{% url " admin:nodeodm_processingnode_change"
+		processing_node.id %}';"><i class="glyphicon glyphicon-pencil"></i> {% trans "Edit" %}</button>
+	<button class="btn btn-danger" onclick="location.href='{% url " admin:nodeodm_processingnode_delete"
+		processing_node.id %}';"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>
 </div>
 {% endif %}
 

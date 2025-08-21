@@ -1,21 +1,28 @@
 import json
 import os
+import threading
+
 
 from django.core.cache import caches
 
 from webodm import settings
 from time import sleep
 from contextlib import contextmanager
+from app.utils import file_utils
 
-cache_files_queue_key = 's3_cache_files_queue'
-cache_files_lock_key = 's3_cache_files_lock'
+cache_files_queue_key = "s3_cache_files_queue"
+cache_files_lock_key = "s3_cache_files_lock"
 
 
 def set_files_in_cache(files: list[str]):
     redis_cache = _get_redis_cache()
 
     files_cache_str = json.dumps(files)
-    redis_cache.set(cache_files_queue_key, files_cache_str, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1)
+    redis_cache.set(
+        cache_files_queue_key,
+        files_cache_str,
+        timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1,
+    )
 
 
 def get_files_in_cache() -> list[str]:
@@ -63,8 +70,17 @@ def get_current_cache_size():
             file_stat = os.stat(filepath)
             current_size += file_stat.st_size
         except OSError:
-            pass
-    
+            import logging
+
+            logging.getLogger().warning(
+                f"Failed to get size of {filepath}, removing from cache..."
+            )
+
+            remove_file_from_cache(filepath)
+
+            if os.path.exists(filepath):
+                file_utils.delete_path(filepath)
+
     return current_size
 
 
@@ -82,16 +98,18 @@ def get_files_with_old_accessed_first():
 def refresh_cache():
     redis_cache = _get_redis_cache()
 
-    redis_cache.touch(cache_files_queue_key, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1)
+    redis_cache.touch(
+        cache_files_queue_key, timeout=settings.S3_IMAGES_CACHE_KEYS_REFRESH_SECONDS + 1
+    )
 
 
 @contextmanager
-def s3_cache_lock(timeout=10):
+def cache_lock(key: str, timeout=10):
     redis_cache = _get_redis_cache()
 
     try:
         while True:
-            acquired = redis_cache.add(cache_files_lock_key, 'locked', timeout=timeout)
+            acquired = redis_cache.add(key, "locked", timeout=timeout)
 
             if not acquired:
                 sleep(1)
@@ -100,7 +118,40 @@ def s3_cache_lock(timeout=10):
                 break
     finally:
         if acquired:
-            redis_cache.delete(cache_files_lock_key)
+            redis_cache.delete(key)
+
+
+def s3_cache_lock(timeout=10):
+    return cache_lock(cache_files_lock_key, timeout)
+
+
+def create_heartbeat(key: str, interval=10):
+    redis_cache = _get_redis_cache()
+    redis_key = f"heartbeat:{key}"
+
+    def beat():
+        while True:
+            redis_cache.set(redis_key, "alive", timeout=interval + 5)
+            sleep(interval)
+
+    thread = threading.Thread(target=beat, daemon=True)
+    thread.start()
+    return thread
+
+
+def heartbeat_exists(key: str):
+    redis_cache = _get_redis_cache()
+    redis_key = f"heartbeat:{key}"
+
+    return redis_cache.has_key(redis_key)
+
+
+def remove_heartbeat(key: str):
+    redis_cache = _get_redis_cache()
+    redis_key = f"heartbeat:{key}"
+
+    redis_cache.delete(redis_key)
+
 
 def _get_redis_cache():
-    return caches['s3_images_cache']
+    return caches["s3_images_cache"]
